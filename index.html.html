@@ -1,0 +1,475 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
+<title>任意点設置 放射観測ツール</title>
+<meta name="theme-color" content="#0d9488">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="default">
+<meta name="apple-mobile-web-app-title" content="放射観測">
+<link rel="apple-touch-icon" href="data:image/png;base64,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">
+<link rel="icon" type="image/png" href="data:image/png;base64,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">
+<link rel="manifest" href="data:application/manifest+json;base64,eyJuYW1lIjogIuS7u+aEj+eCueioree9riDmlL7lsIToprPmuKzjg4Tjg7zjg6siLCAic2hvcnRfbmFtZSI6ICLmlL7lsIToprPmuKwiLCAic3RhcnRfdXJsIjogIi4iLCAic2NvcGUiOiAiLiIsICJkaXNwbGF5IjogInN0YW5kYWxvbmUiLCAiYmFja2dyb3VuZF9jb2xvciI6ICIjZjFmNWY5IiwgInRoZW1lX2NvbG9yIjogIiMwZDk0ODgiLCAiaWNvbnMiOiBbeyJzcmMiOiAiZGF0YTppbWFnZS9wbmc7YmFzZTY0LGlWQk9SdzBLR2dvQUFBQU5TVWhFVWdBQUFMUUFBQUMwQ0FZQUFBQTl6UVl5QUFBSW1rbEVRVlI0bk8yZFBZL2NOaENHNXc2cGpDQnBqUlQ1YjZrTnBJd3JWMWZsU2dPcC9kOVNCRzV0QkZmR0tRNDhjM1drUkVvencvbDRueVlINzBha3BHZEhvK0dzOW80TThQTWZ2MzliUFFkd25TK1BIKzlXejJISkJDQndEbFlJcmpiZ25zVC8vZnFMMWpTQUlQZC8vOU45VFV0dTBVRjZFa1BnSFBRRWw1UmJaTU10a1NGeGJscHlTNGpOdnNHdHpCQVoxR3pGNXBhYWJXTVFHY3dnSlRiTFJtcVpJVEtZb1JhYlErcExHNERJZ0FzdXNlL1AvbytRR1hCU08zUmxuZUtVMEpBWlNNQWg5WFJvTHdOQlpDQkpTVUZtMDQrcENBMlpnUmJGc2RsSVBTdzBaQWJhbkpGNlNHaklERll4Sy9XaDBPaU1BMVlZY1hFNDVVQjBCcXVZY1c5WGFLUWF3QXFqcVVkWGFNZ01yREVpOWVtVlFnQXMwaFFhMFJsWTVTaEt2eElhVlEzZ2haYXIzWlFEMFJsWVpjL05HNkVSbllFM3RzNDJJelNpTTdCT3oxRlVPVUFvWG9SR1pRTjRvMVh4UUlRR29maGg5UVF5OFBYZCs1ZS9mL3JyejRVemljODlFZElONEpkdDJvR1VBNFFDUW9OUVFHZ1FpbnZrejhBN2RSNk5DQTFDQWFGQktGQ0hacVN1TjgrK0IvVnBIaUQwU1Via3ZibzlTRDRQaEI2RVcrQXpZMEx3WXlEMERyTVN0NFFibFhJMlhZSGNiU0IwZ3hHNXVJVWErVEMwWG9QWXQwRG9paU9SdGVXcHgrdk5EV0xmQXFGcFgyUXJvaHpKRGJHZlNTMjAxeExhbnR6WnhiN0x1UFN0TGJMR3paelhEeWNYNVFIcDZWWUtlL1ZlN3llK3R3OHJ5bzByU1NWMGhzV0w3RktueUtFemlGeFQ5cTNlN3l5NWRmZ0luVTNtbW96Uk9yVFFyVlc2TERJWFd2c2NXZXB3UXBlVGhUNklXMXBTUnhRN2xOQ1FlWjhNS1VnWW9iUFhZVWVKTG5VWW9TSHVHSkhrYlJGbXBkQlNQOGFNTkpwenM5Wjh4VWxaS1F3aDlJcDJ6NW14WjVHWWE2OThHZVYrSTR6UXZSTWlXWC9Xdkd4enpQbm9XRVNRT29UUVJ5ZUN1eWxvVk9TWmVaemQ1aXhIeDhLNzFFWG9NRXZmclJOUUxxbWNNb3lPUGNxbzRGZVhybytPUlN2OThJamJDTDJ5SlhOMnpMTnpYWEdqNi9WN2k2NGp0RVlrc2RBRGN0VElMejBmalRHNGNWZUgxc2oxTE1nOE1yNUdoY1ZiR3VJeVFoZTRKYk1vY28xV1c2am5mTnBWaEpZOHlOWmxydEZldnZZa3R5dWhhemhsODlobUt0MFdhbjMvZTdnUld1cnUyM3Y5VlV0cUwxSGFqZEFTZUplNTRQMUdqaE1YUWt0RTV5Z3lGNlNrOWhhbFhRZ3RqWGVaQzFIMjR3cm1oWmFPenRFa2tJaW9ucUswZWFHNXNYNUN1TW0ydjZhRmxuNUtmclRvWEpDK1NiVDhJVEV0ZEkzRzg1Z2prZlY0dVJINktwYWppZ1paOXQrczBKSW53RXUwdVlya2ZscjlnSmdWdWtiNjJ4cVI0YXhRZURoMnJydnRMUFA1emNQTDMwK2ZIcXAvZi83djI2Y1AybE5LZ1lzSWZRWHRTK1BuTnc4M01sOTlIemRXVXdVdVRBb3RsU0pJWGpMUENxb2h0dFF4dFBqaE1DbTBOemlFWEJHdEl4SmFhSTBJd2ltaWx0UVdJeXNYb1lXdWtVZzNKQVNVa3RwRGhZS0RORUp6SXhsTmtYNmN4NXpRbVd2R1hyQjhZMmhPYUE5b1JGQkU2WE9FRlJxUi9qV1dJeXNYWVlXV1FqTnlJa3JQQTZGQktDQTBDSVg2MDBlOTUyNVBuMzVVSGUvTmIvK3FqaWVCeGoxTTJoK3ZCN0dCMENBVTZ2M1FSNWNmcm5LYlZObXU5RE5ySWZtRVZZdkg5eXFJMENBVUVIb1N6VythNEZzdDgwQm9FSXF3UWtzdTgycEVUb2t4ck9hOW5JUVZHdVRFbk5CZUdtZ2tvN1QxM05seXBEY250Q2NreExNdXMzWFNDQzBWN1RrRmxKVFo4dFdPazlCQ2ExME9PVVRVak16VzBnUk84T1FrSm9xUXN6M01TREY0TVJtaHBXNE1OUzY3YjU4K0RFazYrajRPcEk2aHhVZ2ZQa0t2K2xYVVdsWkxFcXdlWHhxVEVScUFzN2dRbXZNeHNGbnU5Z3VjVndjUHg4NnMwQmtmMXMxTnhvZkdteFdhRzZzblFJc3MrKzlHNkV5LzVNUkIxdU5sV21qcFgzTHljcEpta2Y3NU9zdlIzclRRRWxnK0dSSmsyMS96UW1mL3FkOVpzditVdEhtaE5ZZ2lkWlQ5dUlJTG9hV2pOT2QyVnlHVk4zdUt6a1JPaEpZaWl0Ulpmc044QkRkQ1MrVzkzcVdXbE5sYmRDWnlKUFFXYWFtdGk5MmFvNVRNbm5BbHRHU1VhRzNiNmtsdHpVdjcyRmpGZGZ2bzEzZnZSWDVVc2hhbS9HM2hwR3FKYlBXRFBJS3JDRTJray9OYWpOYXJaTGJ3UVo3Qm5kQkVjd2Y1cklnOXFUWHo2NzN4em9nMk8yOXZNaE10ZU9BNUowZDM0UkpQMm16QitVVFZxMk5kbVlQSHFrYWhQUERjZFE1ZHM4Mm50MkpjeWJkYnVmVjIyNjMzanpBYU5Uay9rSzFqc1RxbDRzSjFoQ1pxeXlTZGIycWVmSWtWdisyMnZlZk5STjhqdEh1aGllUXUweHhqbjBGcXZpTno5U2d6VVRDaGlmb25hOFVKbXBGY2UzNTdjL01xTTFIQUhMckZxaE8wbDUrdWxrWWpKVnVKeTdKZEM0dTFZeTlFa1prb2tOQkVrSHFFQ0RlQWU0UVNtdWo1QkVVdFNWMGx1c3hFQVlVdVFPcGJNc2hNRkZob0lwOXRvZHhJdDVsYUk3VFFSTG56NnNqVmpCNmh5M1lGNjIyaDNHUVV1UkErUXRka2lOYVpaU1pLSmpUUmZsdW9aempiVEQyVEl1WFkwbXZLOFppR1dGcnl0MEJLb1F0SFl0ZnZzVVRVZmd3T1VndGQyT3QzdGlMM3lvNUNUMERvaXBsR2ZnMkJJcmQ3U2dHaEd4eUozWHROOG10ZW5HTkZKa3cvdERRV3FpQ1F1RStLZm1oT1Z2U0dRT0I1SVBSSnVCZHBJQzhQRUpxUmlJOEg4RWE2bFVJUW0vc3ZqeC92aUw0bjFRQjRvN2o3NWZIakhTSTBDQVdFQnFHQTBDQVU5MFRQdVFjUjhtamdqenAvSmtLRUJzRkFIVm9CMUo3MWVJblFTRHVBTjdicEJoRlNEaENNcHRDSTBzQTZQVWR2aEs1RE53QWUyRHJiVFRrUXBZRlY5dHg4SlRTaU5QQkN5OVZtaEViRkExaWxWZG00ZVYxMU5nQUkweFVhVVJwWTR5ZzZFeDFFYUVnTnJEQWlNOUZFeWdHcHdTcG0zRHNVR2xVUFlJVVJGNGNpTkZJUHNJclJWT1BsL2FNYmh0UkFtMW1aaVNiTGRwQWFhSEZHWmlLaVUvbHhlWHdZRVI0aEJuaXBnK1daKzdkVEN5czMvYWVJMW9DSnF6SVRYVmdwaE5TQUV3NlppVTZtSEZ1UWdvQ3pjSWxjWUtzeDExSVRRV3l3ei9hcXpyWGV3YjVvQXJIQkhsSWlGMFJXQWJkU0UwSHM3TFR1c3lSV29VV1h0VnRpRTBIdUxQU0tCWkx0RkdwOUdqMjVpU0I0RlBhcVhWbzlRVXNhai9ia0JuRlkwZGhtb3BNT2dzZkFRbWZtL3dvZjdham9tQUF1QUFBQUFFbEZUa1N1UW1DQyIsICJzaXplcyI6ICIxODB4MTgwIiwgInR5cGUiOiAiaW1hZ2UvcG5nIiwgInB1cnBvc2UiOiAiYW55In0sIHsic3JjIjogImRhdGE6aW1hZ2UvcG5nO2Jhc2U2NCxpVkJPUncwS0dnb0FBQUFOU1VoRVVnQUFBZ0FBQUFJQUNBWUFBQUQwZU5UNkFBQWNLRWxFUVZSNG5PM2RPNDhVV1pvRzRLQ0UxVnFCTzhMZ3Y2Mk5oQW5XV0cweDVralk4OTh3VUx1RFZtMDJhMVFuZGN0TFhNNzErNTVIV3FkMk9zazRHWEhlOTV5SXFueTFNS1Mzbno3KzdQMGVBRXI0NzcvKy9hcjNlK0FsSDBvbkFoN2dub0xRaDBGdlFOZ0RiS01VMUdlQUt4RDRBR1VwQk9VWjBBSUVQa0JiQ3NGeEJuQ24ycUgvMS90M05WOGVvSm03YjkrcnZyNHlzSTlCMjZCMDZBdDVJTHZTNVVBWldNOUEzVkFpOUFVOXdEWWxpb0V5Y0ozQnVlQkk4QXQ4Z0xLT0ZBSkY0RHlEOG9qUUJ4aWZNbENHZ1ZqMkJiL0FCeGpEbmtLZ0NDUXZBSUlmSUE1RllKdVVCNzQxK0lVK3dGeTJsb0dNUlNEVkFRdCtnRndVZ2N0U0hPaVc0QmY2QURGdEtRTVppa0Q0QTF3Yi9vSWZJSWUxUlNCNkNRaDdjSUlmZ0d1eUY0RndCeVg0QWRnaWF4RUlkVEJyd2wvd0EzRE9taUlRcVFTRU9CREJEMEFwV1lyQVhlODNjSlR3QjZDa05abFIreXZoVzVpNndkejZBQVEvQUVmYzJnMlllU2RneWpkdTFROUFLMUZ2Q1V6M2hxMzZBZWdoMm03QVZNOEFDSDhBZXJtVk1iTTlGekJGV3hIOEFJd2t3bTdBOERzQXdoK0EwVVRZRFJpNkFBaC9BRVkxZXdrWWRvdmkyc0FKZmdCR2N1Mld3S2kzQTRiY0FSRCtBTXprV2phTnVoTXdYQUVRL2dETWFMWVNNRlFCRVA0QXpHeW1FakJNQVJEK0FFUXdTd2tZNHNHRVN3TWkrQUdZMmFXSEEwZDRNTEQ3RG9Ed0J5Q3FTMWsyd2s1QTF3SWcvQUdJYnRRUzBLMEFDSDhBc2hpeEJIUXBBTUlmZ0d4R0t3SE5DNER3QnlDcmtVcEEwd0lnL0FISWJwUVMwS3dBOUg3WUFRQkcxeklybXhRQWYrUUhBQjZNOE1lQ3V2NGFvUEFISUt2ZUdWaTlBTGp2RHdEbjlYd2VvR29CRVA0QWNGMnZFbEN0QUFoL0FGaW5Sd25vL2wwQUFFQjdWUXFBMVQ4QWJOTjZGNkI0QVJEK0FMQlB5eEpRdEFBSWZ3QTRwbFVKOEF3QUFDUlVyQUJZL1FOQUdTMTJBWW9VQU9FUEFHWFZMZ0Z1QVFCQVFvY0xnTlUvQU5SUmN4ZWd5ZzZBOEFlQU1tcGw2cUVDMFBKN2l3R0FCMGN6ZUhjQnNQVVBBRzNVdUJWUTlCYUE4QWVBT2twbjdLNENZT3NmQU1hd041T0w3UUJZL1FOQVhTV3pkbk1Cc1BvSGdMSHN5ZVlpT3dCVy93RFFScW5NM1ZRQXJQNEJZRXhiTS9yd0RvRFZQd0MwVlNKN1Z4Y0FxMzhBR051V3JENjBBMkQxRHdCOUhNM2dWUVhBNmg4QTVyQTJzM2Z2QUZqOUEwQmZSN0s0eXJjQkFnQmp1MWtBYlA4RHdGeldaUGV1SFFEYi93QXdocjJaZkxVQVdQMER3Snh1WmZqbUhRQ3Jmd0FZeTU1czloQWdBQ1Iwc1FEWS9nZUF1VjNMOGswN0FMYi9BV0JNV3pQYUxRQUFTT2hzQVRpM1pXRDFEd0JqTzVmVmwyNEQyQUVBZ0lRVUFBQkk2Tlh6SDF6YUtuQUxBT2IzNDhQbm0vK2JOMSsvTkhnblFDMTMzNzZmL2ZsLy8vWHZKNW0vYWdkQStBUEFITlptdGxzQUFKQ1FBZ0FBQ1QwcEFINzlEd0RtdCtiWEFlMEFBRUJDQ2dBQUpLUUFBRUJDdndxQSsvOEFFTWV0NXdEc0FBQkFRZ29BQUNTa0FBQkFRZ29BQUNSMHR5eVh2d0FJQUlqbGxQa1hkd0Q4QmdBQXpPMWFscnNGQUFBSktRQUFrSkFDQUFBSktRQUFrSkFDQUFBSktRQUFrTkFyWHdJRWNmejQ4TG5xNjcvNStxWHE2d04xM0gzNy91Sm5yenU4RDJDSDJ1RmU2ajBvQ1RBSEJRQUdNa0xJSDNYdEdKUURHSWNDQUoxRUNQdXR6aDJ6VWdCOUtBRFFTTWJBWCtQNXVDZ0UwSVlDQUpVSS9IMFVBbWhEQVlDQ2hINTVqOGRVR1lCeUZBQTRTT2kzb3d4QU9Rb0E3Q0QwKzFNRzRCZ0ZBRmFhSWZTdkJlSGE5MS9pTlZwVEJtQTdCUUN1R0Nud1JnaTJOZStoOTVncEE3Q09BZ0JuOUF5eDJVUHIwdnZ2TWFhbmYzUDJNWVVhRkFENFc0K0F5aFJNNTQ2MTFaamJGWUNYRkFEU2F4bjh3dWVwNStQUjRyT3dLd0QzRkFEU2FoRTJRbWFibG9WQUVTQTdCWUIwZkdYdVBCNlBaYTNQVFJFZ0t3V0FOR29Hdi9Db3IzWVpVQVRJUmdFZ3ZGckJMeWo2cVZrR0ZBR3lVQUFJcTBid0M0WHgxQ29EaWdEUktRQ0VJL2p6T24xT2lnRGNwZ0FRUnVuZ04rSFBxOGF1Z0NKQU5IZTkzd0NVVURMODMzejlZcElQcFBUbjJmdFBIVU1wcjk1Kyt2anorUS8vZXYrdXgzdUJ6VW9IZjNScnhpdjZPRGhueU9qdTIvY1hQM01MZ0NtWnhObXI1SE1DYmdzd003Y0FtRTZwOExmVm4xdkp6OTl0QVdaa0I0QnBsQXgrT0NtMUkyQTNnTm5ZQVdBS0pjTGZpcDlyU3AwZmRnT1loUjBBaGxZcStHR3RFanNDZGdPWWdSMEFoblUwL0szNE9hTEUrV00zZ0pFcEFBeXBSUGhEQ1VvQVVia0Z3RkFFUHlNNmVsdkFMUUZHWkFlQVlSd0pmOXY5dEhEMFBMTWJ3RWdVQUlad05QeWhKU1dBQ053Q29DdkJ6NnlPM0Jad1M0QVIyQUdnRytGUEJIWURtSlVDUUJkN0p6NzMraG5Sa2ZOU0NhQVhCWURtam9RL2pFd0pZQ1lLQU0zOCtQQlorQlBla1JLZ0NOQ1NBa0FUdHZ6SnhDMEJacUFBVUoxVlAxa3BBWXhNQWFBcTRVOTJTZ0NqVWdDb1pzOEVac3VmaVBhZTEwb0FOU2tBVkxFMy9DRXlKWUNSS0FBVUovemhNaVdBVVNnQUZDWDg0VFlsZ0JFb0FCUWovR0U5SllEZUZBQ0tFUDZ3blJKQVR3b0FoMjJka0R6cER3LzJYQTlLQUNVb0FCeGlJb0krWEhzY3BRQ3cyOTRKeU1RRlQ3bVc2RUVCWUplakU0K0pDKzY1bHVqbDFkdFBIMzgrLytGZjc5LzFlQzlNb3VTRTQxbUFPa3FIZ3MrcER0Y1NyZHg5Ky83aVp3b0FtOVJZYlppNDlobGw1ZWZ6MjhlMVJFc0tBSWZVREJ3VDEzV2poUDFhUHMvclhFdTBkcTRBdk83d1B1Q0ZIeDgrbTdqK05sdlluM1B1R0h5Kzl5Sjh2c1JnQjRCVnRreGFwNG5lSHdkYUwxc28rSnpYMjNNOVpSMWZMbk1MZ0YzMi9LR2Z2Zi90OC84K3NteWhmNG5QKzdJajExS1djV1VkQllETlNrdzZTc0FEb1grZHovMUJpV3NwNm5peW5RTEFKaVVubSt6Ymw0Si9tK3puUUtscjZkWnJrWWNDd0NhbFEzdk42MFdhcklSK0dkbk9pVkxYMHBiWEl6NEZnTlZxVFREWFhqZktSRFZDOEY4YXk3MEJOUEl4emFiVU5hQUVzSVVDd0NxMUo1YW92eUxXT2lScmZaWHM2TjlNRi9WY3FmM1Z3QkhHamYwVUFHNXFOYUU4L25kbW41aGFCR0NwTVdwMUcyYW1NZW1sMURXZ0JMQ0dQd1RFTU41OC9UTDlILytwSFhJemo4M1JYd1ZkNC9TNnM0NVRoR3VBdWRrQjRCY3JpWFZxQlZxTE1SM2hRY3laeDI5VXJsMXVjUXVBaTB3Z3QwWDQ4cFlSQ3NCakVjWjBGSzVocmpsWEFPNDZ2QThHWStLNHJjYlg2MllkeThkcWpNTUl2N0hRUTYzZklDQXV6d0RBRmI2dnZZM1N6d3pNL253QXRHQUhJRG1yLzh0S2hiL1YvallseHl2YlN0Y3VBRnQ0QmlBeDRYOWV5ZUFmeldqUEFLd1IrZk9veGJYTmM1NEJZSmRNRTBTSnNMSGlMNnZVZUdaYThUci9XRU1CU0NyVFpMalcwVEVSL0hXVkdGL24vVXZHSkMrM0FCS3lQZmhVaWVDZnhZeTNBQzdKOUxudDVWcm54QzBBTnNrd0lSd0pFU3Yrdm82T2Y0YVZyL09UYXhTQVpESk1lbXNkRFgvR29BU1VZU3p5VVFBNEszckE3WjNzclBySGRPUnppUjU4emxjdVVRQVNXVHZSUlo0d2ZuejRmQ2o4R2R1UkVoQzVDS3dkbDhoandFc0tRQkl1Ykt2K0xPd0dIR01NOGxBQWVDSnEwRm4xNTZNRVBPVmM1amtGSUlHb0U5cGF3ajh2SldDZjdNZWZoUUxBTHhFRGI4OUVac3MvbHIyZlo4UVFkRjd6bUFJUVhPWUgvL2FHUHpFcEFmYzhFTWlKQWtCSXdwOXpsQUI0b0FBRWxuWDFML3k1Umdtd0M4QTlCWUJRaEQ5cktBR2dBSVNWY2ZXL2RZTDJzRjl1ZXo3L1NDWEFMZ0FLQUNIc0NYOVlsdTNuZ2tBa0NnVWdvSXlyL3kyeUhqZVhaVDBuN0FMa3BnQXdQZDk1VGdsYnpnMkJTQVFLUUREWlZ2L0NuNUl5bGdDN0FIa3BBRXpMaEVSdnprRm1wZ0FFa21uMTc2RS9hc240VUtCZGdKd1VBTUlUL216bG5DRURCU0FJcS8veklod3ZmV1I3SHNBdVFENEtBRk1SL3JTVXJRU1Fpd0tReU95QktQenBJVk1KY04za29nQUVNUHVrQTh6Rm5CT0RBcERFN00zZTZwK2U3QUlRa1FJd3Vka25teldFUHlQSVZBTFd5SENNMFNrQWhDSDhxYzA1UmlRS1FBSXpUMXBXR2N4cTVuTjM1am1EOVJTQWljMDh3YXhoNjU4UnVSWHdJUHJ4UmFjQUJKY2hHRE1jSTJQSmNNNWxPTWJzRkFDR1pHVkJGTTVsUnFVQVRNcWtjczhxaFY2Y2UvZk1SZk5TQUFLYmRZTEs5TDBHekMzNjM4OTNqY1dtQUFCQVFnckFoR1pkVGF4aDljOXNvdThDckJINTJDSlRBSUlTa0VBSjVwSzRGQUNHWWZYUHJPd0NNQ01GWURJbUVHQkU1cWI1S0FBQnpiaEN0dnBuZHBGM0FWeDNNU2tBQUpDUUFqQ1JHVmNPYTFqOUUwWGtYWUExb2g1WFZBcEFNRUlTcU1IY0VzL3IzbThBMWpENUhQUEhiNzh2eTdJc2YvN245eFgvMjJYNXg1Ly9yUDJXd25yejlZdVZNRk5RQU9qS1JGbmVLZXhMdjRaU1VOYVBENThWVzdweUMyQVNtWVBTSkhuYkg3LzkvdXYvWnY0M29zaDh6bWFlcTJhakFBUXkyNlJqb2ppdVZ5QXJBbVhNZGczTU5zZHduVnNBTUtGUnd2ZjBQdHdlZ1BuWUFXQm9WaHhQamJyeUh2Vjk5ZVRjWlhRS3dBUm0yeVpjSStJeDFUWkR3TTd3SGtjVDhWcUllRXdSS1FCQlJGeHRSRHltUFdaYlhjLzJmbXVLZUE1SFBLYXNGQUFZMk14Qk92Tjdod3dVQUpxelBiaE9oQUNOY0F3dHVDYm9RUUZnU05tM0dTTUZaNlJqMlNQN3VjeTRGSURCV1Jua0V6RXdJeDRUMTVtN3hxY0FCRERUQ3NPa2NGM2tvSXg4YkNYTWRHM01OT2R3bVFJQWc4Z1FrQm1PRVdhaEFEQ2NqS3VMVE1HWTZWaFBNcDdUakU4QmdNNHlCbUxHWTRiUktBRFFVZVlnekh6c01BSUZnR2JXUE9Sa3E1U28xcHpiTXowSXlQd1VnSUVKek5pc2dJM0J6QlNhK1NrQTBJSGdlMkFzb0E4RkFBQVNVZ0NnTVN2ZWw0d0p0S2NBMElUbkdjQjljOGFpQUVCRFZycVhHUnRvU3dFQWdJUVVBR2pFQ3ZjMll3VHRLQUFBa0pBQ01DZ1B6UUdqODFEajNCUUFhTURXOW5yR0N0cFFBS2pPYmdZOHNHcG1GQW9BQUNTa0FBQkFRZ29BQUNTa0FFQmxIbXJienBoQmZRb0FBQ1QwNnUybmp6K2YvL0N2OSs5NnZKZHBlV0tYYS83OHovLzBmZ3RUK3UxLy82LzNXMkJ3Zm50b3ZidHYzMS8rck1QN0FBQTZVd0FBSUNFRkFBQVNVZ0FBSUNFRkFBQVNVZ0FBSUNFRkFBQVNVZ0FBSUtIWHZkOUFCRFgrR0VXa3I5Q05kQ3g3L1BGYjczY3dwOGpuUktSckl0S3haR01IQUNyN3g1Ly83UDBXcG1QTW9ENEZBQUFTVWdBQUlDRUZBQUFTVWdDb2JzMERRTDVSa1N3OE5NY29GQUJvd0VOdDZ4a3JhRU1CR0pSVk16QTZ1eGx6VXdBQUlDRUZBQnF4dFgyYk1ZSjJGQUFBU0VnQmdJYXNjQzh6TnRDV0FrQVRIbW9FRDgweEZnVUFHclBTZmNtWVFIc0tBQUFrcEFCQUIxYThENHdGOUtFQURNeDk4OWdFbnpHWW1lY1o1cWNBMEl4Q1EyWUNrOUVvQU5CUjVoVnc1bU9IRVNnQTBGbkdJTXg0ekRBYUJZRGhaTHdOa0NrUU14M3JTY1p6bXZFcEFEQ0lETUdZNFJoaEZncEFBRE90TGp6a2RGM2tnSXg4YkNYTWRHM01OT2R3bVFJd3VKa21CY3FJR0pRUmo0bnJ6RjNqVXdBWVV2WVZScVRBakhRc2UyUS9seG1YQWtCelZnYnJSQWpPQ01mUWdtdUNIaFFBR05qTUFUcnplNGNNRklBZ0ltNHpSanltUGY3eDV6K25DdFBaM205TkVjL2hpTWVVbFFJd2dZamJneEdQcWJZWlFuV0c5emlhaU5kQ3hHT0tTQUZnYUZZYlQ0MjZ1aDcxZmZYazNHVjByM3UvQVdDN1U5ais4ZHZ2UTd3UFlENTJBQUtaYmNWaG0vQzRYaXR2Sy80eVpyc0dacHRqdUU0Qm1NUnNFMFZKSnAzYlRvRmNNNVJiL0J0UlpENW5NODlWczNFTGdLN2VmUDJTZXJLczRWeEFiNzFWSU9UckU1VDBwZ0F3aFI4ZlBwc3dEemdGK3BxeVpaeVBVV2laaFZzQXdaaDhnQnJNTGZFb0FCT0p1akpiZTF3bUlFYTM5aHpOZmkwekJnVUFBQkpTQUFLYWNhVnNGNERaUlY3OXUrNWlVZ0FtTStQa0FjUm5icHFQQXNBdzdBSXdxOGlyZitKU0FJSVNra0FKNXBLNEZJQUpSVjVGMkFWZ05sYi9zWTh0TWdVQUFCSlNBQUtiZFpWc0Y0QlpSRi85dThaaVV3QW1OZXVFVXBvSmlsNmNlL2ZNUmZOU0FCaVNTWVVvbk11TVNnRUlMc01xSmNNeE1wWU01MXlHWTh4T0FaaFk5SlhGbHVNeldkSEtsblBOTmNySUZJQUVaZzVIRXd5em12bmNuWG5PWUQwRmdEQk1XdFRtSENNU0JXQnlNNjh5MW5JcmdCSFkrbjhxd3pGR3B3QWtNWHN3S2dIMGxDbjhYVDk1S0FBQnpEN2hBSE14NThTZ0FDUXllN08zQzBBUFZ2OUVwUUF3RlNXQWxqS0ZQL2tvQUVGayt2djVTZ0F0WkF2LzZOOXJ3RXNLQU9FcEFXemxuQ0VEQlNBUXV3Q1hSVGhtMnRoNnJrUllFVnY5NTZRQU1DMlRFYjA1QjVtWkFoQk1wbDJBWmZFOEFHVmx1KysvTEZiL21Ta0FURThKb0lTTTRVOXVDa0JBMlhZQnRzcDYzRnlXOVp5dytzOU5BU0FFRHdXeVY4YUgvbUJaRklDd011NEM3Q2tCa1k2ZmJmWjgvcEhDMytvZkJZQlE5a3hXU2tBK2V6NXpRVWcwQ2tCZ0dYY0Jsa1VKNERyaGIvWFBQUVdBa0pRQXpoSCs4RUFCQ0M3ckxzQ3lLQUU4SmZ6dldmMXpvZ0R3UzhUdzIxc0NJbzVGVm5zL3o0Z0I2THptTVFVZ2dZZ1QyUlo3ajk5a09iKzluNkZySnZmeFo2RUE4RVRVMEZNQzhoSCtUem1YZVU0QlNDTHFwTGJGa1JKZzhwekhrYy9MZFdJTU1sRUFFc244UU9ESm02OWY3QVlFZGlUNEl3ZWZCLzg0UndIZ3JPaGhaemNnRnF2K3k1eXZYS0lBSkJOOXN0dml5RmlZVk1keDVMTndQVHd3RnZrb0FGeVVJZVNPbG9BTVl6U3FvK09mSWZDY24xeno2dTJuanorZi8vQ3Y5Kzk2dkJjYTh0M25MeDJkTEdjWXB6WEhPUHB4WlBpY1NuQ044OWpkdCs4dmY5YmhmVEFBRi94TFI4ZkVqa0JkSmNiWGVmK1NNY2xMQWVDbVRLRldZakpVQk1vcU5aNlpnczc1eHhwdUFTUm5tL0N5VXBQb1NPTTIweTJBaU9QZmdtdWFjOXdDNElVdEUwQzJWVVdweWRHT3dEWWx4eXRid0FsL3RuamQrdzNBeUU2VFpJbEFldndhSnQrblNoY2s0d3UzMlFIQUxzQUtwUVBGcnNDOUd1T1FOZnl0L3RuS013RDhZZ0pacDFad3R4alRFWjRCbUhuOFJ1WGE1Wlp6endBb0FEelJjaUw1OGVIejFKTlI3UlY4amJIcFVRQm1IS2RXU2x3RHdwODF6aFVBendEUXhXblNtcmtFbEh3KzRKeVpueGxvY1h0anRqRjVMc0kxd056c0FQQkM3UlhGdWRlUE1BRzJ2cWRmYXV5UHZ1NE14ejJhVXRlQTFUOXJ1UVhBYXJVbWxtdXZHMldDR3VIaHZrdGp1YmNBakh4TXN5bDFEUWgvdGxBQTJLVDBCRFBDQTJndGpSQ2FFV1E3SjBwZFMxdGVqL2dVQURiWkdtRFhKcHJzRTVZeXNFMzJjNkRVdFhUcnRjaERBV0N6RXBQTm52Q0xPbWtwQXRmNTNCK1V1SmFpamlmYktRRHNjbVRTRWY2WEtRUDNmTjZYSGJtV3Nvd3I2eWdBN0xabisxTDRyNWV0RFBpYzE5dHpQV1VkWHk1VEFEakVIM1JwSTJvWjhQbmVjeDNSZ3o4RXhMQk1XZzlHL1RXOExYeWVsNzM1K21XNno1T1k3QUN3U1kySlMxanNNMHFJK1B6MmNTM1JrbHNBRkZGeTRqSmgxZUViOXViZ1dxSVZCWUJpU2t4Y0pxejJzdjB4cGhtNGxtamhYQUc0Ni9BK0NPRG9oR1BDZ251dUpYcFJBTmh0NzhSandvS25YRXYwb0FCd2lBa0krbkR0Y1pRQ3dHRjd2ajUybENmWW9iYzkxNFB3cHdRRmdDSnFmNWM1Uk9TdlpkS1RBa0F4U2dDc0ovenBUUUdnS0NVQWJoUCtqRUFCb0RnbEFDNFQvb3hDQWFBS0pRQmVFdjZNUkFHZ21yMGxRQkVnbXIzbnRmQ25KZ1dBcXZaT1lFb0FVZXc5bDRVL3RTa0FWS2NFa0pYd1oyUUtBRTBjS1FHS0FMTTVjdDRLZjFwUkFHam16ZGN2ZGdNSTcwandDMzlhVWdCb1Rna2dLcXQrWnFJQTBJVmJBa1JpeTU4WktRQjBjMlRpVXdJWXhaRnpVZmpUMCt2ZWI0RGNUaFBnbmtuMDlOK1lST2xCOERNN093QU13VzRBTXhIK1JLQUFNSXlqSlVBUm9MYWo1NW53WnlSdUFUQ1VJN2NFSHY5M0pscEtPbG91blkrTXlBNEFRem82WWRvTm9CVGhUMVFLQU1NcVVRSVVBZllxY2Y0SWYwYm1GZ0JETzNwTDRQRi9hekptalJLbDBibkdET3dBTUlVU0U2b2RBYTRwZFg0SWYyWmhCNEJwbE5nTmVQemZtNmhabG5MUGl6aWZtSTBkQUtaVGFxSzFJNUJieWM5ZitETWpPd0JNcWRSdXdPUFhNSW5uVUxMME9XZVltUUxBMUJRQjFoTDg4SlJiQUlSUWNrSjJheUNXMHArbjhDY0tPd0NFVVhJMzRQbnJtUFRuVXFQQU9RZUlSZ0Vnbk5KRjRQRnJDWUd4Q1g1WVR3RWdySnBGNFBIcjAxZXQyelUrWDZKVEFBaXZSaEY0L25yQ29xMmF6Mmo0TE1sQ0FTQ05Xa1hnK1dzS2tEcHFQNWpwY3lNYkJZQjBhaGFCNTY4clZJNXA4ZHNZUGlPeVVnQklxM1lST1BmYXd1YTZscjkrNmJNZ093V0E5Rm9VZ1JPRjRLa2VmMjhoKzVqRGlRSUFmM3NjREsyQzZkeS9FeldnZXY1eHBhaGpDa2NvQUhCR3kxMkI1eTc5bTdPRTJFaC9SWEdXTVlNZUZBQzRvc2V1d0NWci92M2FnZGQ3RE5ZUStyRE9xN2VmUHY1OC9zTy8zci9yOFY1Z0dqTUVZU1pDSDY2NysvYjl4Yy9zQU1BT0krME1aQ1gwNFJnRkFBNVNCdG9SK2xDT0FnQUZLUVBsQ1gyb1F3R0FTcDRIbDBLd2pzQ0hOaFFBYUVRaE9FL2dReDhLQUhSeUx2aWlsd0poRCtOUUFHQWcxd0p5bG5JZzVHRU9DZ0JNWWsydytzcGNZSzFYeTdJcy9oZ1E1RERDWHhNRTJqcjNSNEQrKzY5L3Y3cnI4RjRBZ000VUFBQklTQUVBZ0lRVUFBQklTQUVBZ0lRVUFBQkk2R0lCT1BkckF3REFQSzVsK2QyeTNQOCtZTE4zQXdCMGM4cDh0d0FBSUNFRkFBQVNVZ0FBSUNFRkFBQVMrbFVBemowSTZEY0JBR0JPbDc0RTZOZi92K203QVFDR29BQUFRRUlLQUFBazlLUUFlQTRBQU9aMzYvNy9zdGdCQUlDVUZBQUFTR2hWQVhBYkFBRG1zRGF6WHhRQVh3d0VBTEdjeS9iWFBkNEkwTWVicjE5NnZ3VmdFSjRCQUlDRXpoWUF2dzRJQVBOWjgrdC92LzYzMWQ4TkFEQ2NUUVhBTGdBQWpHbHJSbDhzQUg0YkFBRG1kaTNMM1FJQWdJUTJGd0MzQVFCZ0xIdXkrV29CY0JzQUFPWjBLOE4zM1FLd0N3QUFZOWlieVRjTGdGMEFBSmpMbXV6MkVDQUFKTFM3QUxnTkFBQjlIY25pVlFYQWJRQUFtTVBhekQ1MEM4QXVBQUQwY1RTRFZ4Y0F1d0FBTUxZdFdYMzRJVUM3QUFEUVZvbnMzVlFBN0FJQXdKaTJablNSWHdPMEN3QUFiWlRLM00wRndDNEFBSXhsVHpZWCswTkFkZ0VBb0s2U1didXJBTmdGQUlBeDdNM2tvbjhLMkM0QUFOUlJPbU4zRjRCTGpVTUpBSUN5TG1YcmtSMzVRenNBYmdVQVFCOUhNN2pLdHdIYUJRQ0FNbXBsNnVFQzRGWUFBTlJSWSt2LzEyc2ZmUUVBWUQ1RkNvQmRBQUFvcSticWYxa0s3Z0FvQVFCUVJ1M3dYeGEzQUFBZ3BhSUZ3QzRBQUJ6VFl2Vy9MQlYyQUpRQUFOaW5WZmd2UzZWYkFFb0FBR3pUTXZ5WHhUTUFBSkJTdFFKZ0Z3QUExbW05K2wrV3lqc0FTZ0FBWE5jai9KZWx3UzBBSlFBQXp1c1Yvc3ZTK1JrQUpRQ0FySHBuWUpNQ2NLM0o5QjRBQUdqdFd2YTFXUDB2UzhNZGdGWUhCQUN6YXBtVlRXOEJlQjRBZ094NjN2ZC84ajVhL21QTG9nUUFrTmNvNGI4c25SNENWQUlBeUdhazhGK1dqcjhGb0FRQWtNVm80Yjhzblg4TlVBa0FJTG9SdzM5WkJ2Z3VBQ1VBZ0toR0RmOWxXWmJ1YitEazdhZVBQeS85Ly81Ni82N2xXd0dBUTBiNFBmOWJ1dThBblBoalFRQkVNRVA0TDh0QUJXQlpsQUFBNWpaTCtDL0xZQVZnV1pRQUFPWTBVL2d2eTRBRllGbVVBQURtTWx2NEw4dEFEd0dlYyszQndHWHhjQ0FBZmQxYWxJNGEvc3N5NkE3QXlhMkJzeHNBUUM4emgvK3lERjRBbGtVSkFHQThzNGYvc2d4K0MrQTV0d1FBNkNsQzhKOE12d1B3bU4wQUFIcUpGUDdMTXRrT3dNbXRuWUJsc1JzQVFCbHJGcGV6aGYreVRGb0FUdHdTQUtDbWFLdit4Nlo5NHlkMkF3QW9MZXFxLzdHcG5nRTRaODBINE5rQUFOYktFUDdMRW1BSDRERzdBUURzbFNYNFQ4SWN5TW1hRXJBc2lnQUE5OWJ1RWtjSy8yVUpXQUJPRkFFQXJza2EvQ2NoRCtveFJRQ0F4N0lILzBub2d6dFpXd0tXUlJFQWlHckxBK0hSdzM5WmtoU0FreTFGWUZtVUFZRFpiZjB0c0F6QmY1TG1RQjlUQkFCaUUveTNwVHZneDdZV2dXVlJCZ0JHdGVkdnZtUU0vcE8wQi82WUlnQXdMOEcvVC9vQmVHeFBFVGhSQ0FEYU9QTFhYUVgvQXdOeGdUSUFNQTZoWDU1QnVlRklFVGhSQ0FDMktmRWRMb0wvT29PelFZa3k4SmhpQUdSWCtzdmFoUDU2Qm1xbjBtWGdPZVVBaUtMMk43SUsvWDBNV2dHMXl3QUFUd245NHd4Z0JRb0JRRmtDdnp3RDJvQkNBTENOd0svUEFIZWlGQURjRS9aOUdQUkJLUWhBRkFKK1RQOFBGMEtLRExMTW1WQUFBQUFBU1VWT1JLNUNZSUk9IiwgInNpemVzIjogIjUxMng1MTIiLCAidHlwZSI6ICJpbWFnZS9wbmciLCAicHVycG9zZSI6ICJhbnkgbWFza2FibGUifV19">
+<script src="https://cdn.tailwindcss.com"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+<style>
+  :root{ --teal:#0d9488; }
+  *{ -webkit-tap-highlight-color:transparent; }
+  body{ font-feature-settings:"tnum" 1,"lnum" 1; }
+  .mono{ font-family:ui-monospace,SFMono-Regular,Menlo,Consolas,monospace; }
+  input[type="text"],input[type="number"],textarea,select{ font-family:ui-monospace,SFMono-Regular,Menlo,Consolas,monospace; }
+  input[type=number]::-webkit-outer-spin-button,input[type=number]::-webkit-inner-spin-button{ -webkit-appearance:none;margin:0; }
+  input[type=number]{ -moz-appearance:textfield; }
+  .field:focus{ outline:none;border-color:var(--teal);box-shadow:0 0 0 3px rgba(13,148,136,.15); }
+  .acc{ box-shadow:inset 4px 0 0 0 var(--teal); }
+  @media (prefers-reduced-motion: no-preference){ .reveal{ animation:rise .35s ease both; } @keyframes rise{ from{opacity:0;transform:translateY(6px)} to{opacity:1;transform:none} } }
+</style>
+</head>
+<body class="bg-slate-100 text-slate-800 min-h-screen">
+<div class="max-w-5xl mx-auto px-4 py-6 sm:py-8">
+
+  <header class="mb-5">
+    <div class="flex items-center gap-3">
+      <div class="grid place-items-center w-11 h-11 rounded-lg bg-teal-700 text-white shrink-0">
+        <svg viewBox="0 0 24 24" width="24" height="24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2v3M12 19v3M2 12h3M19 12h3"/><circle cx="12" cy="12" r="3"/><path d="m4.9 4.9 2.1 2.1M17 17l2.1 2.1M19.1 4.9 17 7M7 17l-2.1 2.1"/></svg>
+      </div>
+      <div class="flex-1">
+        <h1 class="text-xl sm:text-2xl font-bold text-slate-900 tracking-tight">任意点設置 放射観測ツール</h1>
+        <p class="text-sm text-slate-500">後方交会で標定 → 測点を追加 → Excel・AutoCADへ書き出し</p>
+      </div>
+    </div>
+  </header>
+
+  <div class="flex flex-wrap gap-2 mb-4">
+    <button id="btnHelp" class="text-sm px-3 py-1.5 rounded-md bg-teal-50 border border-teal-200 text-teal-800 hover:bg-teal-100 active:scale-95 transition font-medium">？ 使い方ガイド</button>
+    <button id="btnSample" class="text-sm px-3 py-1.5 rounded-md bg-white border border-slate-200 hover:bg-slate-50 active:scale-95 transition">サンプル一式</button>
+    <button id="btnClearIn" class="text-sm px-3 py-1.5 rounded-md bg-white border border-slate-200 hover:bg-slate-50 active:scale-95 transition">入力クリア</button>
+    <span class="text-xs text-slate-400 self-center ml-auto">X=北 / Y=東（角度は後視Aを0°→右回り）</span>
+  </div>
+
+  <!-- 使い方ガイド -->
+  <div id="helpPanel" class="hidden mb-5 bg-white rounded-xl border border-teal-200 p-4 reveal">
+    <div class="flex items-center justify-between mb-2"><h2 class="font-bold text-slate-900">使い方ガイド</h2><button id="helpClose" class="text-slate-400 hover:text-slate-600 text-xl leading-none">×</button></div>
+    <div class="space-y-3 text-sm text-slate-700">
+      <div>
+        <p class="font-semibold text-teal-800">測定の流れ</p>
+        <ol class="list-decimal ml-5 space-y-0.5 mt-1">
+          <li><b>① 機械点を標定</b>：既知点A・Bの座標と実測距離、∠APB（Aで0セット→右回りでB）を入れて「① 機械点を標定」。左右はアプリが自動判定します。</li>
+          <li><b>② 測点を追加</b>：点名・実測距離・観測角（Aで0セット→右回りで測点）を入れて「② 測点を計算してリストに追加」。これを繰り返すだけ。既知座標を入れた点は点検（残差・OK/NG）になります。</li>
+          <li><b>③ 書き出し</b>：下の「書き出し」からExcel／AutoCAD（.scr / .dxf）を出力。</li>
+        </ol>
+      </div>
+      <div>
+        <p class="font-semibold text-teal-800">角度の入れ方</p>
+        <p>度・分・秒の3欄にそのまま入力（例：108°26′06″）。すべて「後視Aを0°→右回り」で統一。180°を超えてもOK。</p>
+      </div>
+      <div>
+        <p class="font-semibold text-teal-800">ホーム画面に追加（アプリ化）</p>
+        <p>このページをネット上（例：GitHub Pages）に置いて開き、<br>・iPhone：共有 <span class="mono">⬆</span> →「ホーム画面に追加」<br>・Android：メニュー →「ホーム画面に追加 / アプリをインストール」<br>アイコンで起動でき、入力は端末内に保存されます。</p>
+      </div>
+      <div>
+        <p class="font-semibold text-teal-800">会社へ送る → AutoCADで取り込む</p>
+        <p>「共有 / メール」ボタンで <b>Excel(.xlsx)</b> を添付メール送信（送信先固定はメール側の宛先・自動転送ルールで）。受け取った人は <b>.scr</b> を「スクリプトの実行」、または <b>.dxf</b> を開く/挿入。点は専用画層（既定 SURVEY_PT 等）に入ります。</p>
+      </div>
+      <p class="text-xs text-slate-400">座標系は X=北・Y=東。AutoCAD書き出しは既定で「東=X・北=Y（北が上）」に変換します。</p>
+    </div>
+  </div>
+
+  <!-- ① 機械点の標定 -->
+  <h2 class="text-sm font-bold text-slate-500 mb-2">① 機械点の標定（後方交会）</h2>
+  <div class="grid md:grid-cols-3 gap-4">
+    <section class="bg-white rounded-xl border border-slate-200 acc">
+      <div class="px-4 pt-3 pb-2 flex items-center justify-between"><h3 class="font-semibold text-slate-900">既知点 A（後視）</h3><span class="mono text-xs text-teal-700">KNOWN</span></div>
+      <div class="px-4 pb-4 grid grid-cols-2 gap-3">
+        <label class="col-span-2 text-xs text-slate-500">点名<input id="nameA" type="text" placeholder="例: A1" class="field mt-1 w-full rounded-md border border-slate-200 px-3 py-2 text-sm"></label>
+        <label class="text-xs text-slate-500">X（北）<input id="xa" type="number" inputmode="decimal" step="any" placeholder="100.000" class="field mt-1 w-full rounded-md border border-slate-200 px-3 py-2 text-sm"></label>
+        <label class="text-xs text-slate-500">Y（東）<input id="ya" type="number" inputmode="decimal" step="any" placeholder="100.000" class="field mt-1 w-full rounded-md border border-slate-200 px-3 py-2 text-sm"></label>
+        <label class="col-span-2 text-xs text-slate-500">→A 実測距離（m）<input id="dA" type="number" inputmode="decimal" step="any" placeholder="70.711" class="field mt-1 w-full rounded-md border border-slate-200 px-3 py-2 text-sm"></label>
+      </div>
+    </section>
+    <section class="bg-white rounded-xl border border-slate-200 acc">
+      <div class="px-4 pt-3 pb-2 flex items-center justify-between"><h3 class="font-semibold text-slate-900">既知点 B</h3><span class="mono text-xs text-teal-700">KNOWN</span></div>
+      <div class="px-4 pb-4 grid grid-cols-2 gap-3">
+        <label class="col-span-2 text-xs text-slate-500">点名<input id="nameB" type="text" placeholder="例: A2" class="field mt-1 w-full rounded-md border border-slate-200 px-3 py-2 text-sm"></label>
+        <label class="text-xs text-slate-500">X（北）<input id="xb" type="number" inputmode="decimal" step="any" placeholder="100.000" class="field mt-1 w-full rounded-md border border-slate-200 px-3 py-2 text-sm"></label>
+        <label class="text-xs text-slate-500">Y（東）<input id="yb" type="number" inputmode="decimal" step="any" placeholder="200.000" class="field mt-1 w-full rounded-md border border-slate-200 px-3 py-2 text-sm"></label>
+        <label class="col-span-2 text-xs text-slate-500">→B 実測距離（m）<input id="dB" type="number" inputmode="decimal" step="any" placeholder="70.711" class="field mt-1 w-full rounded-md border border-slate-200 px-3 py-2 text-sm"></label>
+      </div>
+    </section>
+    <section class="bg-white rounded-xl border border-slate-200 acc">
+      <div class="px-4 pt-3 pb-2 flex items-center justify-between"><h3 class="font-semibold text-slate-900">観測（A–B）</h3><span class="mono text-xs text-teal-700">OBS</span></div>
+      <div class="px-4 pb-4">
+        <div class="text-xs text-slate-500">∠APB（Aを0°→右回りでB）
+          <div class="mt-1 flex items-center gap-1.5">
+            <input id="omegaD" type="number" inputmode="numeric" placeholder="度" class="field w-full rounded-md border border-slate-200 px-2 py-2 text-sm text-center"><span class="text-slate-400">°</span>
+            <input id="omegaM" type="number" inputmode="numeric" placeholder="分" class="field w-full rounded-md border border-slate-200 px-2 py-2 text-sm text-center"><span class="text-slate-400">′</span>
+            <input id="omegaS" type="number" inputmode="decimal" placeholder="秒" class="field w-full rounded-md border border-slate-200 px-2 py-2 text-sm text-center"><span class="text-slate-400">″</span>
+          </div>
+        </div>
+        <p class="text-[11px] leading-snug text-slate-400 mt-2">この角から機械点が線ABのどちら側かを自動判定します。</p>
+        <button id="btnStand" class="mt-3 w-full rounded-lg bg-teal-700 hover:bg-teal-800 text-white font-semibold py-2.5 text-sm active:scale-[.99] transition">① 機械点を標定</button>
+      </div>
+    </section>
+  </div>
+
+  <div id="stationCard" class="hidden mt-4 bg-white rounded-xl border border-amber-200 p-4 reveal">
+    <div class="flex items-center justify-between mb-2"><h3 class="font-semibold text-slate-900">機械点 P</h3><button data-copy="copyP" class="copybtn text-xs px-2.5 py-1 rounded border border-slate-200 hover:bg-slate-50">座標コピー</button></div>
+    <div class="grid sm:grid-cols-2 gap-3">
+      <div class="rounded-lg bg-amber-50 border border-amber-200 px-4 py-3"><p class="text-xs text-amber-700">X<sub>P</sub>（北）</p><p id="rXp" class="mono text-2xl font-bold">–</p></div>
+      <div class="rounded-lg bg-amber-50 border border-amber-200 px-4 py-3"><p class="text-xs text-amber-700">Y<sub>P</sub>（東）</p><p id="rYp" class="mono text-2xl font-bold">–</p></div>
+    </div>
+    <div id="sideRec" class="mt-3 text-sm rounded-md px-3 py-2"></div>
+    <div class="grid sm:grid-cols-2 gap-x-6 gap-y-1 text-sm mt-3">
+      <div class="flex justify-between border-b border-slate-100 py-1"><span class="text-slate-500">∠APB 実測 / 計算</span><span id="rChkAPB" class="mono">–</span></div>
+      <div class="flex justify-between border-b border-slate-100 py-1"><span class="text-slate-500">P→A 方向角</span><span id="rAzA" class="mono">–</span></div>
+    </div>
+    <div id="copyP" class="sr-only"></div>
+  </div>
+
+  <!-- ② 測点 -->
+  <h2 class="text-sm font-bold text-slate-500 mt-6 mb-2">② 測点の観測（放射）</h2>
+  <section class="bg-white rounded-xl border border-rose-200" style="box-shadow:inset 4px 0 0 0 #e11d48">
+    <div class="px-4 pt-3 pb-2 flex items-center justify-between"><h3 class="font-semibold text-slate-900">測点を観測して追加</h3><span class="mono text-xs text-rose-600">SHOT</span></div>
+    <div class="px-4 pb-4 grid grid-cols-2 gap-3">
+      <label class="text-xs text-slate-500">点名<input id="ptName" type="text" placeholder="例: 1" class="field mt-1 w-full rounded-md border border-slate-200 px-3 py-2 text-sm"></label>
+      <label class="text-xs text-slate-500">実測水平距離（m）<input id="ptDist" type="number" inputmode="decimal" step="any" placeholder="例: 67.082" class="field mt-1 w-full rounded-md border border-slate-200 px-3 py-2 text-sm"></label>
+      <div class="col-span-2 text-xs text-slate-500">観測角（Aを0°→右回りで測点）
+        <div class="mt-1 flex items-center gap-1.5">
+          <input id="ptAngD" type="number" inputmode="numeric" placeholder="度" class="field w-full rounded-md border border-slate-200 px-2 py-2 text-sm text-center"><span class="text-slate-400">°</span>
+          <input id="ptAngM" type="number" inputmode="numeric" placeholder="分" class="field w-full rounded-md border border-slate-200 px-2 py-2 text-sm text-center"><span class="text-slate-400">′</span>
+          <input id="ptAngS" type="number" inputmode="decimal" placeholder="秒" class="field w-full rounded-md border border-slate-200 px-2 py-2 text-sm text-center"><span class="text-slate-400">″</span>
+        </div>
+      </div>
+      <label class="text-xs text-slate-500">既知X（北・任意）<input id="ptKx" type="number" inputmode="decimal" step="any" placeholder="点検時のみ" class="field mt-1 w-full rounded-md border border-slate-200 px-3 py-2 text-sm"></label>
+      <label class="text-xs text-slate-500">既知Y（東・任意）<input id="ptKy" type="number" inputmode="decimal" step="any" placeholder="点検時のみ" class="field mt-1 w-full rounded-md border border-slate-200 px-3 py-2 text-sm"></label>
+      <button id="btnAdd" class="col-span-2 rounded-lg bg-rose-600 hover:bg-rose-700 text-white font-semibold py-2.5 text-sm active:scale-[.99] transition">② 測点を計算してリストに追加</button>
+    </div>
+  </section>
+
+  <div id="err" class="hidden mt-4 rounded-lg border border-red-300 bg-red-50 text-red-800 px-4 py-3 text-sm"></div>
+
+  <!-- リスト -->
+  <div id="listCard" class="hidden mt-6 bg-white rounded-xl border border-slate-200 p-4 reveal">
+    <div class="flex items-center justify-between mb-3">
+      <h3 class="font-semibold text-slate-900">測定リスト（<span id="cnt">0</span> 点）</h3>
+      <button id="btnClearList" class="text-xs px-2.5 py-1 rounded border border-rose-200 text-rose-600 hover:bg-rose-50">全消去</button>
+    </div>
+    <div class="overflow-x-auto">
+      <table class="w-full text-sm">
+        <thead><tr class="text-left text-slate-400 border-b border-slate-200">
+          <th class="py-2 pr-2 font-medium">点名</th><th class="py-2 px-2 font-medium text-right">X(北)</th><th class="py-2 px-2 font-medium text-right">Y(東)</th><th class="py-2 px-2 font-medium text-right">距離</th><th class="py-2 px-2 font-medium text-right">方向角</th><th class="py-2 px-2 font-medium text-right">残差</th><th class="py-2 pl-2"></th>
+        </tr></thead>
+        <tbody id="listBody" class="mono"></tbody>
+      </table>
+    </div>
+  </div>
+
+  <!-- 書き出し -->
+  <div id="exportCard" class="hidden mt-4 bg-white rounded-xl border border-slate-200 p-4 reveal">
+    <h3 class="font-semibold text-slate-900 mb-3">書き出し</h3>
+    <div class="space-y-3 mb-3">
+      <div class="text-xs text-slate-500">座標の向き
+        <div class="mt-1 flex flex-wrap gap-2">
+          <label class="flex items-center gap-1.5 rounded-md border border-slate-200 px-3 py-2 cursor-pointer has-[:checked]:border-teal-600 has-[:checked]:bg-teal-50"><input type="radio" name="ori" value="swap" checked class="accent-teal-600"><span class="text-sm">東=X・北=Y（北が上）</span></label>
+          <label class="flex items-center gap-1.5 rounded-md border border-slate-200 px-3 py-2 cursor-pointer has-[:checked]:border-teal-600 has-[:checked]:bg-teal-50"><input type="radio" name="ori" value="raw" class="accent-teal-600"><span class="text-sm">測量座標のまま</span></label>
+        </div>
+      </div>
+      <div class="flex flex-wrap items-end gap-x-4 gap-y-3">
+        <label class="text-xs text-slate-500">点記号(PDMODE)
+          <select id="pdStyle" class="field mt-1 w-24 rounded-md border border-slate-200 px-2 py-2 text-sm"><option value="35">○＋×</option><option value="3">×</option><option value="34">○</option><option value="2">＋</option><option value="0">点</option></select>
+        </label>
+        <div class="text-xs text-slate-500">点サイズ
+          <div class="mt-1 flex items-center gap-1.5">
+            <input id="mkR" type="number" inputmode="decimal" step="any" value="3" class="field w-16 rounded-md border border-slate-200 px-2 py-2 text-sm text-center">
+            <select id="psMode" class="field rounded-md border border-slate-200 px-2 py-2 text-sm"><option value="screen">画面比%</option><option value="real">実寸m</option></select>
+          </div>
+        </div>
+        <label class="text-xs text-slate-500">文字高さ(m)<input id="txH" type="number" inputmode="decimal" step="any" value="0.5" class="field mt-1 w-20 rounded-md border border-slate-200 px-3 py-2 text-sm"></label>
+      </div>
+      <div class="grid sm:grid-cols-3 gap-3 bg-slate-50 rounded-lg p-3">
+        <div class="text-xs text-slate-500">点 画層
+          <div class="mt-1 flex gap-1.5"><input id="layPtName" type="text" value="SURVEY_PT" class="field w-full rounded-md border border-slate-200 px-2 py-2 text-sm"><select id="layPtColor" class="field rounded-md border border-slate-200 px-1 py-2 text-sm"><option value="1">赤</option><option value="2">黄</option><option value="3" selected>緑</option><option value="4">水</option><option value="5">青</option><option value="6">紫</option><option value="7">白</option></select></div>
+        </div>
+        <div class="text-xs text-slate-500">注記 画層
+          <div class="mt-1 flex gap-1.5"><input id="layTxtName" type="text" value="SURVEY_TXT" class="field w-full rounded-md border border-slate-200 px-2 py-2 text-sm"><select id="layTxtColor" class="field rounded-md border border-slate-200 px-1 py-2 text-sm"><option value="1">赤</option><option value="2">黄</option><option value="3">緑</option><option value="4">水</option><option value="5">青</option><option value="6">紫</option><option value="7" selected>白</option></select></div>
+        </div>
+        <div class="text-xs text-slate-500">基準点 画層
+          <div class="mt-1 flex gap-1.5"><input id="layCtrlName" type="text" value="CONTROL" class="field w-full rounded-md border border-slate-200 px-2 py-2 text-sm"><select id="layCtrlColor" class="field rounded-md border border-slate-200 px-1 py-2 text-sm"><option value="1" selected>赤</option><option value="2">黄</option><option value="3">緑</option><option value="4">水</option><option value="5">青</option><option value="6">紫</option><option value="7">白</option></select></div>
+        </div>
+      </div>
+      <div class="flex flex-wrap items-center gap-x-4 gap-y-2 text-sm text-slate-600">
+        <label class="flex items-center gap-1.5"><input id="mkLabel" type="checkbox" checked class="accent-teal-600"> 点名を挿入</label>
+        <label class="flex items-center gap-1.5"><input id="lblNum" type="checkbox" class="accent-teal-600"> ラベルを通し番号に</label>
+        <label class="flex items-center gap-1.5"><input id="inclCtrl" type="checkbox" checked class="accent-teal-600"> 機械点P・既知点A/Bも出力</label>
+        <label class="flex items-center gap-1.5 text-xs text-slate-500">基準点記号(m)<input id="ctrlR" type="number" inputmode="decimal" step="any" value="0.5" class="field w-16 rounded-md border border-slate-200 px-2 py-1.5 text-sm text-center"></label>
+      </div>
+    </div>
+    <div class="flex flex-wrap gap-2">
+      <button id="exShare" class="px-3 py-2 rounded-lg bg-teal-700 hover:bg-teal-800 text-white text-sm font-semibold">共有 / メール（Excel）</button>
+      <button id="exXLSX" class="px-3 py-2 rounded-lg bg-emerald-600 hover:bg-emerald-700 text-white text-sm font-semibold">Excel (.xlsx)</button>
+      <button id="exCSV" class="px-3 py-2 rounded-lg bg-emerald-600 hover:bg-emerald-700 text-white text-sm font-semibold">CSV</button>
+      <button id="exSCR" class="px-3 py-2 rounded-lg bg-slate-700 hover:bg-slate-800 text-white text-sm font-semibold">AutoCAD (.scr)</button>
+      <button id="exDXF" class="px-3 py-2 rounded-lg bg-slate-700 hover:bg-slate-800 text-white text-sm font-semibold">DXF (.dxf)</button>
+    </div>
+    <div id="expArea" class="hidden mt-3">
+      <div class="flex items-center justify-between mb-1"><span id="expLabel" class="text-xs text-slate-500"></span>
+        <div class="flex gap-2"><button id="expCopy" class="text-xs px-2.5 py-1 rounded border border-slate-200 hover:bg-slate-50">コピー</button><button id="expDownload" class="text-xs px-2.5 py-1 rounded bg-teal-700 text-white">ダウンロード</button></div>
+      </div>
+      <textarea id="expText" readonly class="w-full h-40 rounded-md border border-slate-200 p-2 text-xs bg-slate-50"></textarea>
+      <p class="text-[11px] text-slate-400 mt-1">スマホでDLしづらい時はコピーしてPCで .scr/.csv/.dxf 保存。SCRはAutoCADの「スクリプトの実行」で読み込みます。</p>
+    </div>
+  </div>
+
+  <!-- プロット -->
+  <div id="plotCard" class="hidden mt-4 bg-white rounded-xl border border-slate-200 p-4 reveal">
+    <h3 class="font-semibold text-slate-900 mb-2">プロット <span class="text-xs text-slate-400 font-normal">（上=北）</span></h3>
+    <svg id="diagram" viewBox="0 0 400 300" class="w-full h-auto rounded-lg bg-slate-50 border border-slate-100"></svg>
+    <div class="flex flex-wrap gap-x-4 gap-y-1 mt-2 text-xs text-slate-500">
+      <span class="inline-flex items-center gap-1"><span class="w-2.5 h-2.5 rounded-full bg-teal-600 inline-block"></span>既知点A/B</span>
+      <span class="inline-flex items-center gap-1"><span class="w-2.5 h-2.5 rounded-full bg-amber-500 inline-block"></span>機械点P</span>
+      <span class="inline-flex items-center gap-1"><span class="w-2.5 h-2.5 rounded-full bg-rose-500 inline-block"></span>測点</span>
+    </div>
+  </div>
+
+  <!-- 許容差 -->
+  <section class="mt-4 bg-white rounded-xl border border-slate-200 px-4 py-3">
+    <div class="flex flex-wrap items-end gap-4">
+      <h3 class="font-semibold text-slate-900 mr-2">点検の許容差</h3>
+      <label class="text-xs text-slate-500">位置許容差（±mm）<input id="tolD" type="number" inputmode="decimal" step="any" value="10" class="field mt-1 w-28 rounded-md border border-slate-200 px-3 py-2 text-sm"></label>
+      <label class="text-xs text-slate-500">∠APB許容差（±秒″）<input id="tolA" type="number" inputmode="decimal" step="any" value="60" class="field mt-1 w-28 rounded-md border border-slate-200 px-3 py-2 text-sm"></label>
+      <p class="text-[11px] text-slate-400 self-center">※社内基準に合わせて変更してください（規定値ではありません）。</p>
+    </div>
+  </section>
+
+  <footer class="mt-8 text-center text-xs text-slate-400">標定は2距離の交点。測点は P から「距離＋右回り角」で座標を算出します。</footer>
+</div>
+
+<script>
+const $=id=>document.getElementById(id);
+const num=id=>{const v=$(id).value.trim();return v===''?NaN:Number(v);};
+const txt=id=>$(id).value.trim();
+const normDeg=d=>{d=d%360;return d<0?d+360:d;};
+const sdiff=(a,b)=>{let d=(a-b)%360;if(d>180)d-=360;if(d<-180)d+=360;return d;};
+const azimuth=(f,t)=>normDeg(Math.atan2(t.y-f.y,t.x-f.x)*180/Math.PI);
+const fix3=v=>v.toFixed(3);
+function dmsDeg(a,b,c){const d=$(a).value.trim(),m=$(b).value.trim(),s=$(c).value.trim();if(d===''&&m===''&&s==='')return NaN;const D=d===''?0:+d,M=m===''?0:+m,S=s===''?0:+s;if([D,M,S].some(Number.isNaN))return NaN;return D+M/60+S/3600;}
+function toDMS(deg){deg=normDeg(deg);let d=Math.floor(deg),mf=(deg-d)*60,m=Math.floor(mf),s=(mf-m)*60;s=Math.round(s*100)/100;if(s>=60){s-=60;m++;}if(m>=60){m-=60;d++;}if(d>=360)d-=360;return `${d}° ${String(m).padStart(2,'0')}' ${s.toFixed(2)}"`;}
+function showError(m){$('err').textContent=m;$('err').classList.remove('hidden');}
+function clearError(){$('err').classList.add('hidden');}
+function flash(b,t){const o=b.textContent;b.textContent=t;setTimeout(()=>b.textContent=o,1200);}
+const esc=s=>String(s).replace(/[&<>]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;'}[c]));
+
+let station=null, list=[];
+
+function resectSolve(A,B,dA,dB){
+  const dx=B.x-A.x,dy=B.y-A.y,AB=Math.hypot(dx,dy);
+  if(AB<1e-9) return{error:'計算できません。既知点A・Bが同一座標です。'};
+  if(dA<=0||dB<=0) return{error:'計算できません。実測距離は正の値で入力してください。'};
+  if(dA+dB<AB-1e-7||Math.abs(dA-dB)>AB+1e-7) return{error:'計算できません。入力距離では三角形が成立しません。値を確認してください。'};
+  const a=(dA*dA-dB*dB+AB*AB)/(2*AB);let h2=dA*dA-a*a;if(h2<-1e-6)return{error:'計算できません。値を確認してください。'};if(h2<0)h2=0;
+  const h=Math.sqrt(h2),ux=dx/AB,uy=dy/AB,mx=A.x+a*ux,my=A.y+a*uy,nx=-uy,ny=ux;
+  return{AB,left:{x:mx-h*nx,y:my-h*ny},right:{x:mx+h*nx,y:my+h*ny}};
+}
+function buildStation(){
+  const A={x:num('xa'),y:num('ya')}, B={x:num('xb'),y:num('yb')}, dA=num('dA'), dB=num('dB');
+  if([A.x,A.y,B.x,B.y,dA,dB].some(Number.isNaN)) return{error:'既知点A・Bの座標と実測距離をすべて入力してください。'};
+  const sol=resectSolve(A,B,dA,dB); if(sol.error) return sol;
+  const omega=dmsDeg('omegaD','omegaM','omegaS');
+  const thetaL=normDeg(azimuth(sol.left,B)-azimuth(sol.left,A));
+  const thetaR=normDeg(azimuth(sol.right,B)-azimuth(sol.right,A));
+  let side,how;
+  if(!Number.isNaN(omega)){ side=Math.abs(sdiff(omega,thetaL))<=Math.abs(sdiff(omega,thetaR))?'left':'right'; how='∠APB（右回り実測角）から自動判定'; }
+  else { side='right'; how=null; }
+  const P=side==='left'?sol.left:sol.right;
+  return {A,B,dA,dB,omega,side,how,P,AB:sol.AB,azPA:azimuth(P,A),thetaSel:side==='left'?thetaL:thetaR};
+}
+function standize(silent){
+  const st=buildStation();
+  if(st.error){ if(!silent) showError(st.error); return false; }
+  clearError(); station=st; renderStation(); renderList(); drawAll(); return true;
+}
+function renderStation(){
+  if(!station) return;
+  $('stationCard').classList.remove('hidden');
+  $('rXp').textContent=fix3(station.P.x); $('rYp').textContent=fix3(station.P.y);
+  $('copyP').textContent=`機械点P  X=${fix3(station.P.x)}  Y=${fix3(station.P.y)}`;
+  $('rAzA').textContent=toDMS(station.azPA);
+  const sr=$('sideRec');
+  if(station.how){ sr.className='mt-3 text-sm rounded-md px-3 py-2 bg-emerald-50 border border-emerald-200 text-emerald-800';
+    sr.textContent=`機械点は線A→Bの「${station.side==='left'?'左側':'右側'}」と判定（${station.how}）。`; }
+  else { sr.className='mt-3 text-sm rounded-md px-3 py-2 bg-amber-50 border border-amber-300 text-amber-800';
+    sr.textContent='∠APB が未入力のため暫定で右側を採用。'; }
+  if(!Number.isNaN(station.omega)){
+    const r=sdiff(station.omega,station.thetaSel)*3600, tol=Number.isNaN(num('tolA'))?60:num('tolA'), ok=Math.abs(r)<=tol+1e-6;
+    $('rChkAPB').innerHTML=`${toDMS(station.omega)} / ${toDMS(station.thetaSel)} <span class="${ok?'text-emerald-600':'text-rose-600'} font-bold">${r>=0?'+':''}${r.toFixed(0)}″ ${ok?'OK':'NG'}</span>`;
+  } else $('rChkAPB').textContent='–';
+}
+function addPoint(){
+  if(!station && !standize()) return;
+  const dist=num('ptDist'), ang=dmsDeg('ptAngD','ptAngM','ptAngS');
+  if(Number.isNaN(dist)||Number.isNaN(ang)) return showError('測点の「距離」と「観測角」を入力してください。');
+  if(dist<=0) return showError('距離は正の値で入力してください。');
+  clearError();
+  const name=txt('ptName')||String(list.length+1);
+  const az=normDeg(station.azPA+ang), rad=az*Math.PI/180;
+  const x=station.P.x+dist*Math.cos(rad), y=station.P.y+dist*Math.sin(rad);
+  const kx=num('ptKx'), ky=num('ptKy'), hasK=!Number.isNaN(kx)&&!Number.isNaN(ky);
+  let resid=null, ok=null;
+  if(hasK){ resid=Math.hypot(kx-x,ky-y); ok=resid*1000<=(Number.isNaN(num('tolD'))?10:num('tolD'))+1e-6; }
+  list.push({name,x,y,dist,az,hasK,resid,ok});
+  saveList(); renderList(); drawAll();
+  ['ptName','ptDist','ptAngD','ptAngM','ptAngS','ptKx','ptKy'].forEach(id=>$(id).value='');
+  $('ptName').focus();
+}
+function renderList(){
+  const has=list.length>0;
+  $('listCard').classList.toggle('hidden',!has);
+  $('exportCard').classList.toggle('hidden',!has);
+  $('plotCard').classList.toggle('hidden',!(has||station));
+  $('cnt').textContent=list.length;
+  const tb=$('listBody'); tb.innerHTML='';
+  list.forEach((p,i)=>{
+    const res=p.hasK?`${(p.resid*1000).toFixed(1)}mm <span class="${p.ok?'text-emerald-600':'text-rose-600'} font-bold">${p.ok?'OK':'NG'}</span>`:'<span class="text-slate-300">–</span>';
+    const tr=document.createElement('tr'); tr.className='border-b border-slate-100';
+    tr.innerHTML=`<td class="py-2 pr-2 text-slate-700">${esc(p.name)}</td><td class="py-2 px-2 text-right">${p.x.toFixed(3)}</td><td class="py-2 px-2 text-right">${p.y.toFixed(3)}</td><td class="py-2 px-2 text-right">${p.dist.toFixed(3)}</td><td class="py-2 px-2 text-right">${toDMS(p.az)}</td><td class="py-2 px-2 text-right">${res}</td><td class="py-2 pl-2 text-center"><button data-i="${i}" class="delpt text-rose-500 hover:text-rose-700">×</button></td>`;
+    tb.appendChild(tr);
+  });
+  tb.querySelectorAll('.delpt').forEach(b=>b.onclick=()=>{list.splice(+b.dataset.i,1);saveList();renderList();drawAll();});
+}
+function drawAll(){
+  const svg=$('diagram'),W=400,H=300,pad=38;
+  const pts=[]; if(station){pts.push(station.A,station.B,station.P);} list.forEach(p=>pts.push(p));
+  if(!pts.length){svg.innerHTML='';return;}
+  let minX=Infinity,maxX=-Infinity,minY=Infinity,maxY=-Infinity;
+  pts.forEach(p=>{minX=Math.min(minX,p.x);maxX=Math.max(maxX,p.x);minY=Math.min(minY,p.y);maxY=Math.max(maxY,p.y);});
+  const spanX=maxX-minX||1,spanY=maxY-minY||1,scale=Math.min((W-2*pad)/spanY,(H-2*pad)/spanX);
+  const cY=(minY+maxY)/2,cX=(minX+maxX)/2,sx=p=>W/2+(p.y-cY)*scale,sy=p=>H/2-(p.x-cX)*scale;
+  const dot=(p,c,r=5)=>`<circle cx="${sx(p).toFixed(1)}" cy="${sy(p).toFixed(1)}" r="${r}" fill="${c}"/>`;
+  const line=(p,q,c,w,d='')=>`<line x1="${sx(p).toFixed(1)}" y1="${sy(p).toFixed(1)}" x2="${sx(q).toFixed(1)}" y2="${sy(q).toFixed(1)}" stroke="${c}" stroke-width="${w}" ${d}/>`;
+  const lab=(p,t,c)=>`<text x="${(sx(p)+7).toFixed(1)}" y="${(sy(p)-7).toFixed(1)}" font-size="10" fill="${c}" font-family="ui-monospace,monospace">${esc(t)}</text>`;
+  let s=`<g opacity="0.5"><line x1="20" y1="40" x2="20" y2="14" stroke="#64748b" stroke-width="1.5"/><path d="M20 10 l-4 7 h8 z" fill="#64748b"/><text x="14" y="52" font-size="10" fill="#64748b">N</text></g>`;
+  if(station){
+    s+=line(station.P,station.A,'#0d9488',1.3,'stroke-dasharray="4 3"')+line(station.P,station.B,'#0d9488',1.3,'stroke-dasharray="4 3"')+line(station.A,station.B,'#94a3b8',1);
+    list.forEach(p=>s+=line(station.P,p,'#fecdd3',1));
+    s+=dot(station.A,'#0d9488')+dot(station.B,'#0d9488')+lab(station.A,txt('nameA')||'A','#0f766e')+lab(station.B,txt('nameB')||'B','#0f766e');
+  }
+  list.forEach(p=>{s+=dot(p,'#e11d48',4)+lab(p,p.name,'#be123c');});
+  if(station){s+=dot(station.P,'#f59e0b',6)+lab(station.P,'P','#b45309');}
+  svg.innerHTML=s;
+}
+
+/* ---- 書き出し ---- */
+const cad=p=>{const swap=document.querySelector('input[name="ori"]:checked').value==='swap';return swap?{x:p.y,y:p.x}:{x:p.x,y:p.y};};
+function getLayers(){
+  const cl=(id,def)=>(($(id).value.trim())||def).replace(/[<>\/\\":;?*|,=`]/g,'_');
+  return {pt:{name:cl('layPtName','SURVEY_PT'),color:$('layPtColor').value},
+          txt:{name:cl('layTxtName','SURVEY_TXT'),color:$('layTxtColor').value},
+          ctrl:{name:cl('layCtrlName','CONTROL'),color:$('layCtrlColor').value}};
+}
+function exOpts(){
+  const mode=$('psMode').value, sz=Number($('mkR').value)||(mode==='screen'?3:0.5);
+  return {mode,sz,pd:$('pdStyle').value,H:Number($('txH').value)||0.5,lbl:$('mkLabel').checked,useNum:$('lblNum').checked,
+    inclC:$('inclCtrl').checked&&!!station,cR:Number($('ctrlR').value)||0.5,
+    psize:(mode==='screen'?-Math.abs(sz):Math.abs(sz)),off:Math.max(Number($('txH').value)||0.5,0.3),L:getLayers()};
+}
+function genCSV(){
+  const head=['点名','X_北(m)','Y_東(m)','水平距離(m)','方向角(度)','方向角DMS','残差(mm)','判定','図化_横(東)','図化_縦(北)'];
+  const q=s=>('"'+String(s).replace(/"/g,'""')+'"');
+  const lines=[head.join(',')];
+  list.forEach(p=>{lines.push([q(p.name),p.x.toFixed(3),p.y.toFixed(3),p.dist.toFixed(3),p.az.toFixed(6),q(toDMS(p.az)),p.hasK?(p.resid*1000).toFixed(1):'',p.hasK?(p.ok?'OK':'NG'):'',p.y.toFixed(3),p.x.toFixed(3)].join(','));});
+  return lines.join('\r\n');
+}
+function genSCR(){
+  const o=exOpts(),H=o.H;
+  let s=';; 放射観測 測点  '+new Date().toLocaleString('ja-JP')+'\n';
+  s+=`_-LAYER\n_M\n${o.L.pt.name}\n_C\n${o.L.pt.color}\n${o.L.pt.name}\n_M\n${o.L.txt.name}\n_C\n${o.L.txt.color}\n${o.L.txt.name}\n`;
+  if(o.inclC) s+=`_M\n${o.L.ctrl.name}\n_C\n${o.L.ctrl.color}\n${o.L.ctrl.name}\n`;
+  s+=`\n`;
+  s+=`PDMODE\n${o.pd}\nPDSIZE\n${o.psize}\n`;
+  s+=`_-LAYER\n_S\n${o.L.pt.name}\n\n`;
+  list.forEach(p=>{const c=cad(p);s+=`_POINT\n${c.x.toFixed(3)},${c.y.toFixed(3)}\n`;});
+  if(o.inclC){
+    s+=`_-LAYER\n_S\n${o.L.ctrl.name}\n\n`;
+    [station.A,station.B].forEach(p=>{const c=cad(p);s+=`_CIRCLE\n${c.x.toFixed(3)},${c.y.toFixed(3)}\n${o.cR}\n`;});
+    const cp=cad(station.P);s+=`_CIRCLE\n${cp.x.toFixed(3)},${cp.y.toFixed(3)}\n${o.cR}\n_CIRCLE\n${cp.x.toFixed(3)},${cp.y.toFixed(3)}\n${(o.cR/2).toFixed(3)}\n`;
+  }
+  if(o.lbl){
+    s+=`_-LAYER\n_S\n${o.L.txt.name}\n\n`;
+    list.forEach((p,i)=>{const c=cad(p),t=o.useNum?String(i+1):p.name;s+=`_TEXT\n${(c.x+o.off).toFixed(3)},${(c.y-H/2).toFixed(3)}\n${H}\n0\n${t}\n\n`;});
+    if(o.inclC){[[station.A,txt('nameA')||'A'],[station.B,txt('nameB')||'B'],[station.P,'P']].forEach(([p,t])=>{const c=cad(p);s+=`_TEXT\n${(c.x+o.off).toFixed(3)},${(c.y-H/2).toFixed(3)}\n${H}\n0\n${t}\n\n`;});}
+  }
+  s+='_REGEN\n_ZOOM\n_E\n';
+  return s;
+}
+function genDXF(){
+  const o=exOpts(),H=o.H;
+  const layRec=l=>`0\nLAYER\n2\n${l.name}\n70\n0\n62\n${l.color}\n6\nCONTINUOUS\n`;
+  const layers=[o.L.pt,o.L.txt]; if(o.inclC) layers.push(o.L.ctrl);
+  const head=`0\nSECTION\n2\nHEADER\n9\n$PDMODE\n70\n${o.pd}\n9\n$PDSIZE\n40\n${o.psize.toFixed(3)}\n0\nENDSEC\n`;
+  const tables=`0\nSECTION\n2\nTABLES\n0\nTABLE\n2\nLAYER\n70\n${layers.length}\n${layers.map(layRec).join('')}0\nENDTAB\n0\nENDSEC\n`;
+  const txtEnt=(c,t)=>`0\nTEXT\n8\n${o.L.txt.name}\n10\n${(c.x+o.off).toFixed(4)}\n20\n${(c.y-H/2).toFixed(4)}\n30\n0.0\n40\n${H}\n1\n${t}\n`;
+  const circ=(c,r)=>`0\nCIRCLE\n8\n${o.L.ctrl.name}\n10\n${c.x.toFixed(4)}\n20\n${c.y.toFixed(4)}\n30\n0.0\n40\n${r}\n`;
+  let e='';
+  list.forEach((p,i)=>{const c=cad(p);e+=`0\nPOINT\n8\n${o.L.pt.name}\n10\n${c.x.toFixed(4)}\n20\n${c.y.toFixed(4)}\n30\n0.0\n`;if(o.lbl)e+=txtEnt(c,o.useNum?String(i+1):p.name);});
+  if(o.inclC){
+    [[station.A,txt('nameA')||'A'],[station.B,txt('nameB')||'B']].forEach(([p,t])=>{const c=cad(p);e+=circ(c,o.cR);if(o.lbl)e+=txtEnt(c,t);});
+    const cp=cad(station.P);e+=circ(cp,o.cR)+circ(cp,o.cR/2);if(o.lbl)e+=txtEnt(cp,'P');
+  }
+  return `${head}${tables}0\nSECTION\n2\nENTITIES\n${e}0\nENDSEC\n0\nEOF\n`;
+}
+function genXLSXBlob(){
+  const aoa=[['点名','X_北(m)','Y_東(m)','水平距離(m)','方向角(度)','方向角DMS','残差(mm)','判定']];
+  list.forEach(p=>aoa.push([p.name,+p.x.toFixed(3),+p.y.toFixed(3),+p.dist.toFixed(3),+p.az.toFixed(6),toDMS(p.az),p.hasK?+(p.resid*1000).toFixed(1):'',p.hasK?(p.ok?'OK':'NG'):'']));
+  const ws=XLSX.utils.aoa_to_sheet(aoa);ws['!cols']=[{wch:8},{wch:12},{wch:12},{wch:12},{wch:12},{wch:14},{wch:9},{wch:6}];
+  const wb=XLSX.utils.book_new();XLSX.utils.book_append_sheet(wb,ws,'測点');
+  return new Blob([XLSX.write(wb,{type:'array',bookType:'xlsx'})],{type:'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'});
+}
+function downloadBlob(blob,filename){try{const url=URL.createObjectURL(blob);const a=document.createElement('a');a.href=url;a.download=filename;document.body.appendChild(a);a.click();a.remove();setTimeout(()=>URL.revokeObjectURL(url),1500);}catch(e){alert('ダウンロードできない環境です。');}}
+function downloadText(text,filename,mime){const bom=filename.endsWith('.csv')?'\uFEFF':'';downloadBlob(new Blob([bom+text],{type:mime}),filename);}
+function showExport(text,label,filename,mime){
+  $('expText').value=text;$('expLabel').textContent=label;$('expArea').classList.remove('hidden');
+  $('expDownload').onclick=()=>downloadText(text,filename,mime);
+  $('expCopy').onclick=async()=>{try{await navigator.clipboard.writeText(text);flash($('expCopy'),'コピーしました');}catch{$('expText').focus();$('expText').select();}};
+}
+
+/* ---- 永続化（端末内に保存：ホスティング先でも有効） ---- */
+const STKEY='hosen_survey_points_v1';
+function saveList(){ try{ localStorage.setItem(STKEY,JSON.stringify(list)); }catch(e){} }
+function loadList(){ try{ const v=localStorage.getItem(STKEY); if(v){ list=JSON.parse(v)||[]; renderList(); drawAll(); } }catch(e){} }
+
+/* ---- events ---- */
+$('btnHelp').onclick=()=>$('helpPanel').classList.toggle('hidden');
+$('helpClose').onclick=()=>$('helpPanel').classList.add('hidden');
+$('btnStand').onclick=()=>standize();
+$('btnAdd').onclick=addPoint;
+$('btnClearList').onclick=()=>{ if(!list.length)return; list=[]; saveList(); renderList(); drawAll(); };
+$('exCSV').onclick=()=>{ if(!list.length)return showError('リストが空です。'); showExport(genCSV(),'Excel用 CSV（UTF-8）','survey_points.csv','text/csv'); };
+$('exSCR').onclick=()=>{ if(!list.length)return showError('リストが空です。'); showExport(genSCR(),'AutoCAD スクリプト','survey_points.scr','text/plain'); };
+$('exDXF').onclick=()=>{ if(!list.length)return showError('リストが空です。'); showExport(genDXF(),'DXF','survey_points.dxf','application/dxf'); };
+$('exXLSX').onclick=()=>{ if(!list.length)return showError('リストが空です。'); if(typeof XLSX==='undefined')return showError('Excel生成ライブラリを読み込めません。CSVをご利用ください。'); downloadBlob(genXLSXBlob(),'survey_points.xlsx'); };
+$('exShare').onclick=async()=>{
+  if(!list.length)return showError('リストが空です。');
+  if(typeof XLSX==='undefined')return showError('Excel生成ライブラリを読み込めません。CSVをご利用ください。');
+  const blob=genXLSXBlob(), file=new File([blob],'survey_points.xlsx',{type:blob.type});
+  if(navigator.canShare&&navigator.canShare({files:[file]})){ try{await navigator.share({files:[file],title:'測量結果',text:'放射観測 測点データ'});}catch(e){} }
+  else { downloadBlob(blob,'survey_points.xlsx'); alert('共有に未対応の環境のためダウンロードしました。メールに添付して送ってください。'); }
+};
+document.querySelectorAll('.copybtn').forEach(b=>b.onclick=async()=>{try{await navigator.clipboard.writeText($(b.dataset.copy).textContent);flash(b,'コピーしました');}catch{}});
+$('btnClearIn').onclick=()=>{['nameA','xa','ya','dA','nameB','xb','yb','dB','omegaD','omegaM','omegaS','ptName','ptDist','ptAngD','ptAngM','ptAngS','ptKx','ptKy'].forEach(id=>$(id).value='');clearError();};
+$('btnSample').onclick=()=>{
+  const set=(id,v)=>$(id).value=v;
+  set('nameA','A1');set('xa','100.000');set('ya','100.000');set('dA','70.711');
+  set('nameB','A2');set('xb','100.000');set('yb','200.000');set('dB','70.711');
+  set('omegaD','90');set('omegaM','0');set('omegaS','0');
+  standize(); list=[];
+  const shot=(name,d,dd,mm,ss,kx,ky)=>{set('ptName',name);set('ptDist',d);set('ptAngD',dd);set('ptAngM',mm);set('ptAngS',ss);set('ptKx',kx??'');set('ptKy',ky??'');addPoint();};
+  shot('1','67.082','108','26','06','80.000','210.000');
+  shot('2','55.000','60','0','0');
+  shot('3','42.000','150','0','0');
+};
+loadList();
+</script>
+</body>
+</html>
