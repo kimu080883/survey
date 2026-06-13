@@ -1,0 +1,346 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+<title>杭打ち計算(逆放射)</title>
+<meta name="theme-color" content="#b45309">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="杭打ち計算">
+<link rel="manifest" href="data:application/manifest+json,%7B%22name%22%3A%22杭打ち計算(逆放射)%22%2C%22short_name%22%3A%22杭打ち計算%22%2C%22display%22%3A%22standalone%22%2C%22background_color%22%3A%22%23f8fafc%22%2C%22theme_color%22%3A%22%23b45309%22%7D">
+<script src="https://cdn.tailwindcss.com"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+<style>
+:root{ --amber:#b45309; }
+*{ -webkit-tap-highlight-color:transparent; }
+body{ font-feature-settings:"tnum" 1,"lnum" 1; }
+.safe-top{ padding-top:max(env(safe-area-inset-top),16px); }
+.safe-x{ padding-left:env(safe-area-inset-left); padding-right:env(safe-area-inset-right); }
+.mono{ font-family:ui-monospace,SFMono-Regular,Menlo,monospace; }
+input[type="text"],input[type="number"],select{ font-size:16px; }
+input[type=number]::-webkit-outer-spin-button,input[type=number]::-webkit-inner-spin-button{ -webkit-appearance:none;margin:0; }
+input[type=number]{ -moz-appearance:textfield; }
+.field:focus{ outline:none;border-color:var(--amber);box-shadow:0 0 0 3px rgba(180,83,9,.15); }
+.tbl-wrap{ -webkit-overflow-scrolling:touch; }
+</style>
+</head>
+<body class="bg-slate-50 text-slate-800 min-h-screen pb-24">
+<div class="max-w-3xl mx-auto px-3 py-4 safe-top safe-x">
+
+  <header class="flex items-center justify-between mb-3">
+    <div>
+      <h1 class="text-lg font-bold text-slate-900">杭打ち計算(逆放射)</h1>
+      <p class="text-xs text-slate-500">CADの計画点 → 現場の角度・距離一覧</p>
+    </div>
+    <button id="btnHelp" class="text-xs px-3 py-2 rounded-lg bg-white border border-slate-200 text-slate-600 shadow-sm">使い方</button>
+  </header>
+
+  <div id="helpPanel" class="hidden mb-4 rounded-xl bg-white border border-slate-200 shadow-sm p-4 text-sm leading-relaxed text-slate-700">
+    <div class="flex items-center justify-between mb-2"><h2 class="font-bold text-slate-900">使い方</h2><button id="helpClose" class="text-xs px-2 py-1 rounded bg-slate-100">閉じる</button></div>
+    <ol class="list-decimal pl-5 space-y-1.5">
+      <li>AutoCADで計画点を「新点」レイヤに配置し、DXFで書き出す。</li>
+      <li><b>① DXF読込</b>でファイルを選び、レイヤ(例:新点)を指定 → 計画点を取り込む。</li>
+      <li><b>② 器械点・後視点</b>を指定(前に作った基準点を呼び出せます)。</li>
+      <li><b>③ 計算</b>で各計画点の「夾角・方位角・距離」を一覧化。</li>
+      <li><b>Excel / PDF</b>で出力 → 現場で後視ゼロセット→夾角→距離で杭を打つ。</li>
+    </ol>
+    <p class="mt-2 text-xs text-slate-500">※DXFの座標は「X=東・Y=北」として読み、測量座標(X北・Y東)に戻します(既定)。前アプリで書き出したDXFはこのままでOK。</p>
+  </div>
+
+  <!-- ① DXF読込 -->
+  <section class="rounded-xl bg-white border border-slate-200 shadow-sm p-4 mb-4">
+    <h2 class="text-sm font-bold text-slate-900 mb-3 flex items-center gap-2"><span class="inline-flex w-5 h-5 rounded-full bg-amber-700 text-white text-xs items-center justify-center">1</span>計画点を読み込む(DXF)</h2>
+    <input id="dxfFile" type="file" accept=".dxf" class="block w-full text-sm text-slate-600 file:mr-3 file:py-2 file:px-4 file:rounded-lg file:border-0 file:text-sm file:font-medium file:bg-amber-50 file:text-amber-700">
+    <div id="dxfInfo" class="hidden mt-3">
+      <label class="text-xs text-slate-500 block mb-1">読み込むレイヤ
+        <select id="selLayer" class="field mt-1 w-full rounded-lg border border-slate-200 px-2 py-2 text-sm bg-white"></select>
+      </label>
+      <div class="mt-2 flex flex-wrap items-center gap-x-4 gap-y-2 text-xs text-slate-600">
+        <label class="flex items-center gap-1.5"><input id="axisSwap" type="checkbox" checked class="accent-amber-700"> DXFは X=東 / Y=北(測量座標に戻す)</label>
+      </div>
+      <p id="dxfCount" class="mt-2 text-xs text-amber-700"></p>
+    </div>
+  </section>
+
+  <!-- ② 器械点・後視点 -->
+  <section class="rounded-xl bg-white border border-slate-200 shadow-sm p-4 mb-4">
+    <h2 class="text-sm font-bold text-slate-900 mb-3 flex items-center gap-2"><span class="inline-flex w-5 h-5 rounded-full bg-amber-700 text-white text-xs items-center justify-center">2</span>器械点・後視点</h2>
+    <div id="refLoaded" class="hidden mb-3 text-xs text-emerald-700 bg-emerald-50 border border-emerald-200 rounded-lg px-3 py-2"></div>
+    <button id="btnLoadRef" class="mb-3 text-sm px-3 py-2 rounded-lg bg-white text-amber-700 border border-amber-200">前に作った基準点を呼び出す</button>
+    <div class="grid grid-cols-1 gap-3">
+      <div class="grid grid-cols-3 gap-2 items-end">
+        <label class="text-xs text-slate-500 col-span-3">器械点(据える点)</label>
+        <input id="instName" type="text" placeholder="点名" value="T1" class="field rounded-lg border border-slate-200 px-2 py-2 text-sm text-center">
+        <input id="instX" type="number" inputmode="decimal" step="any" placeholder="X北" class="field rounded-lg border border-slate-200 px-2 py-2 text-sm mono">
+        <input id="instY" type="number" inputmode="decimal" step="any" placeholder="Y東" class="field rounded-lg border border-slate-200 px-2 py-2 text-sm mono">
+      </div>
+      <div class="grid grid-cols-3 gap-2 items-end">
+        <label class="text-xs text-slate-500 col-span-3">後視点(ゼロセット)</label>
+        <input id="bsName" type="text" placeholder="点名" value="T2" class="field rounded-lg border border-slate-200 px-2 py-2 text-sm text-center">
+        <input id="bsX" type="number" inputmode="decimal" step="any" placeholder="X北" class="field rounded-lg border border-slate-200 px-2 py-2 text-sm mono">
+        <input id="bsY" type="number" inputmode="decimal" step="any" placeholder="Y東" class="field rounded-lg border border-slate-200 px-2 py-2 text-sm mono">
+      </div>
+      <div id="refPick" class="hidden grid grid-cols-2 gap-2">
+        <label class="text-xs text-slate-500">器械点を選ぶ<select id="selInst" class="field mt-1 w-full rounded-lg border border-slate-200 px-2 py-2 text-sm bg-white"></select></label>
+        <label class="text-xs text-slate-500">後視点を選ぶ<select id="selBs" class="field mt-1 w-full rounded-lg border border-slate-200 px-2 py-2 text-sm bg-white"></select></label>
+      </div>
+      <p id="bsAzNote" class="text-xs text-slate-500"></p>
+    </div>
+  </section>
+
+  <button id="btnCalc" class="w-full mb-4 py-3 rounded-xl bg-amber-700 text-white font-bold shadow-sm active:bg-amber-800">杭打ちデータを計算</button>
+  <div id="err" class="hidden mb-4 rounded-lg bg-red-50 border border-red-200 text-red-700 text-sm px-4 py-3"></div>
+
+  <!-- ③ 結果 -->
+  <section id="resultSec" class="hidden rounded-xl bg-white border border-slate-200 shadow-sm p-4 mb-4">
+    <div class="flex items-center justify-between mb-3">
+      <h2 class="text-sm font-bold text-slate-900">杭打ち一覧</h2>
+      <span id="resCount" class="text-xs text-slate-400"></span>
+    </div>
+    <div id="resHead" class="text-xs text-slate-500 mb-2"></div>
+    <div class="tbl-wrap overflow-x-auto -mx-1 px-1 max-h-96 overflow-y-auto">
+      <table class="w-full text-sm border-collapse">
+        <thead class="sticky top-0 bg-white"><tr class="text-xs text-slate-500 border-b border-slate-200">
+          <th class="py-2 px-2 text-left font-medium">点名</th>
+          <th class="py-2 px-2 text-right font-medium">夾角</th>
+          <th class="py-2 px-2 text-right font-medium">方位角</th>
+          <th class="py-2 px-2 text-right font-medium">距離m</th>
+          <th class="py-2 px-2 text-right font-medium">X北</th>
+          <th class="py-2 px-2 text-right font-medium">Y東</th>
+        </tr></thead>
+        <tbody id="resRows" class="mono text-xs"></tbody>
+      </table>
+    </div>
+    <div class="mt-4 grid grid-cols-3 gap-2">
+      <button id="exXLSX" class="text-sm px-3 py-2.5 rounded-lg bg-white text-slate-700 border border-slate-200">Excel</button>
+      <button id="exPDF" class="text-sm px-3 py-2.5 rounded-lg bg-white text-slate-700 border border-slate-200">PDF</button>
+      <button id="exShare" class="text-sm px-3 py-2.5 rounded-lg bg-amber-700 text-white font-medium">共有</button>
+    </div>
+  </section>
+
+  <footer class="text-center text-xs text-slate-400 mt-6">杭打ち計算(逆放射) ・ データは端末内</footer>
+</div>
+
+<script>
+const $=id=>document.getElementById(id);
+function normDeg(d){d%=360;return d<0?d+360:d;}
+function azimuth(x1,y1,x2,y2){return normDeg(Math.atan2(y2-y1,x2-x1)*180/Math.PI);}
+function deg2dms(deg){deg=normDeg(deg);let d=Math.floor(deg);let mf=(deg-d)*60;let m=Math.floor(mf);let s=(mf-m)*60;if(s>=59.95){s=0;m++;}if(m>=60){m=0;d++;}return `${d}°${String(m).padStart(2,'0')}'${s.toFixed(1).padStart(4,'0')}"`;}
+function showError(m){$('err').textContent=m;$('err').classList.remove('hidden');}
+function clearError(){$('err').classList.add('hidden');}
+
+let planPts=[];   // {name,x,y} 測量座標(X北,Y東)に変換済み
+let rawEntities=[]; // DXF生データ {type,layer,dxfx,dxfy,txt}
+let result=null;
+
+/* ===== DXF読込 ===== */
+function parseDXF(text){
+  const lines=text.split(/\r\n|\r|\n/);
+  const pairs=[];
+  for(let i=0;i+1<lines.length;i+=2){pairs.push([lines[i].trim(),lines[i+1]]);}
+  const ents=[]; let i=0;
+  while(i<pairs.length){
+    const [c,v]=pairs[i];
+    if(c==='0'&&['POINT','CIRCLE','INSERT','TEXT','MTEXT'].includes(v)){
+      const type=v; let layer='0',x=null,y=null,txt='';
+      i++;
+      while(i<pairs.length&&pairs[i][0]!=='0'){
+        const [cc,vv]=pairs[i];
+        if(cc==='8')layer=vv.trim();
+        else if(cc==='10'&&x===null)x=parseFloat(vv);
+        else if(cc==='20'&&y===null)y=parseFloat(vv);
+        else if(cc==='1'&&!txt)txt=vv.trim();
+        i++;
+      }
+      if(isFinite(x)&&isFinite(y))ents.push({type,layer,dxfx:x,dxfy:y,txt});
+      continue;
+    }
+    i++;
+  }
+  return ents;
+}
+function layersOf(ents){return [...new Set(ents.map(e=>e.layer))];}
+function rebuildPlanPts(){
+  const layer=$('selLayer').value;
+  const swap=$('axisSwap').checked;
+  const sel=rawEntities.filter(e=>layer==='(すべて)'||e.layer===layer);
+  planPts=sel.map((e,idx)=>{
+    // swap=true: DXF_X=東(Y), DXF_Y=北(X) → 測量X=dxfy, 測量Y=dxfx
+    const X=swap?e.dxfy:e.dxfx;
+    const Y=swap?e.dxfx:e.dxfy;
+    const name=e.txt||`新${idx+1}`;
+    return {name,x:X,y:Y};
+  });
+  $('dxfCount').textContent=`計画点 ${planPts.length} 点を取り込みました(レイヤ:${layer})`;
+}
+$('dxfFile').onchange=e=>{
+  const f=e.target.files[0]; if(!f)return;
+  const rd=new FileReader();
+  rd.onload=ev=>{
+    try{
+      rawEntities=parseDXF(ev.target.result);
+      if(!rawEntities.length){showError('DXFから点が見つかりませんでした。POINT/CIRCLE/TEXT/ブロックが含まれているか確認してください。');return;}
+      clearError();
+      const layers=layersOf(rawEntities);
+      $('selLayer').innerHTML=['(すべて)',...layers].map(l=>`<option value="${l}">${l}</option>`).join('');
+      // 「新点」を優先選択
+      const pref=layers.find(l=>/新点|新|plan|new/i.test(l));
+      if(pref)$('selLayer').value=pref;
+      $('dxfInfo').classList.remove('hidden');
+      rebuildPlanPts();
+    }catch(err){showError('DXFの読み込みに失敗しました。');}
+  };
+  rd.readAsText(f);
+};
+$('selLayer').onchange=rebuildPlanPts;
+$('axisSwap').onchange=rebuildPlanPts;
+
+/* ===== 基準点の呼び出し(測量スイートのlocalStorage) ===== */
+let refPts=[];
+function loadRef(){
+  let found=[];
+  try{
+    const v=localStorage.getItem('hosen_suite_v1');
+    if(v){const d=JSON.parse(v); if(d&&d.control)found=d.control;}
+  }catch(e){}
+  if(!found.length){
+    $('refLoaded').textContent='保存された基準点が見つかりませんでした。手入力で器械点・後視点を入れてください。';
+    $('refLoaded').className='mb-3 text-xs text-amber-700 bg-amber-50 border border-amber-200 rounded-lg px-3 py-2';
+    $('refLoaded').classList.remove('hidden');
+    return;
+  }
+  refPts=found;
+  const opt=c=>`<option value="${c.name}">${c.name} (X${(+c.x).toFixed(2)}, Y${(+c.y).toFixed(2)})</option>`;
+  $('selInst').innerHTML=refPts.map(opt).join('');
+  $('selBs').innerHTML=refPts.map(opt).join('');
+  if(refPts.length>=2)$('selBs').selectedIndex=1;
+  $('refPick').classList.remove('hidden');
+  $('refLoaded').textContent=`基準点 ${refPts.length} 点を呼び出しました。下で器械点・後視点を選べます。`;
+  $('refLoaded').className='mb-3 text-xs text-emerald-700 bg-emerald-50 border border-emerald-200 rounded-lg px-3 py-2';
+  $('refLoaded').classList.remove('hidden');
+  applyRefPick();
+}
+function applyRefPick(){
+  const ip=refPts.find(c=>c.name===$('selInst').value);
+  const bp=refPts.find(c=>c.name===$('selBs').value);
+  if(ip){$('instName').value=ip.name;$('instX').value=ip.x;$('instY').value=ip.y;}
+  if(bp){$('bsName').value=bp.name;$('bsX').value=bp.x;$('bsY').value=bp.y;}
+  updateBsAz();
+}
+$('btnLoadRef').onclick=loadRef;
+$('selInst').onchange=applyRefPick;
+$('selBs').onchange=applyRefPick;
+['instX','instY','bsX','bsY'].forEach(id=>$(id).oninput=updateBsAz);
+function updateBsAz(){
+  const ix=Number($('instX').value),iy=Number($('instY').value),bx=Number($('bsX').value),by=Number($('bsY').value);
+  if([ix,iy,bx,by].every(isFinite)&&!($('instX').value===''||$('bsX').value==='')){
+    if(ix===bx&&iy===by){$('bsAzNote').textContent='器械点と後視点が同じ座標です。';$('bsAzNote').className='text-xs text-amber-600';return;}
+    const az=azimuth(ix,iy,bx,by);
+    $('bsAzNote').textContent=`後視方位角 ${$('instName').value||'器械'}→${$('bsName').value||'後視'} = ${deg2dms(az)}`;
+    $('bsAzNote').className='text-xs text-slate-500';
+  }else{$('bsAzNote').textContent='';}
+}
+
+/* ===== 計算(逆放射) ===== */
+function calc(){
+  clearError();
+  if(!planPts.length){showError('先にDXFを読み込み、計画点を取り込んでください。');return;}
+  const inst={name:$('instName').value.trim()||'器械点',x:Number($('instX').value),y:Number($('instY').value)};
+  const bs={name:$('bsName').value.trim()||'後視',x:Number($('bsX').value),y:Number($('bsY').value)};
+  if(![inst.x,inst.y,bs.x,bs.y].every(isFinite)||$('instX').value===''||$('instY').value===''||$('bsX').value===''||$('bsY').value===''){
+    showError('器械点・後視点の座標を入力してください。');return;}
+  if(inst.x===bs.x&&inst.y===bs.y){showError('器械点と後視点が同じ座標です。');return;}
+  const bsAz=azimuth(inst.x,inst.y,bs.x,bs.y);
+  const rows=planPts.map(p=>{
+    const az=azimuth(inst.x,inst.y,p.x,p.y);
+    const dist=Math.hypot(p.x-inst.x,p.y-inst.y);
+    const incl=normDeg(az-bsAz);
+    return {name:p.name,incl,az,dist,x:p.x,y:p.y};
+  });
+  result={inst,bs,bsAz,rows};
+  render();
+  saveState();
+}
+function render(){
+  const {inst,bs,bsAz,rows}=result;
+  $('resHead').textContent=`器械点 ${inst.name}(X${inst.x.toFixed(3)}, Y${inst.y.toFixed(3)})・後視 ${bs.name}・後視方位角 ${deg2dms(bsAz)}`;
+  $('resCount').textContent=`${rows.length}点`;
+  const tb=$('resRows');tb.innerHTML='';
+  rows.forEach(r=>{
+    const tr=document.createElement('tr');tr.className='border-b border-slate-50';
+    tr.innerHTML=`<td class="py-1.5 px-2 text-left">${r.name}</td><td class="py-1.5 px-2 text-right">${deg2dms(r.incl)}</td><td class="py-1.5 px-2 text-right text-slate-500">${deg2dms(r.az)}</td><td class="py-1.5 px-2 text-right">${r.dist.toFixed(3)}</td><td class="py-1.5 px-2 text-right text-slate-400">${r.x.toFixed(3)}</td><td class="py-1.5 px-2 text-right text-slate-400">${r.y.toFixed(3)}</td>`;
+    tb.appendChild(tr);
+  });
+  $('resultSec').classList.remove('hidden');
+  $('resultSec').scrollIntoView({behavior:'smooth',block:'start'});
+}
+
+/* ===== 出力 ===== */
+function aoaData(){
+  const {inst,bs,bsAz,rows}=result;
+  const aoa=[
+    ['杭打ちデータ(逆放射)'],
+    ['器械点',inst.name,'X北',+inst.x.toFixed(3),'Y東',+inst.y.toFixed(3)],
+    ['後視点',bs.name,'後視方位角',deg2dms(bsAz)],
+    [],
+    ['点名','夾角','方位角','距離(m)','X北','Y東']
+  ];
+  rows.forEach(r=>aoa.push([r.name,deg2dms(r.incl),deg2dms(r.az),+r.dist.toFixed(3),+r.x.toFixed(3),+r.y.toFixed(3)]));
+  return aoa;
+}
+function genXLSXBlob(){
+  const ws=XLSX.utils.aoa_to_sheet(aoaData());ws['!cols']=[{wch:10},{wch:14},{wch:14},{wch:10},{wch:12},{wch:12}];
+  const wb=XLSX.utils.book_new();XLSX.utils.book_append_sheet(wb,ws,'杭打ち');
+  return new Blob([XLSX.write(wb,{type:'array',bookType:'xlsx'})],{type:'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'});
+}
+function genPDFBlob(){
+  const {jsPDF}=window.jspdf;
+  const doc=new jsPDF({orientation:'portrait',unit:'mm',format:'a4'});
+  const {inst,bs,bsAz,rows}=result;
+  doc.setFontSize(14);doc.text('Setting-out data (reverse radiation)',14,16);
+  doc.setFontSize(9);
+  doc.text(`Instrument: ${inst.name}  X=${inst.x.toFixed(3)}  Y=${inst.y.toFixed(3)}`,14,24);
+  doc.text(`Backsight: ${bs.name}   BS azimuth=${deg2dms(bsAz)}`,14,29);
+  // 表
+  let y=38;
+  doc.setFontSize(8);
+  const head=['No','Name','Incl.angle','Azimuth','Dist(m)','X','Y'];
+  const colX=[14,24,56,90,120,140,165];
+  doc.setFillColor(230,230,230);doc.rect(14,y-5,182,6,'F');
+  head.forEach((h,i)=>doc.text(h,colX[i],y-1));
+  y+=2;
+  rows.forEach((r,idx)=>{
+    if(y>285){doc.addPage();y=20;}
+    const vals=[String(idx+1),r.name,deg2dms(r.incl),deg2dms(r.az),r.dist.toFixed(3),r.x.toFixed(3),r.y.toFixed(3)];
+    vals.forEach((v,i)=>doc.text(String(v),colX[i],y));
+    y+=6;
+  });
+  return doc.output('blob');
+}
+function downloadBlob(blob,filename){try{const url=URL.createObjectURL(blob);const a=document.createElement('a');a.href=url;a.download=filename;document.body.appendChild(a);a.click();a.remove();setTimeout(()=>URL.revokeObjectURL(url),1500);}catch(e){alert('ダウンロードできない環境です。');}}
+function needRes(){if(!result){showError('先に計算してください。');return false;}return true;}
+$('exXLSX').onclick=()=>{if(!needRes())return;if(typeof XLSX==='undefined')return showError('Excelライブラリ未読込');downloadBlob(genXLSXBlob(),'setout.xlsx');};
+$('exPDF').onclick=()=>{if(!needRes())return;if(!window.jspdf)return showError('PDFライブラリ未読込');downloadBlob(genPDFBlob(),'setout.pdf');};
+$('exShare').onclick=async()=>{
+  if(!needRes())return;
+  const files=[new File([genXLSXBlob()],'setout.xlsx',{type:'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'})];
+  try{files.push(new File([genPDFBlob()],'setout.pdf',{type:'application/pdf'}));}catch(e){}
+  if(navigator.canShare&&navigator.canShare({files})){try{await navigator.share({files,title:'杭打ちデータ',text:'逆放射 設置データ'});}catch(e){}}
+  else{files.forEach(f=>downloadBlob(f,f.name));alert('共有未対応の環境のため個別ダウンロードしました。');}
+};
+
+/* ===== 保存/復元(器械点・後視点だけ) ===== */
+function saveState(){try{localStorage.setItem('hosen_setout_v1',JSON.stringify({inst:{name:$('instName').value,x:$('instX').value,y:$('instY').value},bs:{name:$('bsName').value,x:$('bsX').value,y:$('bsY').value}}));}catch(e){}}
+function loadStateLight(){try{const v=localStorage.getItem('hosen_setout_v1');if(!v)return;const d=JSON.parse(v);if(d.inst){$('instName').value=d.inst.name;$('instX').value=d.inst.x;$('instY').value=d.inst.y;}if(d.bs){$('bsName').value=d.bs.name;$('bsX').value=d.bs.x;$('bsY').value=d.bs.y;}}catch(e){}}
+
+$('btnHelp').onclick=()=>$('helpPanel').classList.toggle('hidden');
+$('helpClose').onclick=()=>$('helpPanel').classList.add('hidden');
+$('btnCalc').onclick=calc;
+loadStateLight();
+updateBsAz();
+</script>
+</body>
+</html>
