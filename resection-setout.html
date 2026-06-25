@@ -110,6 +110,7 @@ input[type=number]{ -moz-appearance:textfield; }
       <label class="flex items-center gap-1.5"><input id="grpRef" type="checkbox" class="accent-violet-600"> 基準点</label>
       <label class="flex items-center gap-1.5"><input id="grpIP" type="checkbox" checked class="accent-violet-600"> 引照点</label>
       <label class="flex items-center gap-1.5"><input id="grpMy" type="checkbox" checked class="accent-violet-600"> 測点</label>
+      <label class="flex items-center gap-1.5"><input id="grpBk" type="checkbox" checked class="accent-violet-600"> 測点②</label>
       <button id="selAll" class="text-violet-700 underline">全部</button>
       <button id="selNone" class="text-slate-400 underline">全部外す</button>
     </div>
@@ -216,8 +217,21 @@ const DEFAULT_SURVEY=[
   {name:'SC-3',x:505.160,y:558.666,note:'SC後端'},
   {name:'SC-4',x:503.312,y:558.626,note:'SC後端'},
 ];
+const DEFAULT_BUNKI=[
+  {name:'36イ/S交点',x:502.259,y:555.903,note:'分岐主要点'},
+  {name:'36イ/E交点',x:502.239,y:557.009,note:'分岐主要点'},
+  {name:'36ロ/E交点1',x:506.473,y:546.659,note:'分岐主要点'},
+  {name:'36ロ/E交点2',x:506.493,y:545.553,note:'分岐主要点'},
+  {name:'37イ/S交点',x:506.308,y:555.975,note:'分岐主要点'},
+  {name:'37イ/E交点',x:506.289,y:557.081,note:'分岐主要点'},
+  {name:'37ロ/S交点',x:502.424,y:546.587,note:'分岐主要点'},
+  {name:'37ロ/E交点',x:502.443,y:545.481,note:'分岐主要点'},
+  {name:'SC中心',x:504.366,y:551.281,note:'分岐主要点'},
+  {name:'SC中心/1番線KS',x:506.391,y:551.317,note:'分岐主要点'},
+  {name:'SC中心/2番線KS',x:502.341,y:551.245,note:'分岐主要点'},
+];
 
-let refPts=[], ipPts=[], myPts=[]; // 基準点・引照点・測点(ユーザ追加)
+let refPts=[], ipPts=[], myPts=[], bkPts=[]; // 基準点・引照点・測点・測点②(分岐主要点)
 let checked={}; // name->bool
 let mode='resect';
 let inst=null; // {name,x,y}
@@ -225,13 +239,13 @@ let result=null;
 
 function loadData(){
   try{
-    const v=localStorage.getItem('hosen_resect_v1');
-    if(v){const d=JSON.parse(v); refPts=d.refPts||DEFAULT_REF.slice(); ipPts=d.ipPts||DEFAULT_IP.slice(); myPts=(d.myPts&&d.myPts.length)?d.myPts:DEFAULT_SURVEY.slice(); }
-    else{ refPts=DEFAULT_REF.slice(); ipPts=DEFAULT_IP.slice(); myPts=DEFAULT_SURVEY.slice(); }
-  }catch(e){ refPts=DEFAULT_REF.slice(); ipPts=DEFAULT_IP.slice(); myPts=DEFAULT_SURVEY.slice(); }
+    const v=localStorage.getItem('hosen_resect_v2');
+    if(v){const d=JSON.parse(v); refPts=d.refPts||DEFAULT_REF.slice(); ipPts=d.ipPts||DEFAULT_IP.slice(); myPts=(d.myPts&&d.myPts.length)?d.myPts:DEFAULT_SURVEY.slice(); bkPts=(d.bkPts&&d.bkPts.length)?d.bkPts:DEFAULT_BUNKI.slice(); }
+    else{ refPts=DEFAULT_REF.slice(); ipPts=DEFAULT_IP.slice(); myPts=DEFAULT_SURVEY.slice(); bkPts=DEFAULT_BUNKI.slice(); }
+  }catch(e){ refPts=DEFAULT_REF.slice(); ipPts=DEFAULT_IP.slice(); myPts=DEFAULT_SURVEY.slice(); bkPts=DEFAULT_BUNKI.slice(); }
 }
-function saveData(){try{localStorage.setItem('hosen_resect_v1',JSON.stringify({refPts,ipPts,myPts}));}catch(e){}}
-function allKnown(){return [...refPts,...ipPts,...myPts];}
+function saveData(){try{localStorage.setItem('hosen_resect_v2',JSON.stringify({refPts,ipPts,myPts,bkPts}));}catch(e){}}
+function allKnown(){return [...refPts,...ipPts,...myPts,...bkPts];}
 function findPt(name){return allKnown().find(p=>p.name===name);}
 
 // ===== セレクト類を埋める =====
@@ -256,6 +270,7 @@ function rebuildPtList(){
   if($('grpRef').checked) groups.push(['基準点',refPts]);
   if($('grpIP').checked) groups.push(['引照点',ipPts]);
   if($('grpMy').checked) groups.push(['測点',myPts]);
+  if($('grpBk').checked) groups.push(['測点②',bkPts]);
   let n=0;
   groups.forEach(([label,arr])=>{
     arr.forEach(p=>{
@@ -281,9 +296,10 @@ function visibleNames(){
   if($('grpRef').checked) a=a.concat(refPts.map(p=>p.name));
   if($('grpIP').checked) a=a.concat(ipPts.map(p=>p.name));
   if($('grpMy').checked) a=a.concat(myPts.map(p=>p.name));
+  if($('grpBk').checked) a=a.concat(bkPts.map(p=>p.name));
   return a;
 }
-['grpRef','grpIP','grpMy'].forEach(id=>$(id).onchange=rebuildPtList);
+['grpRef','grpIP','grpMy','grpBk'].forEach(id=>$(id).onchange=rebuildPtList);
 $('selAll').onclick=()=>{visibleNames().forEach(n=>checked[n]=true);rebuildPtList();};
 $('selNone').onclick=()=>{visibleNames().forEach(n=>checked[n]=false);rebuildPtList();};
 
