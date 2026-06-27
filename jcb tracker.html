@@ -1,0 +1,740 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover, maximum-scale=1.0, user-scalable=no">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="default">
+<meta name="apple-mobile-web-app-title" content="JCBメモ">
+<title>JCB しはらいメモ</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=M+PLUS+Rounded+1c:wght@400;500;700;800&display=swap" rel="stylesheet">
+<style>
+:root{
+  --ink:#16243F; --ink2:#2C3F6B; --peri:#7C8AE0; --peri-d:#5C6BC8;
+  --paper:#FBF6EE; --card:#FFFFFF; --cream2:#F3ECDF;
+  --coral:#FF8C6B; --mint:#46C29A; --amber:#F2B441; --rose:#E5614F;
+  --line:rgba(22,36,63,.10); --line2:rgba(22,36,63,.16); --muted:#7A86A0;
+  --safe-t:env(safe-area-inset-top); --safe-b:env(safe-area-inset-bottom);
+  --safe-l:env(safe-area-inset-left); --safe-r:env(safe-area-inset-right);
+  --shadow:0 8px 28px rgba(22,36,63,.14); --shadow-s:0 2px 10px rgba(22,36,63,.08);
+}
+*{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+html,body{margin:0;padding:0}
+body{font-family:"M PLUS Rounded 1c",-apple-system,BlinkMacSystemFont,"Hiragino Sans","Yu Gothic",sans-serif;
+  background:var(--paper);color:var(--ink);font-weight:500;-webkit-font-smoothing:antialiased;
+  padding:var(--safe-t) var(--safe-r) calc(96px + var(--safe-b)) var(--safe-l);max-width:560px;margin:0 auto;min-height:100vh}
+.tnum{font-variant-numeric:tabular-nums;font-feature-settings:"tnum"}
+h1,h2,h3{margin:0;font-weight:800}
+button{font-family:inherit;font-weight:700;cursor:pointer;border:none;background:none;color:inherit}
+
+header{padding:14px 18px 6px;display:flex;align-items:center;gap:10px}
+header .logo{width:34px;height:34px;flex:0 0 auto}
+header .ttl{font-size:18px;font-weight:800;letter-spacing:.02em}
+header .ttl small{display:block;font-size:11px;font-weight:500;color:var(--muted);letter-spacing:.04em}
+.gear{margin-left:auto;width:38px;height:38px;border-radius:12px;display:grid;place-items:center;background:var(--card);box-shadow:var(--shadow-s);font-size:17px}
+
+.hero{margin:8px 14px 0}
+.bigcard{position:relative;border-radius:24px;padding:18px 20px 16px;color:#fff;overflow:hidden;
+  background:linear-gradient(135deg,var(--ink) 0%,var(--ink2) 55%,var(--peri-d) 100%);box-shadow:var(--shadow)}
+.bigcard::after{content:"";position:absolute;right:-40px;top:-40px;width:150px;height:150px;border-radius:50%;background:rgba(255,255,255,.06)}
+.cycnav{display:flex;align-items:center;gap:8px;position:relative;z-index:1}
+.cycmid{flex:1;text-align:center;min-width:0}
+.navb{width:32px;height:32px;border-radius:50%;background:rgba(255,255,255,.16);color:#fff;font-size:21px;line-height:1;display:grid;place-items:center;flex:0 0 auto;font-weight:700;transition:opacity .15s}
+.navb.off{opacity:.22;pointer-events:none}
+.bigcard .cyc{font-size:12.5px;font-weight:700;opacity:.85;letter-spacing:.03em}
+.bigcard .pay{font-size:11px;font-weight:500;opacity:.7;margin-top:2px}
+.hero-row{display:flex;align-items:flex-end;gap:14px;margin-top:8px}
+.face{width:56px;height:56px;flex:0 0 auto}
+.amt-wrap{flex:1;min-width:0}
+.amt{font-size:30px;font-weight:800;line-height:1;letter-spacing:-.01em}
+.amt .yen{font-size:18px;font-weight:700;opacity:.85;margin-right:2px}
+.amt-sub{font-size:11px;opacity:.8;margin-top:5px;font-weight:500}
+
+/* forecast */
+.forecast{margin:12px 14px 0;background:var(--card);border-radius:20px;padding:15px 18px 16px;box-shadow:var(--shadow-s)}
+.fc-lbl{font-size:11.5px;font-weight:700;color:var(--muted)}
+.fc-main{font-size:31px;font-weight:800;letter-spacing:-.01em;line-height:1.05;margin-top:1px}
+.fc-main .yen{font-size:19px;opacity:.7;margin-right:1px}
+.fc-pace{font-size:11.5px;color:var(--muted);font-weight:600;margin-top:4px}
+.fc-bar{display:flex;gap:3px;height:34px;margin:14px 0 9px;border-radius:9px;overflow:hidden}
+.fc-seg{display:flex;flex-direction:column;justify-content:center;padding:0 8px;color:#fff;min-width:0;overflow:hidden}
+.fc-seg b{font-size:12px;font-weight:800;white-space:nowrap}
+.fc-seg small{font-size:8.5px;opacity:.92;white-space:nowrap;font-weight:600}
+.fc-legend{display:flex;gap:12px;font-size:10px;color:var(--muted);font-weight:600;margin-bottom:4px}
+.fc-legend i{display:inline-block;width:8px;height:8px;border-radius:2px;margin-right:4px;vertical-align:middle}
+.fc-judge{margin-top:11px;padding:11px 13px;border-radius:13px;font-size:13px;font-weight:700;display:flex;align-items:center;gap:9px;line-height:1.4}
+.fc-judge.over{background:#FDECE9;color:var(--rose)}
+.fc-judge.okk{background:#EAF7F1;color:#2E9B79}
+.fc-judge .em{font-size:18px}
+.fc-avg{font-size:11px;color:var(--muted);margin-top:9px;font-weight:600;display:flex;justify-content:space-between}
+
+.quick{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin:14px}
+.qbtn{background:var(--card);border-radius:16px;padding:12px 6px;box-shadow:var(--shadow-s);display:flex;flex-direction:column;align-items:center;gap:5px;transition:transform .1s}
+.qbtn:active{transform:scale(.96)}
+.qbtn .ic{font-size:20px}.qbtn .lb{font-size:11px;font-weight:700;color:var(--ink)}
+
+.sec{margin:6px 14px}
+.sec-head{display:flex;align-items:center;gap:8px;margin:18px 4px 8px}
+.sec-head h2{font-size:14px}.sec-head .n{font-size:11px;color:var(--muted);font-weight:700}
+.seg{margin-left:auto;display:flex;background:var(--cream2);border-radius:10px;padding:2px}
+.seg button{font-size:11px;padding:5px 10px;border-radius:8px;color:var(--muted)}
+.seg button.on{background:var(--card);color:var(--ink);box-shadow:var(--shadow-s)}
+
+.up{display:flex;flex-direction:column;gap:7px}
+.uprow{background:var(--card);border-radius:13px;padding:11px 13px;display:flex;align-items:center;gap:11px;box-shadow:var(--shadow-s);transition:transform .1s}
+.uprow:active{transform:scale(.99)}
+.uprow .uc{width:23px;height:23px;border-radius:7px;border:2px solid var(--line2);flex:0 0 auto;display:grid;place-items:center;color:var(--mint);font-size:13px}
+.uprow .um{flex:1;font-size:13px;font-weight:700;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.uprow .ua{font-size:13px;font-weight:800;color:var(--ink2)}
+.uprow .ub{font-size:10.5px;font-weight:700;color:#fff;background:var(--mint);padding:5px 11px;border-radius:9px;flex:0 0 auto}
+.upnote{font-size:11px;color:var(--muted);font-weight:600;margin:3px 4px 0;text-align:right}
+
+.list{display:flex;flex-direction:column;gap:7px}
+.tx{background:var(--card);border-radius:14px;padding:11px 13px;display:flex;align-items:center;gap:11px;box-shadow:var(--shadow-s);position:relative}
+.tx.new::before{content:"";position:absolute;left:0;top:10px;bottom:10px;width:3px;border-radius:3px;background:var(--coral)}
+.tx .dt{flex:0 0 auto;width:40px;text-align:center}
+.tx .dt b{display:block;font-size:15px;font-weight:800;line-height:1}.tx .dt span{font-size:9.5px;color:var(--muted);font-weight:700}
+.tx .mid{flex:1;min-width:0}
+.tx .mc{font-size:13px;font-weight:700;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.tx .tag{font-size:10px;color:var(--muted);font-weight:500;margin-top:2px}
+.tx .pill{background:var(--cream2);border-radius:6px;padding:1px 6px;font-size:9.5px;font-weight:700;color:var(--ink2)}
+.tx .pill.rec{background:#EAF7F1;color:#2E9B79}
+.tx .am{font-size:14px;font-weight:800;white-space:nowrap}
+.tx .del{flex:0 0 auto;width:26px;height:26px;border-radius:50%;display:grid;place-items:center;color:var(--muted);font-size:15px;opacity:.5}
+.empty{text-align:center;color:var(--muted);font-size:12.5px;padding:24px 10px;line-height:1.7}
+
+.past{display:flex;flex-direction:column;gap:7px}
+.pcard{background:var(--card);border-radius:14px;padding:12px 14px;display:flex;align-items:center;box-shadow:var(--shadow-s);transition:transform .1s}
+.pcard:active{transform:scale(.99)}
+.pcard.now{outline:2px solid var(--peri);outline-offset:-1px}
+.pcard .nowtag{font-size:9px;font-weight:800;color:#fff;background:var(--peri);padding:2px 7px;border-radius:6px;margin-left:8px}
+.pcard .pl{flex:1}.pcard .pl b{font-size:13px;font-weight:800}
+.pcard .pl span{display:block;font-size:10.5px;color:var(--muted);font-weight:500;margin-top:1px}
+.pcard .pa{font-size:15px;font-weight:800}.pcard .pn{font-size:10px;color:var(--muted);font-weight:700;margin-left:8px}
+
+.addbar{position:fixed;left:0;right:0;bottom:0;padding:10px 16px calc(10px + var(--safe-b));background:linear-gradient(180deg,rgba(251,246,238,0),var(--paper) 32%);display:flex;justify-content:center;pointer-events:none;z-index:30}
+.addbtn{pointer-events:auto;background:var(--ink);color:#fff;border-radius:16px;padding:15px 26px;font-size:15px;font-weight:800;box-shadow:0 10px 26px rgba(22,36,63,.32);display:flex;align-items:center;gap:9px;width:100%;max-width:532px;justify-content:center}
+.addbtn .plus{font-size:19px;line-height:1}
+
+.scrim{position:fixed;inset:0;background:rgba(22,36,63,.42);opacity:0;pointer-events:none;transition:opacity .25s;z-index:40}
+.scrim.open{opacity:1;pointer-events:auto}
+.sheet{position:fixed;left:0;right:0;bottom:0;max-width:560px;margin:0 auto;background:var(--paper);border-radius:26px 26px 0 0;
+  padding:8px 18px calc(20px + var(--safe-b));transform:translateY(100%);transition:transform .3s cubic-bezier(.2,.85,.25,1);z-index:50;max-height:92vh;overflow-y:auto;-webkit-overflow-scrolling:touch}
+.sheet.open{transform:translateY(0)}
+.grab{width:38px;height:5px;border-radius:3px;background:var(--line2);margin:6px auto 12px}
+.sheet h3{font-size:16px;margin-bottom:14px;text-align:center}
+.field{margin-bottom:13px}
+.field label{display:block;font-size:11.5px;font-weight:700;color:var(--ink2);margin-bottom:5px;margin-left:2px}
+.field input,.field select,.field textarea{width:100%;border:1.5px solid var(--line2);background:var(--card);border-radius:13px;padding:13px 14px;font-family:inherit;font-size:16px;font-weight:600;color:var(--ink);outline:none}
+.field input:focus,.field textarea:focus,.field select:focus{border-color:var(--peri)}
+.field textarea{min-height:130px;resize:vertical;font-size:13px;line-height:1.6}
+.row2{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.chips{display:flex;flex-wrap:wrap;gap:7px;margin-bottom:6px}
+.chip{background:var(--card);border:1.5px solid var(--line2);border-radius:11px;padding:9px 12px;font-size:12.5px;font-weight:700;display:flex;flex-direction:column;align-items:flex-start;gap:1px;min-width:0}
+.chip small{font-size:10px;color:var(--muted);font-weight:600}
+.chip.rec{border-color:#CDEBDF;background:#F1FBF7}.chip:active{transform:scale(.96)}
+.primary{width:100%;background:var(--ink);color:#fff;border-radius:14px;padding:15px;font-size:15px;font-weight:800;margin-top:6px}
+.ghost{width:100%;background:transparent;border:1.5px solid var(--line2);border-radius:14px;padding:13px;font-size:14px;font-weight:700;color:var(--ink2);margin-top:8px}
+.hint{font-size:11.5px;color:var(--muted);line-height:1.6;margin:2px 2px 12px}
+.seg2{display:flex;background:var(--cream2);border-radius:12px;padding:3px;margin-bottom:14px}
+.seg2 button{flex:1;font-size:13px;padding:9px;border-radius:9px;color:var(--muted);font-weight:700}
+.seg2 button.on{background:var(--card);color:var(--ink);box-shadow:var(--shadow-s)}
+.rev{display:flex;flex-direction:column;gap:7px;margin:4px 0 12px}
+.rrow{display:flex;align-items:center;gap:8px;background:var(--card);border-radius:12px;padding:8px 10px;border:1.5px solid var(--line)}
+.rrow input{border:none;background:transparent;font-family:inherit;font-weight:700;font-size:13px;padding:4px;color:var(--ink);min-width:0;outline:none}
+.rrow .ri-d{width:74px;flex:0 0 auto}.rrow .ri-m{flex:1}.rrow .ri-a{width:78px;text-align:right;flex:0 0 auto}
+.rrow .rx{flex:0 0 auto;color:var(--muted);font-size:16px;width:24px;text-align:center}
+.toast{position:fixed;left:50%;bottom:calc(94px + var(--safe-b));transform:translateX(-50%) translateY(20px);background:var(--ink);color:#fff;padding:11px 20px;border-radius:30px;font-size:13px;font-weight:700;opacity:0;transition:all .3s;z-index:60;box-shadow:var(--shadow);white-space:nowrap}
+.toast.show{opacity:1;transform:translateX(-50%) translateY(0)}
+.mngrow{display:flex;align-items:center;gap:8px;background:var(--card);border-radius:12px;padding:9px 11px;margin-bottom:7px;box-shadow:var(--shadow-s)}
+.mngrow .mm{flex:1;font-size:13px;font-weight:700;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.mngrow .ma{font-size:12.5px;font-weight:800;color:var(--ink2)}
+.mngrow .mtag{font-size:9.5px;font-weight:700;padding:2px 7px;border-radius:6px;background:var(--cream2);color:var(--ink2)}
+.mngrow .mtag.rec{background:#EAF7F1;color:#2E9B79}
+.mngrow button{color:var(--rose);font-size:18px;width:24px}
+.addtmpl{display:flex;gap:7px;margin-top:8px}
+.addtmpl input{flex:1;border:1.5px solid var(--line2);border-radius:11px;padding:11px;font-family:inherit;font-size:14px;font-weight:600;background:var(--card);outline:none}
+.addtmpl input.w{flex:0 0 86px}
+.ocrstat{font-size:12px;color:var(--muted);text-align:center;padding:14px;font-weight:600}
+</style>
+</head>
+<body>
+
+<header>
+  <span class="logo" id="logoSlot"></span>
+  <span class="ttl">JCB しはらいメモ<small id="cardName">リクルートカード プラス</small></span>
+  <button class="gear" id="openSettings">⚙︎</button>
+</header>
+
+<div class="hero">
+  <div class="bigcard">
+    <div class="cycnav">
+      <button class="navb" id="cycPrev">‹</button>
+      <div class="cycmid"><div class="cyc" id="cycLabel"></div><div class="pay" id="payLabel"></div></div>
+      <button class="navb" id="cycNext">›</button>
+    </div>
+    <div class="hero-row">
+      <span class="face" id="faceSlot"></span>
+      <div class="amt-wrap">
+        <div class="amt tnum"><span class="yen">¥</span><span id="cycTotal">0</span></div>
+        <div class="amt-sub" id="cycCount">いま使った合計</div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="forecast">
+  <div class="fc-lbl" id="fcLbl">📈 このサイクルの着地見込み</div>
+  <div class="fc-main tnum"><span class="yen">¥</span><span id="fcMain">0</span></div>
+  <div class="fc-pace" id="fcPace"></div>
+  <div class="fc-bar" id="fcBar"></div>
+  <div class="fc-legend" id="fcLegend">
+    <span><i style="background:var(--ink2)"></i>記録済み</span>
+    <span><i style="background:var(--peri)"></i>これから定期</span>
+    <span><i style="background:var(--coral)"></i>これから変動費</span>
+  </div>
+  <div class="fc-judge" id="fcJudge"></div>
+  <div class="fc-avg"><span id="fcAvg"></span><span id="fcRemain"></span></div>
+</div>
+
+<div class="sec" id="upSec">
+  <div class="sec-head"><h2>これから来る定期</h2><span class="n" id="upNote"></span></div>
+  <div class="up" id="upList"></div>
+  <div class="upnote">タップ＝「もう来た」で記録に移ります</div>
+</div>
+
+<div class="quick">
+  <button class="qbtn" id="qManual"><span class="ic">✏️</span><span class="lb">手入力</span></button>
+  <button class="qbtn" id="qRecurring"><span class="ic">🔁</span><span class="lb">定期・よく使う</span></button>
+  <button class="qbtn" id="qImport"><span class="ic">📷</span><span class="lb">スクショ取込</span></button>
+</div>
+
+<div class="sec">
+  <div class="sec-head">
+    <h2>明細</h2><span class="n" id="listNote"></span>
+    <div class="seg"><button id="ordAdded" class="on">追加順</button><button id="ordDate">日付順</button></div>
+  </div>
+  <div class="list" id="txList"></div>
+</div>
+
+<div class="sec">
+  <div class="sec-head"><h2>サイクル一覧</h2><span class="n">タップで移動</span></div>
+  <div class="past" id="pastList"></div>
+</div>
+
+<div class="addbar"><button class="addbtn" id="qManual2"><span class="plus">＋</span>使ったら、打ち込む</button></div>
+
+<div class="scrim" id="scrim"></div>
+
+<div class="sheet" id="sheetManual">
+  <div class="grab"></div><h3 id="manualTitle">支払いを追加</h3>
+  <div class="field"><label>ご利用先</label><input id="mMerchant" type="text" placeholder="例：しずてつストア" autocomplete="off"></div>
+  <div class="row2">
+    <div class="field"><label>ご利用日</label><input id="mDate" type="date"></div>
+    <div class="field"><label>金額（円）</label><input id="mAmount" type="number" inputmode="numeric" placeholder="0"></div>
+  </div>
+  <div class="field"><label>支払区分</label><select id="mPay"><option>1回払い</option><option>2回払い</option><option>ボーナス1回</option><option>リボ</option><option>分割</option></select></div>
+  <button class="primary" id="mSave">この内容で追加</button>
+</div>
+
+<div class="sheet" id="sheetRecurring">
+  <div class="grab"></div><h3>定期・よく使う</h3>
+  <p class="hint">タップで今サイクルに追加。金額は次の画面で直せます。緑＝毎月かかるもの。</p>
+  <div class="chips" id="recChips"></div>
+  <button class="ghost" id="manageTmpl">項目を管理する（追加・削除）</button>
+</div>
+
+<div class="sheet" id="sheetImport">
+  <div class="grab"></div><h3>JCBから取込</h3>
+  <div class="seg2"><button id="impTabImg" class="on">スクショ画像</button><button id="impTabTxt">テキスト貼付</button></div>
+  <div id="impImg">
+    <p class="hint">JCBアプリの明細をスクショ→読み取り。結果は確認リストで直してから登録（勝手に入りません）。</p>
+    <label class="ghost" for="ocrFile" style="display:block;text-align:center">画像を選ぶ 📷</label>
+    <input id="ocrFile" type="file" accept="image/*" style="display:none">
+    <div class="ocrstat" id="ocrStat" style="display:none"></div>
+  </div>
+  <div id="impTxt" style="display:none">
+    <p class="hint">JCBアプリの明細をコピー→貼り付け。バラバラの行でも拾います。</p>
+    <div class="field"><textarea id="impText" placeholder="2026/&#10;06/24&#10;東京キリン&#10;1回払い&#10;90円&#10;&#10;…"></textarea></div>
+    <button class="primary" id="impParse">読み取る</button>
+  </div>
+  <div id="impReview" style="display:none">
+    <div class="sec-head" style="margin:10px 2px 8px"><h2>確認（直してから登録）</h2><span class="n" id="revCount"></span></div>
+    <div class="rev" id="revList"></div>
+    <button class="primary" id="impCommit">まとめて追加</button>
+    <button class="ghost" id="impBack">やり直す</button>
+  </div>
+</div>
+
+<div class="sheet" id="sheetManage">
+  <div class="grab"></div><h3>項目の管理</h3>
+  <p class="hint">「毎月」=予測に乗る定期（緑）。「よく使う」=金額が毎回ちがうもの。</p>
+  <div id="mngList"></div>
+  <div class="seg2" style="margin-top:14px"><button id="mngKindRec" class="on">毎月</button><button id="mngKindFreq">よく使う</button></div>
+  <div class="addtmpl"><input id="mngName" type="text" placeholder="項目名"><input id="mngAmt" class="w" type="number" inputmode="numeric" placeholder="金額"></div>
+  <button class="primary" id="mngAdd" style="margin-top:8px">項目を追加</button>
+  <button class="ghost" id="mngDone">とじる</button>
+</div>
+
+<div class="sheet" id="sheetSettings">
+  <div class="grab"></div><h3>設定</h3>
+  <div class="field"><label>1サイクルの予算（円）</label><input id="setBudget" type="number" inputmode="numeric" placeholder="例：200000"></div>
+  <div class="field"><label>カード名</label><input id="setCardName" type="text"></div>
+  <p class="hint">締め日=毎月15日、引落し=翌々月10日として計算（16日〜翌15日が1サイクル）。着地予測は過去サイクルの変動費ペースと、まだ来ていない定期の見込みを足したものです。</p>
+  <button class="primary" id="setSave">保存</button>
+  <button class="ghost" id="exportData">データを書き出す（バックアップ）</button>
+  <button class="ghost" id="wipeData" style="color:var(--rose);border-color:#F2C5BE">全データを消す</button>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script>
+/* ===== cute smiley card icon ===== */
+function cardSVG(face){
+  let mouth=face==='happy'?'M26 40 Q33 48 40 40':face==='worry'?'M26 44 Q33 38 40 44':'M27 42 L39 42';
+  let brow=face==='worry'?'<path d="M23 30 L30 32 M43 32 L36 30" stroke="#fff" stroke-width="2" stroke-linecap="round" fill="none" opacity=".85"/>':'';
+  return '<svg viewBox="0 0 66 66" xmlns="http://www.w3.org/2000/svg"><defs><linearGradient id="g" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#16243F"/><stop offset="0.55" stop-color="#2C3F6B"/><stop offset="1" stop-color="#5C6BC8"/></linearGradient></defs><rect x="4" y="9" width="58" height="46" rx="11" fill="url(#g)"/><rect x="4" y="9" width="58" height="46" rx="11" fill="none" stroke="rgba(255,255,255,.18)" stroke-width="1.5"/><rect x="11" y="18" width="11" height="8.5" rx="2.2" fill="#F2B441"/><rect x="13" y="20" width="7" height="1.4" fill="#caa030"/><rect x="13" y="23" width="7" height="1.4" fill="#caa030"/><circle cx="22" cy="36" r="3.2" fill="#fff"/><circle cx="44" cy="36" r="3.2" fill="#fff"/><circle cx="22" cy="36" r="1.4" fill="#16243F"/><circle cx="44" cy="36" r="1.4" fill="#16243F"/><ellipse cx="16" cy="42" rx="3.4" ry="2.2" fill="#FF8C6B" opacity=".75"/><ellipse cx="50" cy="42" rx="3.4" ry="2.2" fill="#FF8C6B" opacity=".75"/>'+brow+'<path d="'+mouth+'" stroke="#fff" stroke-width="2.4" stroke-linecap="round" fill="none"/></svg>';
+}
+document.getElementById('logoSlot').innerHTML=cardSVG('happy');
+(function(){
+  const svg=cardSVG('happy').replace('viewBox="0 0 66 66"','viewBox="0 0 66 66" width="66" height="66"');
+  const fav=document.createElement('link');fav.rel='icon';fav.type='image/svg+xml';fav.href='data:image/svg+xml,'+encodeURIComponent(svg);document.head.appendChild(fav);
+  const S=180,c=document.createElement('canvas');c.width=S;c.height=S;const x=c.getContext('2d');
+  x.fillStyle='#FBF6EE';x.fillRect(0,0,S,S);const img=new Image();
+  img.onload=function(){const pad=26;x.drawImage(img,pad,pad,S-pad*2,S-pad*2);const l=document.createElement('link');l.rel='apple-touch-icon';l.href=c.toDataURL('image/png');document.head.appendChild(l);};
+  img.src='data:image/svg+xml,'+encodeURIComponent(svg);
+})();
+
+/* ===== state ===== */
+const KEY='jcb-tracker-v2';
+const DEFAULT_TMPL=[
+  {name:'ドコモご利用料金',amt:31000,kind:'rec',keys:['ドコモ']},
+  {name:'ダスキン〔定期サービス〕',amt:2300,kind:'rec',keys:['ダスキン']},
+  {name:'NETFLIX',amt:2290,kind:'rec',keys:['NETFLIX','ネットフリックス']},
+  {name:'Google One',amt:2900,kind:'rec',keys:['GOOGLE']},
+  {name:'7丁目ギター教室',amt:11700,kind:'rec',keys:['ギタ']},
+  {name:'AF宮前平駅前',amt:8000,kind:'rec',keys:['宮前平']},
+  {name:'モバイルPASMOチャージ',amt:5000,kind:'freq',keys:['PASMO']},
+  {name:'APPLE.COM／BILL',amt:0,kind:'freq',keys:['APPLE.COM']},
+];
+/* full 3-cycle history + current cycle (6/16-7/15) */
+const SEED=[
+// --- cycle 3/16-4/15 (pay 5/11) ---
+['2026-03-17','Amazon Market Place',2882],['2026-03-17','モバイルPASMOチャージ',5000],['2026-03-18','ビブレ',8460],
+['2026-03-20','ウーバーイーツジャパン',3509],['2026-03-20','APPLE.COM／BILL',1200],['2026-03-21','APPLE.COM／BILL',3190],
+['2026-03-21','APPLE.COM／BILL',3000],['2026-03-22','モバイルPASMOチャージ',5000],['2026-03-26','セリア富士八幡町店',660],
+['2026-03-26','APPLE.COM／BILL',1050],['2026-03-28','GOOGLE ＊Google One',2900],['2026-03-29','ネットフリックス',2290],
+['2026-03-30','マックスバリュ東海',1441],['2026-03-31','マックスバリュ東海',2439],['2026-03-31','ドコモご利用料金 4月分',30153],
+['2026-03-31','ダスキン〔定期サービス〕',2300],['2026-03-31','モバイルPASMOチャージ',5000],['2026-04-01','メルカリ',5400],
+['2026-04-03','アイハーブジャパン',2336],['2026-04-04','PAYPAL ＊ALIPAY EUR',4991],['2026-04-04','ウエルシア〔ハックドラッグ〕',9660],
+['2026-04-07','川崎グリーンプラザホテル',14000],['2026-04-08','ナイキジャパン',24058],['2026-04-09','モバイルPASMOチャージ',5000],
+['2026-04-11','ららぽーと沼津',3160],['2026-04-12','APPLE.COM／BILL',290],['2026-04-13','AF宮前平駅前',8000],
+['2026-04-15','APPLE.COM／BILL',2900],['2026-04-02','ILK*KENERGY SEOUL',14310],['2026-04-15','明細書発行手数料',165],
+// --- cycle 4/16-5/15 (pay 6/10) ---
+['2026-04-16','モバイルランド',1340],['2026-04-16','モバイルPASMOチャージ',5000],['2026-04-17','natural hair Skip',5280],
+['2026-04-17','メルカリ',5000],['2026-04-18','PAYPAL ＊BOOKING HOTEL',19018],['2026-04-20','APPLE.COM／BILL',1200],
+['2026-04-22','モバイルPASMOチャージ',5000],['2026-04-23','くら寿司 富士店',6530],['2026-04-24','大喜利 新丸子店',18340],
+['2026-04-24','APPLE.COM／BILL',3400],['2026-04-27','7丁目ギター教室',11700],['2026-04-28','GOOGLE ＊Google One',2900],
+['2026-04-28','APPLE.COM／BILL',4000],['2026-04-29','NETFLIX.COM',2290],['2026-04-30','クリエイトエス・ディー',3174],
+['2026-04-30','ドコモご利用料金 5月分',31751],['2026-04-30','ダスキン〔定期サービス〕',2300],['2026-05-02','シャトレーゼ',4893],
+['2026-05-03','モアーズシティ',3638],['2026-05-03','モバイルPASMOチャージ',5000],['2026-05-04','回し鮨 若貴 池袋',6155],
+['2026-05-04','西武 池袋本店',1947],['2026-05-04','西武 池袋本店',1490],['2026-05-04','GOアプリ〔乗車料金〕',2700],
+['2026-05-06','シャトレーゼ',2495],['2026-05-10','SWEN クロスガーデン富士中央',18145],['2026-05-11','モバイルPASMOチャージ',5000],
+['2026-05-12','APPLE.COM／BILL',290],['2026-05-13','AF宮前平駅前',8000],['2026-05-15','APPLE.COM／BILL',2900],
+['2026-04-22','ILK*KENERGY SEOUL',14310],['2026-04-23','MIDJOURNEY INC.',17147],['2026-05-10','明細書発行手数料',165],
+['2026-04-20','ETC 特割浜松-富士川SA',2040],['2026-04-20','ETC 特割清水-浜松',1670],['2026-04-16','イオンタウン',1600],
+// --- cycle 5/16-6/15 (pay 7/10) ---
+['2026-05-16','Amazon Market Place',1799],['2026-05-17','Amazon Market Place',5840],['2026-05-17','AmazonPay提携サイト',3300],
+['2026-05-17','メルカリ',2080],['2026-05-18','Amazon Market Place',6321],['2026-05-19','モバイルPASMOチャージ',5000],
+['2026-05-20','APPLE.COM／BILL',1200],['2026-05-23','PAYPAL ＊CANVA',1880],['2026-05-23','APPLE.COM／BILL',3400],
+['2026-05-27','TIKTOK SHOP SELLER',1850],['2026-05-27','7丁目ギター教室',11700],['2026-05-27','モバイルPASMOチャージ',5000],
+['2026-05-28','GOOGLE ＊Google One',2900],['2026-05-28','APPLE.COM／BILL',4000],['2026-05-29','APPLE.COM／BILL',3300],
+['2026-05-29','NETFLIX.COM',2290],['2026-05-29','GOアプリ〔乗車料金〕',1700],['2026-05-29','GOアプリ〔乗車料金〕',1400],
+['2026-05-30','エイト・レジャー物産',95],['2026-05-30','エイト・レジャー物産',95],['2026-05-30','イオンシネマ富士宮',2000],
+['2026-05-30','モバイルPASMOチャージ',5000],['2026-05-31','ドコモご利用料金 6月分',31839],['2026-05-31','ダスキン〔定期サービス〕',2300],
+['2026-06-04','JR 東日本',1380],['2026-06-04','JR東海',1380],['2026-06-04','APPLE.COM／BILL',1320],
+['2026-06-04','ヒノマル食堂 有楽町店',53269],['2026-06-04','PLUSTA東京幹線907',1815],['2026-06-05','Amazon Market Place',490],
+['2026-06-05','モバイルPASMOチャージ',5000],['2026-06-07','ウーバーイーツ',2562],['2026-06-09','モバイルPASMOチャージ',5000],
+['2026-06-11','モバイルPASMOチャージ',5000],['2026-06-13','AF宮前平駅前',8000],['2026-06-15','セリア富士八幡町店',220],
+['2026-06-15','APPLE.COM／BILL',3190],['2026-06-15','マックスバリュ東海',1525],['2026-06-10','明細書発行手数料',165],
+['2026-05-20','ETC 狩場-佐原',870],['2026-05-20','ETC 新富士-横浜町田',3000],['2026-05-20','ETC 新横浜-東池袋',1550],
+['2026-05-20','ETC 佐原-狩場',870],['2026-05-20','ETC 新保土ヶ谷-新保土ヶ谷',320],['2026-05-20','ETC 保土ヶ谷-港北',130],
+['2026-05-20','ETC 東池袋-東名道接続',920],['2026-05-20','ETC 東京-富士',3490],
+// --- current cycle 6/16-7/15 (pay 8/10) : entries チム typed ---
+['2026-06-24','東京キリン',90],['2026-06-24','カブシキカイシャソーダ',14897],['2026-06-24','モバイルPASMOチャージ',5000],
+['2026-06-23','APPLE.COM／BILL',3400],['2026-06-23','まいばすけっと',2625],['2026-06-21','PAYPAL ＊CHIHIROS CHI',11600],
+['2026-06-21','カインズホーム',2392],['2026-06-21','APPLE.COM／BILL',650],['2026-06-20','natural hair skip',5280],
+['2026-06-20','APPLE.COM／BILL',1200],['2026-06-20','AmazonPay提携サイト',21450],['2026-06-19','ChargeSPOT',640],
+['2026-06-18','しずてつストア 富士駅南店',4480],['2026-06-18','モバイルPASMOチャージ',5000],
+];
+
+let st=load();
+function load(){
+  try{const r=JSON.parse(localStorage.getItem(KEY));if(r&&r.txns)return r;}catch(e){}
+  let id=1;const txns=SEED.map(t=>({id:id++,date:t[0],merchant:t[1],pay:'1回払い',amount:t[2],added:id}));
+  return {txns,tmpl:DEFAULT_TMPL.slice(),budget:200000,cardName:'リクルートカード プラス',nextId:id};
+}
+function save(){try{localStorage.setItem(KEY,JSON.stringify(st));}catch(e){}}
+function newId(){return st.nextId++;}
+
+/* ===== cycle math ===== */
+function cycleOf(s){
+  const d=new Date(s+'T00:00:00');let eY=d.getFullYear(),eM=d.getMonth();
+  if(d.getDate()>=16){eM++;if(eM>11){eM=0;eY++;}}
+  let sY=eY,sM=eM-1;if(sM<0){sM=11;sY--;}let pY=eY,pM=eM+1;if(pM>11){pM=0;pY++;}
+  return {key:eY+'-'+String(eM+1).padStart(2,'0'),start:new Date(sY,sM,16),end:new Date(eY,eM,15),pay:new Date(pY,pM,10)};
+}
+function toISO(d){return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0');}
+function md(d){return (d.getMonth()+1)+'/'+d.getDate();}
+const yen=n=>Math.round(n).toLocaleString('ja-JP');
+const DAY=86400000;
+function curKey(){return cycleOf(toISO(new Date())).key;}
+
+/* ===== matching ===== */
+function norm(s){return (s||'').replace(/[Ａ-Ｚａ-ｚ０-９]/g,c=>String.fromCharCode(c.charCodeAt(0)-0xFEE0)).replace(/[\s　・／/＊*]/g,'').toUpperCase();}
+function recIndexFor(merchant){
+  const m=norm(merchant);
+  for(let i=0;i<st.tmpl.length;i++){const t=st.tmpl[i];if(t.kind==='rec'&&t.keys&&t.keys.some(k=>m.includes(norm(k))))return i;}
+  return -1;
+}
+function planFor(i){
+  const t=st.tmpl[i];let best=null,bestD='';
+  st.txns.forEach(x=>{if(recIndexFor(x.merchant)===i&&x.date>bestD){bestD=x.date;best=x.amount;}});
+  return best!=null?best:(t.amt||0);
+}
+
+/* ===== forecast / actual (per cycle) ===== */
+function cycleFromKey(key){
+  const p=key.split('-').map(Number),y=p[0],m=p[1];
+  return {key,start:new Date(y,m-2,16),end:new Date(y,m-1,15),pay:new Date(y,m,10)};
+}
+function allCycles(){
+  const g={};
+  st.txns.forEach(t=>{const k=cycleOf(t.date).key;(g[k]=g[k]||[]).push(t);});
+  return Object.keys(g).sort().reverse().map(k=>{
+    const arr=g[k],c=cycleFromKey(k);
+    const total=arr.reduce((s,t)=>s+t.amount,0);
+    let fixed=0;arr.forEach(t=>{if(recIndexFor(t.merchant)>=0)fixed+=t.amount;});
+    const days=Math.round((c.end-c.start)/DAY)+1;
+    return {key:k,c,total,fixed,variable:total-fixed,days,n:arr.length};
+  });
+}
+function calc(key){
+  const c=cycleFromKey(key),realKey=curKey();
+  const cur=st.txns.filter(t=>cycleOf(t.date).key===key);
+  const recorded=cur.reduce((s,t)=>s+t.amount,0);
+  let curFixed=0;const seen=new Set();
+  cur.forEach(t=>{const i=recIndexFor(t.merchant);if(i>=0){curFixed+=t.amount;seen.add(i);}});
+  const upcoming=[];
+  st.tmpl.forEach((t,i)=>{if(t.kind==='rec'&&!seen.has(i))upcoming.push({i,name:t.name,amt:planFor(i)});});
+  const upFixed=upcoming.reduce((s,u)=>s+u.amt,0);
+  const completed=allCycles().filter(p=>p.key<realKey);
+  const sumVar=completed.reduce((s,p)=>s+p.variable,0),sumDays=completed.reduce((s,p)=>s+p.days,0);
+  const pace=sumDays>0?sumVar/sumDays:0;
+  const today=new Date();today.setHours(0,0,0,0);
+  const totalDays=Math.round((c.end-c.start)/DAY)+1;
+  let phase,remaining,elapsed;
+  if(c.end<today){phase='past';remaining=0;elapsed=totalDays;}
+  else if(c.start>today){phase='future';remaining=totalDays;elapsed=0;}
+  else{phase='current';remaining=Math.max(0,Math.ceil((c.end-today)/DAY));elapsed=Math.max(1,totalDays-remaining);}
+  const curVar=recorded-curFixed;
+  const varAvg=pace*remaining;
+  const land=recorded+upFixed+varAvg;
+  const curPace=elapsed>0?curVar/elapsed:0;
+  const landPace=phase==='current'?recorded+upFixed+curPace*remaining:land;
+  const avgPast=completed.length?completed.reduce((s,p)=>s+p.total,0)/completed.length:0;
+  return {c,phase,cur,recorded,curFixed,upcoming,upFixed,varAvg,land,landPace,avgPast,remaining,elapsed,totalDays,pace};
+}
+
+/* ===== render ===== */
+let order='added';
+let viewKey=curKey();
+function minKey(){let mn=curKey();st.txns.forEach(t=>{const k=cycleOf(t.date).key;if(k<mn)mn=k;});return mn;}
+function maxKey(){const p=curKey().split('-').map(Number);let y=p[0],m=p[1]+1;if(m>12){m=1;y++;}return y+'-'+String(m).padStart(2,'0');}
+function shiftCycle(n){
+  const p=viewKey.split('-').map(Number);let y=p[0],m=p[1]+n;
+  while(m>12){m-=12;y++;}while(m<1){m+=12;y--;}
+  const k=y+'-'+String(m).padStart(2,'0');
+  if(k<minKey()||k>maxKey())return;
+  viewKey=k;render();window.scrollTo({top:0,behavior:'smooth'});
+}
+function render(){
+  const f=calc(viewKey),c=f.c,total=f.recorded,ph=f.phase;
+  const payTxt=(c.pay.getMonth()+1)+'/'+c.pay.getDate()+' 引落しぶん';
+  const range=md(c.start)+'〜'+md(c.end);
+  document.getElementById('cardName').textContent=st.cardName;
+  document.getElementById('cycLabel').textContent=payTxt;
+  document.getElementById('payLabel').textContent=range+'分 ・ '+(ph==='past'?'締め済み':ph==='future'?'これから始まる':'記録中');
+  document.getElementById('cycTotal').textContent=yen(total);
+  document.getElementById('cycCount').textContent=ph==='past'?('実績 ・ '+f.cur.length+'件'):ph==='future'?'まだ記録なし（見込み表示中）':('いま使った合計 ・ '+f.cur.length+'件');
+
+  // nav enable/disable
+  document.getElementById('cycPrev').classList.toggle('off',viewKey<=minKey());
+  document.getElementById('cycNext').classList.toggle('off',viewKey>=maxKey());
+
+  // forecast / actual card
+  const lbl=document.getElementById('fcLbl');
+  lbl.textContent=ph==='past'?'✅ 実績（確定）':ph==='future'?'🗓 来月の見込み':'📈 着地見込み';
+  document.getElementById('fcMain').textContent=yen(Math.round(f.land/100)*100);
+  const fcPace=document.getElementById('fcPace');
+  if(ph==='current')fcPace.textContent='今のペースが続くと ¥'+yen(Math.round(f.landPace/100)*100)+' ／ 締めまであと'+f.remaining+'日';
+  else if(ph==='past')fcPace.textContent='締め済み ・ '+f.cur.length+'件の確定額';
+  else fcPace.textContent='定期を先に置くほど、見込みの精度が上がります';
+
+  // breakdown bar + legend
+  let parts,legend;
+  if(ph==='past'){
+    parts=[['定期',f.curFixed,'var(--ink2)'],['変動費',f.recorded-f.curFixed,'var(--coral)']];
+    legend='<span><i style="background:var(--ink2)"></i>定期</span><span><i style="background:var(--coral)"></i>変動費</span>';
+  }else{
+    parts=[['記録済み',f.recorded,'var(--ink2)'],['これから定期',f.upFixed,'var(--peri)'],['これから変動費',f.varAvg,'var(--coral)']];
+    legend='<span><i style="background:var(--ink2)"></i>記録済み</span><span><i style="background:var(--peri)"></i>これから定期</span><span><i style="background:var(--coral)"></i>これから変動費</span>';
+  }
+  document.getElementById('fcLegend').innerHTML=legend;
+  const denom=Math.max(f.land,1);
+  document.getElementById('fcBar').innerHTML=parts.map(p=>{
+    const w=Math.max(p[1]/denom*100,0);if(w<0.5)return '';
+    return '<div class="fc-seg" style="flex:'+w+' 0 0;background:'+p[2]+'"><b>¥'+yen(p[1])+'</b><small>'+p[0]+'</small></div>';
+  }).join('');
+
+  // judge
+  const jb=document.getElementById('fcJudge');
+  if(st.budget>0){
+    const diff=st.budget-f.land;
+    if(ph==='past'){
+      if(diff<0){jb.className='fc-judge over';jb.innerHTML='<span class="em">📕</span><span>予算を <b>¥'+yen(-diff)+'</b> 超えた回（予算 ¥'+yen(st.budget)+'）</span>';}
+      else{jb.className='fc-judge okk';jb.innerHTML='<span class="em">📗</span><span>予算内に収まった（¥'+yen(diff)+' 残し）</span>';}
+    }else{
+      if(diff<0){jb.className='fc-judge over';jb.innerHTML='<span class="em">⚠️</span><span>このままだと予算を <b>¥'+yen(-diff)+'</b> オーバーしそう（予算 ¥'+yen(st.budget)+'）</span>';}
+      else{jb.className='fc-judge okk';jb.innerHTML='<span class="em">✓</span><span>予算内の見込み。あと <b>¥'+yen(diff)+'</b> 余裕</span>';}
+    }
+  }else{jb.className='fc-judge okk';jb.innerHTML='<span class="em">🎯</span><span>設定で予算を決めると、オーバー判定が出せます</span>';}
+  document.getElementById('fcAvg').textContent=f.avgPast?('締め済み平均 ¥'+yen(f.avgPast)):'';
+  const vs=f.avgPast?(f.land-f.avgPast):0;
+  document.getElementById('fcRemain').textContent=f.avgPast?(vs>=0?'平均より +¥'+yen(vs):'平均より −¥'+yen(-vs)):'';
+
+  // face
+  let face='happy';const ratio=st.budget>0?f.land/st.budget:f.avgPast?f.land/f.avgPast:0;
+  if(ratio>=1)face='worry';else if(ratio>=0.85)face='ok';
+  document.getElementById('faceSlot').innerHTML=cardSVG(face);
+
+  // upcoming (hide for past)
+  const us=document.getElementById('upSec'),ul=document.getElementById('upList');
+  if(ph!=='past'&&f.upcoming.length){
+    us.style.display='';
+    document.querySelector('#upSec h2').textContent=ph==='future'?'来月セットする定期':'これから来る定期';
+    document.getElementById('upNote').textContent=f.upcoming.length+'件 ・ ¥'+yen(f.upFixed);
+    ul.innerHTML='';
+    f.upcoming.forEach(u=>{
+      const el=document.createElement('div');el.className='uprow';
+      el.innerHTML='<span class="uc">○</span><span class="um">'+esc(u.name)+'</span><span class="ua tnum">¥'+yen(u.amt)+'</span><span class="ub">'+(ph==='future'?'置く':'来た？')+'</span>';
+      el.onclick=()=>openManual({m:u.name,a:u.amt,p:'1回払い'});
+      ul.appendChild(el);
+    });
+  }else{us.style.display='none';}
+
+  // list (of viewed cycle)
+  let rows=f.cur.slice();
+  if(order==='added')rows.sort((a,b)=>b.added-a.added);
+  else rows.sort((a,b)=>a.date<b.date?1:a.date>b.date?-1:b.added-a.added);
+  const wrap=document.getElementById('txList');wrap.innerHTML='';
+  document.getElementById('listNote').textContent='計 ¥'+yen(total);
+  if(!rows.length)wrap.innerHTML='<div class="empty">'+(ph==='future'?'来月はまだ記録なし。<br>上の定期を「置く」で先回り準備できます。':'記録なし。下の「打ち込む」から。')+'</div>';
+  rows.forEach((t,idx)=>{
+    const dd=new Date(t.date+'T00:00:00'),isRec=recIndexFor(t.merchant)>=0,isNew=order==='added'&&idx===0&&ph==='current';
+    const el=document.createElement('div');el.className='tx'+(isNew?' new':'');
+    el.innerHTML='<div class="dt"><b>'+dd.getDate()+'</b><span>'+(dd.getMonth()+1)+'月</span></div>'+
+      '<div class="mid"><div class="mc">'+esc(t.merchant)+'</div><div class="tag"><span class="pill '+(isRec?'rec':'')+'">'+(isRec?'毎月':esc(t.pay))+'</span></div></div>'+
+      '<div class="am tnum">¥'+yen(t.amount)+'</div><button class="del" data-id="'+t.id+'">✕</button>';
+    wrap.appendChild(el);
+  });
+
+  // cycle list (all cycles, tap to jump, highlight viewed)
+  const cycles=allCycles(),pl=document.getElementById('pastList');pl.innerHTML='';
+  if(!cycles.length)pl.innerHTML='<div class="empty">サイクルがここに並びます。</div>';
+  cycles.forEach(p=>{
+    const isNow=p.key===viewKey,isReal=p.key===curKey();
+    const el=document.createElement('div');el.className='pcard'+(isNow?' now':'');
+    el.innerHTML='<div class="pl"><b>'+(p.c.pay.getMonth()+1)+'/'+p.c.pay.getDate()+' 引落し'+(isReal?'<span class="nowtag">今</span>':'')+'</b><span>'+md(p.c.start)+'〜'+md(p.c.end)+'分 ・ 定期¥'+yen(p.fixed)+'</span></div><div class="pa tnum">¥'+yen(p.total)+'</div><div class="pn">'+p.n+'件</div>';
+    el.onclick=()=>{viewKey=p.key;render();window.scrollTo({top:0,behavior:'smooth'});};
+    pl.appendChild(el);
+  });
+
+  document.getElementById('ordAdded').classList.toggle('on',order==='added');
+  document.getElementById('ordDate').classList.toggle('on',order==='date');
+}
+function esc(s){return (s+'').replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));}
+
+function addTx(date,merchant,pay,amount){
+  st.txns.push({id:newId(),date,merchant,pay:pay||'1回払い',amount:+amount,added:Date.now()});
+  viewKey=cycleOf(date).key;save();render();
+}
+document.getElementById('txList').addEventListener('click',e=>{
+  const b=e.target.closest('.del');if(!b)return;
+  st.txns=st.txns.filter(t=>t.id!==+b.dataset.id);save();render();toast('削除しました');
+});
+
+/* ===== sheets ===== */
+const scrim=document.getElementById('scrim');
+function show(id){closeSheets();const s=document.getElementById(id);s.classList.add('open');scrim.classList.add('open');s.scrollTop=0;}
+function closeSheets(){document.querySelectorAll('.sheet').forEach(s=>s.classList.remove('open'));scrim.classList.remove('open');}
+scrim.addEventListener('click',closeSheets);
+
+function defaultDate(){
+  const f=calc(viewKey);
+  return f.phase==='current'?toISO(new Date()):toISO(f.c.end);
+}
+function openManual(pre){
+  document.getElementById('mMerchant').value=pre&&pre.m||'';
+  document.getElementById('mDate').value=pre&&pre.d||defaultDate();
+  document.getElementById('mAmount').value=pre&&pre.a||'';
+  document.getElementById('mPay').value=pre&&pre.p||'1回払い';
+  document.getElementById('manualTitle').textContent=pre?('追加：'+pre.m):'支払いを追加';
+  show('sheetManual');
+  setTimeout(()=>document.getElementById(pre?'mAmount':'mMerchant').focus(),300);
+}
+document.getElementById('qManual').onclick=()=>openManual();
+document.getElementById('qManual2').onclick=()=>openManual();
+document.getElementById('mSave').onclick=()=>{
+  const m=document.getElementById('mMerchant').value.trim(),a=+document.getElementById('mAmount').value,d=document.getElementById('mDate').value;
+  if(!m||!a||!d){toast('お店・金額・日付を入れてね');return;}
+  addTx(d,m,document.getElementById('mPay').value,a);closeSheets();toast('追加しました ✓');
+};
+
+document.getElementById('qRecurring').onclick=openRecurring;
+function openRecurring(){
+  const wrap=document.getElementById('recChips');wrap.innerHTML='';
+  st.tmpl.forEach((t,i)=>{
+    const b=document.createElement('button');b.className='chip'+(t.kind==='rec'?' rec':'');
+    const plan=t.kind==='rec'?planFor(i):t.amt;
+    b.innerHTML=esc(t.name)+'<small>'+(plan?('¥'+yen(plan)):'金額を入力')+'</small>';
+    b.onclick=()=>{closeSheets();openManual({m:t.name,a:plan||'',p:'1回払い'});};
+    wrap.appendChild(b);
+  });
+  show('sheetRecurring');
+}
+document.getElementById('manageTmpl').onclick=openManage;
+
+let mngKind='rec';
+function openManage(){renderMng();show('sheetManage');}
+function renderMng(){
+  const w=document.getElementById('mngList');w.innerHTML='';
+  st.tmpl.forEach((t,i)=>{
+    const r=document.createElement('div');r.className='mngrow';
+    r.innerHTML='<span class="mtag '+(t.kind==='rec'?'rec':'')+'">'+(t.kind==='rec'?'毎月':'よく使う')+'</span><span class="mm">'+esc(t.name)+'</span><span class="ma">'+(t.amt?('¥'+yen(t.amt)):'—')+'</span><button data-i="'+i+'">✕</button>';
+    w.appendChild(r);
+  });
+  w.querySelectorAll('button').forEach(b=>b.onclick=()=>{st.tmpl.splice(+b.dataset.i,1);save();renderMng();render();});
+}
+document.getElementById('mngKindRec').onclick=()=>{mngKind='rec';document.getElementById('mngKindRec').classList.add('on');document.getElementById('mngKindFreq').classList.remove('on');};
+document.getElementById('mngKindFreq').onclick=()=>{mngKind='freq';document.getElementById('mngKindFreq').classList.add('on');document.getElementById('mngKindRec').classList.remove('on');};
+document.getElementById('mngAdd').onclick=()=>{
+  const n=document.getElementById('mngName').value.trim(),a=+document.getElementById('mngAmt').value||0;
+  if(!n){toast('項目名を入れてね');return;}
+  st.tmpl.push({name:n,amt:a,kind:mngKind,keys:[n]});save();renderMng();render();
+  document.getElementById('mngName').value='';document.getElementById('mngAmt').value='';
+};
+document.getElementById('mngDone').onclick=()=>openRecurring();
+
+/* ===== import ===== */
+let imgTab=true;
+document.getElementById('qImport').onclick=()=>{resetImport();show('sheetImport');};
+function resetImport(){
+  document.getElementById('impReview').style.display='none';
+  document.getElementById('impImg').style.display=imgTab?'block':'none';
+  document.getElementById('impTxt').style.display=imgTab?'none':'block';
+  document.getElementById('ocrStat').style.display='none';document.getElementById('impText').value='';
+}
+document.getElementById('impTabImg').onclick=()=>{imgTab=true;document.getElementById('impTabImg').classList.add('on');document.getElementById('impTabTxt').classList.remove('on');resetImport();};
+document.getElementById('impTabTxt').onclick=()=>{imgTab=false;document.getElementById('impTabTxt').classList.add('on');document.getElementById('impTabImg').classList.remove('on');resetImport();};
+
+function parseJCB(text){
+  const blocks=text.split(/\n\s*\n/).map(b=>b.trim()).filter(Boolean);let recs=[];
+  function fromBlock(lines){
+    let y=null,mo=null,da=null,merchant=[],amount=null,pay='1回払い';
+    const joined=lines.join('\n');const dm=joined.match(/(\d{4})\s*\/\s*\n?\s*(\d{1,2})\s*\/\s*(\d{1,2})/);
+    if(dm){y=+dm[1];mo=+dm[2];da=+dm[3];}
+    lines.forEach(ln=>{
+      const t=ln.trim();if(!t)return;
+      if(!y){const m=t.match(/^(\d{4})[\/\-](\d{1,2})[\/\-](\d{1,2})/);if(m){y=+m[1];mo=+m[2];da=+m[3];return;}}
+      if(mo===null||da===null){const m=t.match(/^(\d{1,2})[\/\-](\d{1,2})$/);if(m){mo=+m[1];da=+m[2];return;}}
+      if(/回払い|リボ|ボーナス|分割/.test(t)&&t.length<8){pay=t.replace(/\s/g,'');return;}
+      const am=t.match(/^[¥\\]?\s*([\d,]+)\s*円?$/);
+      if(am){const v=+am[1].replace(/,/g,'');if(v>0){if(amount===null)amount=v;return;}}
+      if(!/^\d{4}\/?$/.test(t)&&!/^\d{1,2}[\/\-]\d{1,2}$/.test(t))merchant.push(t);
+    });
+    if(y&&mo&&da&&amount!==null)return {date:y+'-'+String(mo).padStart(2,'0')+'-'+String(da).padStart(2,'0'),merchant:merchant.join(' ').replace(/\s+/g,' ').trim()||'（不明）',pay,amount};
+    return null;
+  }
+  blocks.forEach(b=>{const r=fromBlock(b.split('\n'));if(r)recs.push(r);});
+  if(recs.length<2){
+    recs=[];const lines=text.split('\n');let cur=[];
+    const flush=()=>{if(cur.length){const r=fromBlock(cur);if(r)recs.push(r);}cur=[];};
+    lines.forEach(ln=>{if(/^\s*\d{4}\s*\/\s*$/.test(ln)||/^\s*\d{4}[\/\-]\d{1,2}[\/\-]\d{1,2}/.test(ln))flush();cur.push(ln);});
+    flush();
+  }
+  return recs;
+}
+document.getElementById('impParse').onclick=()=>{
+  const recs=parseJCB(document.getElementById('impText').value);
+  if(!recs.length){toast('読み取れませんでした');return;}showReview(recs);
+};
+document.getElementById('ocrFile').onchange=async e=>{
+  const f=e.target.files[0];if(!f)return;
+  const stat=document.getElementById('ocrStat');stat.style.display='block';stat.textContent='文字を読み取り中…（初回は時間がかかります）';
+  try{
+    if(!window.Tesseract)await loadScript('https://cdnjs.cloudflare.com/ajax/libs/tesseract.js/5.1.0/tesseract.min.js');
+    const {data}=await Tesseract.recognize(f,'jpn',{logger:m=>{if(m.status==='recognizing text')stat.textContent='読み取り中 '+Math.round(m.progress*100)+'%';}});
+    const recs=parseJCB(data.text);
+    if(!recs.length){stat.textContent='うまく拾えませんでした。「テキスト貼付」が確実です。';return;}
+    stat.style.display='none';showReview(recs);
+  }catch(err){stat.textContent='画像読み取りに失敗。ネット接続が必要です。「テキスト貼付」をお試しください。';}
+};
+function loadScript(src){return new Promise((res,rej)=>{const s=document.createElement('script');s.src=src;s.onload=res;s.onerror=rej;document.head.appendChild(s);});}
+function showReview(recs){
+  const w=document.getElementById('revList');w.innerHTML='';
+  recs.forEach((r,i)=>{
+    const row=document.createElement('div');row.className='rrow';
+    row.innerHTML='<input class="ri-d" value="'+r.date+'" data-k="date"><input class="ri-m" value="'+esc(r.merchant)+'" data-k="merchant"><input class="ri-a tnum" type="number" value="'+r.amount+'" data-k="amount"><button class="rx" data-i="'+i+'">✕</button>';
+    w.appendChild(row);
+  });
+  w.querySelectorAll('.rx').forEach(b=>b.onclick=()=>{b.closest('.rrow').remove();updRev();});
+  updRev();
+  document.getElementById('impImg').style.display='none';document.getElementById('impTxt').style.display='none';document.getElementById('impReview').style.display='block';
+}
+function updRev(){document.getElementById('revCount').textContent=document.querySelectorAll('#revList .rrow').length+'件';}
+document.getElementById('impBack').onclick=()=>resetImport();
+document.getElementById('impCommit').onclick=()=>{
+  let n=0;[...document.querySelectorAll('#revList .rrow')].forEach(r=>{
+    const g=k=>r.querySelector('[data-k="'+k+'"]').value;const d=g('date'),m=g('merchant').trim(),a=+g('amount');
+    if(/^\d{4}-\d{2}-\d{2}$/.test(d)&&m&&a>0){st.txns.push({id:newId(),date:d,merchant:m,pay:'1回払い',amount:a,added:Date.now()+Math.random()});n++;}
+  });
+  save();render();closeSheets();toast(n+'件 追加しました ✓');
+};
+
+document.getElementById('ordAdded').onclick=()=>{order='added';render();};
+document.getElementById('ordDate').onclick=()=>{order='date';render();};
+document.getElementById('cycPrev').onclick=()=>shiftCycle(-1);
+document.getElementById('cycNext').onclick=()=>shiftCycle(1);
+
+document.getElementById('openSettings').onclick=()=>{
+  document.getElementById('setBudget').value=st.budget||'';document.getElementById('setCardName').value=st.cardName||'';show('sheetSettings');
+};
+document.getElementById('setSave').onclick=()=>{
+  st.budget=+document.getElementById('setBudget').value||0;st.cardName=document.getElementById('setCardName').value.trim()||st.cardName;
+  save();render();closeSheets();toast('保存しました ✓');
+};
+document.getElementById('exportData').onclick=()=>{
+  const blob=new Blob([JSON.stringify(st,null,2)],{type:'application/json'});const a=document.createElement('a');
+  a.href=URL.createObjectURL(blob);a.download='jcb-backup-'+toISO(new Date())+'.json';a.click();
+};
+document.getElementById('wipeData').onclick=()=>{if(confirm('全データを消します。よろしいですか？')){localStorage.removeItem(KEY);st=load();save();render();closeSheets();toast('消去しました');}};
+
+let toT;function toast(m){const t=document.getElementById('toast');t.textContent=m;t.classList.add('show');clearTimeout(toT);toT=setTimeout(()=>t.classList.remove('show'),1700);}
+
+render();
+</script>
+</body>
+</html>
