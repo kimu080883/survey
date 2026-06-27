@@ -103,6 +103,7 @@ header .ttl small{display:block;font-size:11px;font-weight:500;color:var(--muted
 .tx .pill.rec{background:#EAF7F1;color:#2E9B79}
 .tx .am{font-size:14px;font-weight:800;white-space:nowrap}
 .tx .del{flex:0 0 auto;width:26px;height:26px;border-radius:50%;display:grid;place-items:center;color:var(--muted);font-size:15px;opacity:.5}
+.tx .mkrec{flex:0 0 auto;width:28px;height:28px;border-radius:50%;display:grid;place-items:center;font-size:13px;background:#EAF7F1;border:1px solid #CDEBDF}
 .empty{text-align:center;color:var(--muted);font-size:12.5px;padding:24px 10px;line-height:1.7}
 
 .past{display:flex;flex-direction:column;gap:7px}
@@ -317,7 +318,7 @@ const DEFAULT_TMPL=[
   {name:'7丁目ギター教室',amt:11700,kind:'rec',keys:['ギタ']},
   {name:'AF宮前平駅前',amt:8000,kind:'rec',keys:['宮前平']},
   {name:'モバイルPASMOチャージ',amt:5000,kind:'freq',keys:['PASMO']},
-  {name:'APPLE.COM／BILL',amt:0,kind:'freq',keys:['APPLE.COM']},
+  {name:'APPLE.COM／BILL',amt:0,kind:'rec',keys:['APPLE.COM']},
 ];
 /* full 3-cycle history + current cycle (6/16-7/15) */
 const SEED=[
@@ -372,9 +373,13 @@ const SEED=[
 
 let st=load();
 function load(){
-  try{const r=JSON.parse(localStorage.getItem(KEY));if(r&&r.txns)return r;}catch(e){}
+  try{const r=JSON.parse(localStorage.getItem(KEY));if(r&&r.txns){migrate(r);return r;}}catch(e){}
   let id=1;const txns=SEED.map(t=>({id:id++,date:t[0],merchant:t[1],pay:'1回払い',amount:t[2],added:id}));
   return {txns,tmpl:DEFAULT_TMPL.slice(),budget:200000,cardName:'リクルートカード プラス',nextId:id};
+}
+function migrate(s){
+  if(!s.tmpl)return;
+  s.tmpl.forEach(t=>{if(!t.keys)t.keys=[t.name];if(t.keys.some(k=>/APPLE/i.test(k)))t.kind='rec';});
 }
 function save(){try{localStorage.setItem(KEY,JSON.stringify(st));}catch(e){}}
 function newId(){return st.nextId++;}
@@ -400,9 +405,11 @@ function recIndexFor(merchant){
   return -1;
 }
 function planFor(i){
-  const t=st.tmpl[i];let best=null,bestD='';
-  st.txns.forEach(x=>{if(recIndexFor(x.merchant)===i&&x.date>bestD){bestD=x.date;best=x.amount;}});
-  return best!=null?best:(t.amt||0);
+  const realKey=curKey(),byCycle={};
+  st.txns.forEach(x=>{if(recIndexFor(x.merchant)===i){const k=cycleOf(x.date).key;if(k<realKey)byCycle[k]=(byCycle[k]||0)+x.amount;}});
+  const vals=Object.values(byCycle);
+  if(vals.length)return Math.round(vals.reduce((a,b)=>a+b,0)/vals.length);
+  return st.tmpl[i].amt||0;
 }
 
 /* ===== forecast / actual (per cycle) ===== */
@@ -425,11 +432,8 @@ function calc(key){
   const c=cycleFromKey(key),realKey=curKey();
   const cur=st.txns.filter(t=>cycleOf(t.date).key===key);
   const recorded=cur.reduce((s,t)=>s+t.amount,0);
-  let curFixed=0;const seen=new Set();
-  cur.forEach(t=>{const i=recIndexFor(t.merchant);if(i>=0){curFixed+=t.amount;seen.add(i);}});
-  const upcoming=[];
-  st.tmpl.forEach((t,i)=>{if(t.kind==='rec'&&!seen.has(i))upcoming.push({i,name:t.name,amt:planFor(i)});});
-  const upFixed=upcoming.reduce((s,u)=>s+u.amt,0);
+  let curFixed=0;const recTotals={};
+  cur.forEach(t=>{const i=recIndexFor(t.merchant);if(i>=0){curFixed+=t.amount;recTotals[i]=(recTotals[i]||0)+t.amount;}});
   const completed=allCycles().filter(p=>p.key<realKey);
   const sumVar=completed.reduce((s,p)=>s+p.variable,0),sumDays=completed.reduce((s,p)=>s+p.days,0);
   const pace=sumDays>0?sumVar/sumDays:0;
@@ -439,6 +443,15 @@ function calc(key){
   if(c.end<today){phase='past';remaining=0;elapsed=totalDays;}
   else if(c.start>today){phase='future';remaining=totalDays;elapsed=0;}
   else{phase='current';remaining=Math.max(0,Math.ceil((c.end-today)/DAY));elapsed=Math.max(1,totalDays-remaining);}
+  const upcoming=[];
+  if(phase!=='past'){
+    st.tmpl.forEach((t,i)=>{
+      if(t.kind!=='rec')return;
+      const plan=planFor(i),got=recTotals[i]||0,short=Math.max(plan-got,0);
+      if(short>0)upcoming.push({i,name:t.name,amt:short});
+    });
+  }
+  const upFixed=upcoming.reduce((s,u)=>s+u.amt,0);
   const curVar=recorded-curFixed;
   const varAvg=pace*remaining;
   const land=recorded+upFixed+varAvg;
@@ -547,8 +560,9 @@ function render(){
     const el=document.createElement('div');el.className='tx'+(isNew?' new':'');
     el.innerHTML='<div class="dt"><b>'+dd.getDate()+'</b><span>'+(dd.getMonth()+1)+'月</span></div>'+
       '<div class="mid"><div class="mc">'+esc(t.merchant)+'</div><div class="tag"><span class="pill '+(isRec?'rec':'')+'">'+(isRec?'毎月':esc(t.pay))+'</span></div></div>'+
-      '<div class="am tnum">¥'+yen(t.amount)+'</div><button class="del" data-id="'+t.id+'">✕</button>';
+      '<div class="am tnum">¥'+yen(t.amount)+'</div>'+(isRec?'':'<button class="mkrec" title="毎月にする">🔁</button>')+'<button class="del" data-id="'+t.id+'">✕</button>';
     wrap.appendChild(el);
+    const mb=el.querySelector('.mkrec');if(mb)mb.onclick=()=>makeMonthly(t.merchant);
   });
 
   // cycle list (all cycles, tap to jump, highlight viewed)
@@ -567,6 +581,11 @@ function render(){
 }
 function esc(s){return (s+'').replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));}
 
+function makeMonthly(merchant){
+  if(recIndexFor(merchant)>=0){toast('すでに毎月です');return;}
+  st.tmpl.push({name:merchant,amt:0,kind:'rec',keys:[merchant]});
+  save();render();toast('「'+merchant+'」を毎月に登録 ✓');
+}
 function addTx(date,merchant,pay,amount){
   st.txns.push({id:newId(),date,merchant,pay:pay||'1回払い',amount:+amount,added:Date.now()});
   viewKey=cycleOf(date).key;save();render();
