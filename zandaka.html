@@ -213,6 +213,8 @@
   .modal .m-actions button{flex:1;border-radius:10px;padding:11px;font-weight:700;font-size:14px;border:1px solid var(--line-strong);background:#fff;cursor:pointer;}
   .modal .m-actions .primary{background:var(--ink);color:#fff;border-color:var(--ink);}
   .hint{font-size:11.5px;color:#9aa8b1;margin-top:8px;}
+  .bk-label{font-size:12.5px;font-weight:700;color:var(--ink);margin:4px 0 6px;}
+  .bk-sep{height:1px;background:var(--line);margin:16px 0 4px;}
 
   /* view tabs */
   .viewbar{display:flex;gap:6px;padding:10px 16px 0;}
@@ -296,9 +298,14 @@
 <div class="modal-bg" id="backupModal">
   <div class="modal">
     <h3>バックアップ / 復元</h3>
-    <p>データはこの端末内だけに保存されます。機種変更や別端末で使うときは、下の文字をコピーして保管 → 新端末で貼り付けて「復元」してください。</p>
-    <textarea id="backupText" readonly></textarea>
-    <div class="m-actions"><button id="btnCopy">コピー</button><button class="primary" id="btnRestore">貼り付けて復元</button></div>
+    <p>データはこの端末内だけに保存されます。機種変更や別端末で使うときに使います。</p>
+    <div class="bk-label">① 今のデータ（保存用）</div>
+    <textarea id="backupText" readonly style="height:110px"></textarea>
+    <div class="m-actions"><button class="primary" id="btnCopy">コピー</button></div>
+    <div class="bk-sep"></div>
+    <div class="bk-label">② 復元（別端末のデータを貼り付け）</div>
+    <textarea id="restoreText" placeholder="ここにバックアップ文字列を貼り付け" style="height:110px"></textarea>
+    <div class="m-actions"><button id="btnClear">クリア</button><button class="primary" id="btnRestore">この内容で復元</button></div>
     <p class="hint">「復元」を押すと、今のデータは貼り付けた内容で上書きされます。</p>
     <div class="m-actions" style="margin-top:8px;"><button id="btnCloseBackup">閉じる</button></div>
   </div>
@@ -642,17 +649,20 @@ function ensureTesseract(){
 }
 
 /* ---------- modals / tools ---------- */
-function openBackup(){byId("backupText").value=JSON.stringify(state);byId("backupModal").classList.add("open");}
+function openBackup(){byId("backupText").value=JSON.stringify(state);byId("restoreText").value="";byId("backupModal").classList.add("open");}
 byId("btnBackup").onclick=openBackup;
 byId("btnCloseBackup").onclick=function(){byId("backupModal").classList.remove("open");};
 byId("btnCopy").onclick=function(){var t=byId("backupText");t.removeAttribute("readonly");t.select();
   try{document.execCommand("copy");}catch(e){}if(navigator.clipboard)navigator.clipboard.writeText(t.value).catch(function(){});
   t.setAttribute("readonly","readonly");var b=this;b.textContent="コピー済み";setTimeout(function(){b.textContent="コピー";},1500);};
-byId("btnRestore").onclick=function(){var t=byId("backupText");t.removeAttribute("readonly");t.value="";t.placeholder="ここにバックアップ文字列を貼り付け";t.focus();
-  this.textContent="貼り付けたら、もう一度押す";
-  this.onclick=function(){try{var o=JSON.parse(t.value);if(!o.months)throw 0;state=o;if(!state.current)state.current=state.months[0].id;
-    migrate(state);save();render();byId("backupModal").classList.remove("open");t.setAttribute("readonly","readonly");}
-    catch(e){alert("読み込めませんでした。文字列を確認してください。");}};};
+byId("btnClear").onclick=function(){var t=byId("restoreText");t.value="";t.focus();};
+byId("btnRestore").onclick=function(){
+  var t=byId("restoreText");var v=(t.value||"").trim();
+  if(!v){alert("②の欄にバックアップ文字列を貼り付けてください。");t.focus();return;}
+  var o;try{o=JSON.parse(v);if(!o.months)throw 0;}catch(e){alert("読み込めませんでした。文字列を確認してください。");return;}
+  if(!confirm("今のデータを、貼り付けた内容で上書きします。よろしいですか？"))return;
+  state=o;if(!state.current)state.current=state.months[0].id;migrate(state);save();render();
+  byId("backupModal").classList.remove("open");toast("復元しました");};
 byId("btnHelp").onclick=function(){byId("helpModal").classList.add("open");};
 byId("btnCloseHelp").onclick=function(){byId("helpModal").classList.remove("open");};
 byId("btnAdd").onclick=addMonth;
