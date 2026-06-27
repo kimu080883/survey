@@ -1,0 +1,787 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+<title>後方交会V2（3点〜）＆逆打ち</title>
+<meta name="theme-color" content="#7c3aed">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="後方交会V2">
+<link rel="manifest" href="data:application/manifest+json,%7B%22name%22%3A%22後方交会V2＆逆打ち%22%2C%22short_name%22%3A%22後方交会V2%22%2C%22display%22%3A%22standalone%22%2C%22background_color%22%3A%22%23f8fafc%22%2C%22theme_color%22%3A%22%237c3aed%22%7D">
+<script src="https://cdn.tailwindcss.com"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+<style>
+:root{ --vio:#7c3aed; }
+*{ -webkit-tap-highlight-color:transparent; }
+body{ font-feature-settings:"tnum" 1,"lnum" 1; }
+.safe-top{ padding-top:max(env(safe-area-inset-top),16px); }
+.safe-x{ padding-left:env(safe-area-inset-left); padding-right:env(safe-area-inset-right); }
+.mono{ font-family:ui-monospace,SFMono-Regular,Menlo,monospace; }
+input[type="text"],input[type="number"],select{ font-size:16px; }
+input[type=number]::-webkit-outer-spin-button,input[type=number]::-webkit-inner-spin-button{ -webkit-appearance:none;margin:0; }
+input[type=number]{ -moz-appearance:textfield; }
+.field:focus{ outline:none;border-color:var(--vio);box-shadow:0 0 0 3px rgba(124,58,237,.15); }
+.tbl-wrap{ -webkit-overflow-scrolling:touch; }
+</style>
+</head>
+<body class="bg-slate-50 text-slate-800 min-h-screen pb-24">
+<div class="max-w-3xl mx-auto px-3 py-4 safe-top safe-x">
+
+  <header class="flex items-center justify-between mb-3">
+    <div>
+      <h1 class="text-lg font-bold text-slate-900">後方交会＆逆打ち <span class="text-violet-600">V2</span></h1>
+      <p class="text-xs text-slate-500">3点以上で器械点を出し、残差で据付けを判定</p>
+    </div>
+    <button id="btnHelp" class="text-xs px-3 py-2 rounded-lg bg-white border border-slate-200 text-slate-600 shadow-sm">使い方</button>
+  </header>
+
+  <div id="helpPanel" class="hidden mb-4 rounded-xl bg-white border border-slate-200 shadow-sm p-4 text-sm leading-relaxed text-slate-700">
+    <div class="flex items-center justify-between mb-2"><h2 class="font-bold text-slate-900">使い方</h2><button id="helpClose" class="text-xs px-2 py-1 rounded bg-slate-100">閉じる</button></div>
+    <ol class="list-decimal pl-5 space-y-1.5">
+      <li><b>① 器械点を決める</b>。2つの方法を切り替えられます。
+        <ul class="list-disc pl-5 mt-1">
+          <li><b>後方交会</b>:既知点を<b>3点以上</b>視準し、各点の<b>水平距離</b>を入力 →「器械点を計算」。最小二乗で1点に確定し、<b>残差（実測−計算の差）</b>を表示して据付けの良し悪しを判定します。</li>
+          <li>流れ:<b>まず3点</b>で計算 → 残差を確認 → <b>NG/注意なら4点目を追加</b>、または悪い点を除外して再計算。</li>
+          <li><b>直接据える</b>:A1などの既知点に直接据え、後視点を選ぶ。</li>
+        </ul>
+      </li>
+      <li><b>② 後視点</b>を選ぶ（ゼロセットする点）。器械点の向きはここで決まります。</li>
+      <li><b>③ 落とす点を選ぶ</b>。基準点・引照点・測点から、現場に杭打ちしたい点にチェック。</li>
+      <li><b>④ 計算</b> → 各点の「夾角・方位角・距離」が出る。</li>
+      <li><b>Excel / PDF</b>で出力。現場で後視ゼロセット→夾角→距離で逆打ち。</li>
+      <li><b>⑤ 測定結果</b>（任意）:据付け・杭打ち後、各点の<b>実測夾角・距離</b>を入れると<b>計画とのズレ（前後・左右 mm）</b>が出ます。Excelは「測定結果」シート、PDFは2ページ目に記録されます。</li>
+    </ol>
+    <p class="mt-2 text-xs text-slate-500">※座標は測量座標（X=北・Y=東）。距離は<b>水平距離</b>（斜距離でなく）。判定しきい値（OK/NGのmm）は①で変更できます。2点しか視準できない現場はV1をお使いください。</p>
+  </div>
+
+  <!-- ① 器械点 -->
+  <section class="rounded-xl bg-white border border-slate-200 shadow-sm p-4 mb-4">
+    <h2 class="text-sm font-bold text-slate-900 mb-3 flex items-center gap-2"><span class="inline-flex w-5 h-5 rounded-full bg-violet-600 text-white text-xs items-center justify-center">1</span>器械点を決める</h2>
+    <div class="flex gap-2 mb-3">
+      <button id="modeResect" class="flex-1 text-sm px-3 py-2 rounded-lg border font-medium">後方交会（3点〜）</button>
+      <button id="modeDirect" class="flex-1 text-sm px-3 py-2 rounded-lg border font-medium">直接据える</button>
+    </div>
+
+    <!-- 後方交会 -->
+    <div id="paneResect">
+      <p class="text-xs text-slate-500 mb-2">既知点を<b>3点以上</b>視準し、各点の<b>水平距離</b>を入力。まず3点 → 残差を確認 → ダメなら「＋点を追加」。</p>
+      <div id="rsRows" class="grid grid-cols-1 gap-2"></div>
+      <div class="flex gap-2 mt-2">
+        <button id="rsAdd" class="text-xs px-3 py-2 rounded-lg bg-slate-100 text-slate-600 font-medium">＋ 点を追加</button>
+        <button id="btnResect" class="flex-1 text-sm px-3 py-2.5 rounded-lg bg-violet-600 text-white font-medium active:bg-violet-700">器械点を計算</button>
+      </div>
+      <div class="flex items-center flex-wrap gap-x-3 gap-y-1 mt-2 text-xs text-slate-500">
+        <span>判定基準:</span>
+        <label class="flex items-center gap-1">最大残差 OK ≤ <input id="thOk" type="number" step="any" class="field w-14 rounded border border-slate-200 px-1.5 py-1 text-center mono" value="5"> mm</label>
+        <label class="flex items-center gap-1">NG &gt; <input id="thNg" type="number" step="any" class="field w-14 rounded border border-slate-200 px-1.5 py-1 text-center mono" value="15"> mm</label>
+      </div>
+      <div id="rsResult" class="mt-3"></div>
+    </div>
+
+    <!-- 直接据える -->
+    <div id="paneDirect" class="hidden">
+      <label class="text-xs text-slate-500 block">器械点（据える既知点）
+        <select id="dirInst" class="field mt-1 w-full rounded-lg border border-slate-200 px-2 py-2 text-sm bg-white"></select>
+      </label>
+    </div>
+
+    <div id="instShow" class="hidden mt-3 text-xs text-violet-700 bg-violet-50 border border-violet-200 rounded-lg px-3 py-2"></div>
+  </section>
+
+  <!-- ② 後視点 -->
+  <section class="rounded-xl bg-white border border-slate-200 shadow-sm p-4 mb-4">
+    <h2 class="text-sm font-bold text-slate-900 mb-3 flex items-center gap-2"><span class="inline-flex w-5 h-5 rounded-full bg-violet-600 text-white text-xs items-center justify-center">2</span>後視点（ゼロセット）</h2>
+    <select id="bsSel" class="field w-full rounded-lg border border-slate-200 px-2 py-2 text-sm bg-white"></select>
+    <p id="bsAzNote" class="mt-2 text-xs text-slate-500"></p>
+  </section>
+
+  <!-- ③ 落とす点 -->
+  <section class="rounded-xl bg-white border border-slate-200 shadow-sm p-4 mb-4">
+    <div class="flex items-center justify-between mb-3">
+      <h2 class="text-sm font-bold text-slate-900 flex items-center gap-2"><span class="inline-flex w-5 h-5 rounded-full bg-violet-600 text-white text-xs items-center justify-center">3</span>現場に落とす点</h2>
+      <button id="btnAddPt" class="text-xs px-2 py-1 rounded bg-slate-100 text-slate-600">点を追加</button>
+    </div>
+    <div class="flex flex-wrap gap-x-4 gap-y-1 mb-2 text-xs">
+      <label class="flex items-center gap-1.5"><input id="grpRef" type="checkbox" class="accent-violet-600"> 基準点</label>
+      <label class="flex items-center gap-1.5"><input id="grpIP" type="checkbox" checked class="accent-violet-600"> 引照点</label>
+      <label class="flex items-center gap-1.5"><input id="grpMy" type="checkbox" checked class="accent-violet-600"> 測点</label>
+      <label class="flex items-center gap-1.5"><input id="grpBk" type="checkbox" checked class="accent-violet-600"> 測点②</label>
+      <button id="selAll" class="text-violet-700 underline">全部</button>
+      <button id="selNone" class="text-slate-400 underline">全部外す</button>
+    </div>
+    <div class="tbl-wrap max-h-64 overflow-y-auto border border-slate-100 rounded-lg">
+      <table class="w-full text-sm">
+        <tbody id="ptRows" class="mono text-xs"></tbody>
+      </table>
+    </div>
+    <p id="ptCount" class="mt-2 text-xs text-slate-400"></p>
+  </section>
+
+  <button id="btnCalc" class="w-full mb-4 py-3 rounded-xl bg-violet-600 text-white font-bold shadow-sm active:bg-violet-700">逆打ちデータを計算</button>
+  <div id="err" class="hidden mb-4 rounded-lg bg-red-50 border border-red-200 text-red-700 text-sm px-4 py-3"></div>
+
+  <!-- 結果 -->
+  <section id="resultSec" class="hidden rounded-xl bg-white border border-slate-200 shadow-sm p-4 mb-4">
+    <div class="flex items-center justify-between mb-3">
+      <h2 class="text-sm font-bold text-slate-900">逆打ち一覧</h2>
+      <span id="resCount" class="text-xs text-slate-400"></span>
+    </div>
+    <div id="resHead" class="text-xs text-slate-500 mb-2"></div>
+    <div class="tbl-wrap overflow-x-auto -mx-1 px-1 max-h-96 overflow-y-auto">
+      <table class="w-full text-sm border-collapse">
+        <thead class="sticky top-0 bg-white"><tr class="text-xs text-slate-500 border-b border-slate-200">
+          <th class="py-2 px-2 text-left font-medium">点名</th>
+          <th class="py-2 px-2 text-right font-medium">夾角</th>
+          <th class="py-2 px-2 text-right font-medium">方位角</th>
+          <th class="py-2 px-2 text-right font-medium">距離m</th>
+          <th class="py-2 px-2 text-right font-medium">X北</th>
+          <th class="py-2 px-2 text-right font-medium">Y東</th>
+        </tr></thead>
+        <tbody id="resRows" class="mono text-xs"></tbody>
+      </table>
+    </div>
+    <div class="mt-4 grid grid-cols-3 gap-2">
+      <button id="exXLSX" class="text-sm px-3 py-2.5 rounded-lg bg-white text-slate-700 border border-slate-200">Excel</button>
+      <button id="exPDF" class="text-sm px-3 py-2.5 rounded-lg bg-white text-slate-700 border border-slate-200">PDF</button>
+      <button id="exShare" class="text-sm px-3 py-2.5 rounded-lg bg-violet-600 text-white font-medium">共有</button>
+    </div>
+  </section>
+
+  <!-- 測定結果 -->
+  <section id="measSec" class="hidden rounded-xl bg-white border border-slate-200 shadow-sm p-4 mb-4">
+    <div class="flex items-center justify-between mb-1">
+      <h2 class="text-sm font-bold text-slate-900">測定結果（実測を入力）</h2>
+      <span id="measCount" class="text-xs text-slate-400"></span>
+    </div>
+    <p class="text-xs text-slate-500 mb-3">後視ゼロセット後、各点の<b>実測夾角</b>と<b>実測距離(m)</b>を入れると、計画位置とのズレを mm で出します。夾角は度分秒を続けて <span class="mono">145.4559</span>（＝145°45′59″）の形で。数字キーだけで入力できます。空欄ならズレは出ません。</p>
+    <div class="tbl-wrap overflow-x-auto -mx-1 px-1 max-h-96 overflow-y-auto">
+      <table class="w-full text-sm border-collapse">
+        <thead class="sticky top-0 bg-white"><tr class="text-xs text-slate-500 border-b border-slate-200">
+          <th class="py-2 px-1 text-left font-medium">点名</th>
+          <th class="py-2 px-1 text-right font-medium">実測夾角</th>
+          <th class="py-2 px-1 text-right font-medium">実測m</th>
+          <th class="py-2 px-1 text-right font-medium">Δ合計</th>
+          <th class="py-2 px-1 text-right font-medium">前後</th>
+          <th class="py-2 px-1 text-right font-medium">左右</th>
+        </tr></thead>
+        <tbody id="measRows" class="mono text-xs"></tbody>
+      </table>
+    </div>
+    <p class="text-[10px] text-slate-400 mt-2">前後：＋遠い／−近い（視準方向）。左右：＋右／−左（器械点から見て）。単位 mm。</p>
+  </section>
+
+  <footer class="text-center text-xs text-slate-400 mt-6">後方交会＆逆打ち V2（3点〜・残差判定・測定結果）・ データは端末内</footer>
+</div>
+
+<script>
+const $=id=>document.getElementById(id);
+function normDeg(d){d%=360;return d<0?d+360:d;}
+function azimuth(x1,y1,x2,y2){return normDeg(Math.atan2(y2-y1,x2-x1)*180/Math.PI);}
+function deg2dms(deg){deg=normDeg(deg);let d=Math.floor(deg);let mf=(deg-d)*60;let m=Math.floor(mf);let s=(mf-m)*60;if(s>=59.95){s=0;m++;}if(m>=60){m=0;d++;}return `${d}°${String(m).padStart(2,'0')}'${s.toFixed(1).padStart(4,'0')}"`;}
+function showError(m){$('err').textContent=m;$('err').classList.remove('hidden');$('err').scrollIntoView({behavior:'smooth',block:'center'});}
+function clearError(){$('err').classList.add('hidden');}
+
+// ===== デフォルトデータ（V1と共有） =====
+const DEFAULT_REF=[
+  {name:'A1',x:500.000,y:550.000,note:'中心線 8K549付近 照明基礎に鋲'},
+  {name:'A1-1',x:504.995,y:498.842,note:'下り線側 8K498付近 地覆に鋲'},
+  {name:'A1-2',x:516.608,y:493.478,note:'車庫線 0K202付近 地覆に鋲'},
+  {name:'B1',x:509.578,y:598.197,note:'1番線 8K597付近 BTC基準器高低ピン'},
+  {name:'B5',x:504.662,y:599.958,note:'下り線(中央) 8K599付近 歩行板上 鋲'},
+  {name:'A1-10',x:505.300,y:527.566,note:'3D計測用基準点'},
+];
+const DEFAULT_IP=[
+  {name:'IP1',x:511.803,y:524.656,note:'36ロ-1L側 擁壁に印'},
+  {name:'IP2',x:506.279,y:523.863,note:'36ロ-1R側 木杭'},
+  {name:'IP3',x:505.284,y:524.008,note:'37ロ-1L側 木杭'},
+  {name:'IP4',x:500.735,y:523.927,note:'37ロ-1R側 木杭'},
+  {name:'IP5',x:509.452,y:535.575,note:'36ロ-2L側終点 擁壁に印'},
+  {name:'IP6',x:500.688,y:534.318,note:'37ロ-2R側起点 木杭'},
+  {name:'IP7',x:509.476,y:535.227,note:'36ロ-2L側起点 擁壁に印'},
+  {name:'IP8',x:500.767,y:535.072,note:'37ロ-2R側終点 木杭'},
+  {name:'IP9',x:509.075,y:548.955,note:'36ロ-4L側 擁壁に印'},
+  {name:'IP10',x:500.604,y:548.805,note:'37ロ-3R側 木杭'},
+  {name:'IP11',x:508.940,y:553.772,note:'37イ-4L側 擁壁に印'},
+  {name:'IP12',x:500.549,y:553.623,note:'36イ-3R側 木杭'},
+  {name:'IP13',x:508.763,y:567.504,note:'37イ-2L側 擁壁に印'},
+  {name:'IP14',x:504.155,y:567.423,note:'36・37イ-2W側 木杭'},
+  {name:'IP15',x:500.356,y:567.355,note:'36イ-2R側 木杭'},
+  {name:'IP16',x:510.646,y:578.348,note:'37イ-1L側 擁壁に印'},
+  {name:'IP17',x:504.345,y:578.708,note:'37イ-1R側 トラフに印'},
+  {name:'IP18',x:504.138,y:578.492,note:'36イ-1L側 トラフに印'},
+  {name:'IP19',x:500.256,y:578.424,note:'36イ-1R側 インピの基礎に印'},
+];
+const DEFAULT_SURVEY=[
+  {name:'36ロ-1',x:508.259,y:524.147,note:'36ロ前端'},
+  {name:'36ロ-2',x:506.676,y:535.177,note:'36ロ理論交点'},
+  {name:'36ロ-3',x:504.726,y:548.771,note:'36ロ後端'},
+  {name:'36ロ-4',x:506.433,y:548.908,note:'36ロ後端'},
+  {name:'36イ-1',x:501.860,y:578.452,note:'36イ前端'},
+  {name:'36イ-2',x:502.056,y:567.385,note:'36イ理論交点'},
+  {name:'36イ-3',x:502.299,y:553.654,note:'36イ後端'},
+  {name:'36イ-4',x:504.006,y:553.791,note:'36イ後端'},
+  {name:'37ロ-1',x:502.824,y:523.964,note:'37ロ前端'},
+  {name:'37ロ-2',x:502.627,y:535.105,note:'37ロ理論交点'},
+  {name:'37ロ-3',x:502.384,y:548.837,note:'37ロ後端'},
+  {name:'37ロ-4',x:504.095,y:548.760,note:'37ロ後端'},
+  {name:'37イ-1',x:506.741,y:578.571,note:'37イ前端'},
+  {name:'37イ-2',x:506.112,y:567.453,note:'37イ理論交点'},
+  {name:'37イ-3',x:504.637,y:553.802,note:'37イ後端'},
+  {name:'37イ-4',x:506.348,y:553.725,note:'37イ後端'},
+  {name:'SC-交',x:504.366,y:551.281,note:'SC交点'},
+  {name:'SC-1',x:503.573,y:543.901,note:'SC後端'},
+  {name:'SC-2',x:505.421,y:543.929,note:'SC後端'},
+  {name:'SC-3',x:505.160,y:558.666,note:'SC後端'},
+  {name:'SC-4',x:503.312,y:558.626,note:'SC後端'},
+];
+const DEFAULT_BUNKI=[
+  {name:'36イ/S交点',x:502.259,y:555.903,note:'分岐主要点'},
+  {name:'36イ/E交点',x:502.239,y:557.009,note:'分岐主要点'},
+  {name:'36ロ/E交点1',x:506.473,y:546.659,note:'分岐主要点'},
+  {name:'36ロ/E交点2',x:506.493,y:545.553,note:'分岐主要点'},
+  {name:'37イ/S交点',x:506.308,y:555.975,note:'分岐主要点'},
+  {name:'37イ/E交点',x:506.289,y:557.081,note:'分岐主要点'},
+  {name:'37ロ/S交点',x:502.424,y:546.587,note:'分岐主要点'},
+  {name:'37ロ/E交点',x:502.443,y:545.481,note:'分岐主要点'},
+  {name:'SC中心',x:504.366,y:551.281,note:'分岐主要点'},
+  {name:'SC中心/1番線KS',x:506.391,y:551.317,note:'分岐主要点'},
+  {name:'SC中心/2番線KS',x:502.341,y:551.245,note:'分岐主要点'},
+];
+
+let refPts=[], ipPts=[], myPts=[], bkPts=[];
+let checked={};
+let mode='resect';
+let inst=null;
+let result=null;
+let lastObs=null;
+let thresholds={ok:5,ng:15};
+
+function loadData(){
+  try{
+    const v=localStorage.getItem('hosen_resect3_v1');
+    if(v){const d=JSON.parse(v);
+      refPts=d.refPts||DEFAULT_REF.slice(); ipPts=d.ipPts||DEFAULT_IP.slice();
+      myPts=(d.myPts&&d.myPts.length)?d.myPts:DEFAULT_SURVEY.slice();
+      bkPts=(d.bkPts&&d.bkPts.length)?d.bkPts:DEFAULT_BUNKI.slice();
+      if(d.thresholds)thresholds=d.thresholds;
+    }else{ refPts=DEFAULT_REF.slice(); ipPts=DEFAULT_IP.slice(); myPts=DEFAULT_SURVEY.slice(); bkPts=DEFAULT_BUNKI.slice(); }
+  }catch(e){ refPts=DEFAULT_REF.slice(); ipPts=DEFAULT_IP.slice(); myPts=DEFAULT_SURVEY.slice(); bkPts=DEFAULT_BUNKI.slice(); }
+}
+function saveData(){try{localStorage.setItem('hosen_resect3_v1',JSON.stringify({refPts,ipPts,myPts,bkPts,thresholds}));}catch(e){}}
+function allKnown(){return [...refPts,...ipPts,...myPts,...bkPts];}
+function findPt(name){return allKnown().find(p=>p.name===name);}
+
+// ===== セレクト類 =====
+function knownOptions(){return allKnown().map(p=>`<option value="${p.name}">${p.name} (X${(+p.x).toFixed(2)}, Y${(+p.y).toFixed(2)})</option>`).join('');}
+function fillSelects(){
+  $('dirInst').innerHTML=knownOptions();
+  $('bsSel').innerHTML=knownOptions();
+  const all=allKnown(); if(all.length>=2)$('bsSel').selectedIndex=1;
+  refreshRsSelects();
+}
+
+// ===== 後方交会の視準点入力行 =====
+function makeRsRow(idx){
+  const div=document.createElement('div');
+  div.className='rsrow grid grid-cols-[1fr_5.5rem_2rem] gap-2 items-center';
+  div.innerHTML=`<select class="rsP field w-full rounded-lg border border-slate-200 px-2 py-2 text-sm bg-white">${knownOptions()}</select>
+    <input class="rsD field w-full rounded-lg border border-slate-200 px-2 py-2 text-sm mono" type="number" inputmode="decimal" step="any" placeholder="水平距離 m">
+    <button type="button" class="rsDel text-slate-400 text-xl leading-none px-2 py-1 rounded hover:bg-slate-100">×</button>`;
+  const sel=div.querySelector('.rsP'); if(idx>=0 && idx<sel.options.length) sel.selectedIndex=idx;
+  div.querySelector('.rsDel').onclick=()=>{
+    const rows=document.querySelectorAll('#rsRows .rsrow');
+    if(rows.length<=3){showError('後方交会は3点以上必要です');return;}
+    div.remove();
+  };
+  return div;
+}
+function initRsRows(){const c=$('rsRows');c.innerHTML='';[0,1,2].forEach(i=>c.appendChild(makeRsRow(i)));}
+function refreshRsSelects(){
+  document.querySelectorAll('#rsRows .rsP').forEach(sel=>{
+    const cur=sel.value; sel.innerHTML=knownOptions();
+    if([...sel.options].some(o=>o.value===cur)) sel.value=cur;
+  });
+}
+$('rsAdd').onclick=()=>{
+  const rows=document.querySelectorAll('#rsRows .rsrow');
+  if(rows.length>=6){showError('最大6点までです');return;}
+  $('rsRows').appendChild(makeRsRow(rows.length));
+};
+
+// ===== 後方交会（距離・最小二乗） =====
+function twoCircle(P1,P2,d1,d2){
+  const dx=P2.x-P1.x,dy=P2.y-P1.y,D=Math.hypot(dx,dy);
+  if(D===0)return null;
+  const a=(d1*d1-d2*d2+D*D)/(2*D); let h2=d1*d1-a*a; if(h2<0)h2=0; const h=Math.sqrt(h2);
+  const xm=P1.x+a*dx/D, ym=P1.y+a*dy/D;
+  return [{x:xm+h*(-dy)/D,y:ym+h*dx/D},{x:xm-h*(-dy)/D,y:ym-h*dx/D}];
+}
+function initialGuess(obs){
+  let bi=0,bj=1,bD=-1;
+  for(let i=0;i<obs.length;i++)for(let j=i+1;j<obs.length;j++){
+    const D=Math.hypot(obs[i].P.x-obs[j].P.x,obs[i].P.y-obs[j].P.y);
+    if(D>bD){bD=D;bi=i;bj=j;}
+  }
+  const cand=twoCircle(obs[bi].P,obs[bj].P,obs[bi].d,obs[bj].d);
+  if(!cand){let sx=0,sy=0;obs.forEach(o=>{sx+=o.P.x;sy+=o.P.y;});return {x:sx/obs.length,y:sy/obs.length};}
+  const score=c=>obs.reduce((s,o)=>s+Math.abs(Math.hypot(c.x-o.P.x,c.y-o.P.y)-o.d),0);
+  return score(cand[0])<=score(cand[1])?cand[0]:cand[1];
+}
+function statsAt(obs,X,Y){
+  const res=obs.map(o=>{const R=Math.hypot(X-o.P.x,Y-o.P.y);return {name:o.name,d:o.d,R,v:R-o.d};});
+  const n=obs.length, dof=n-2;
+  const ss=res.reduce((s,r)=>s+r.v*r.v,0);
+  const sigma0= dof>0? Math.sqrt(ss/dof): null;
+  let A00=0,A01=0,A11=0;
+  obs.forEach(o=>{const dx=X-o.P.x,dy=Y-o.P.y,R=Math.hypot(dx,dy)||1e-9,ax=dx/R,ay=dy/R;A00+=ax*ax;A01+=ax*ay;A11+=ay*ay;});
+  const tr=A00+A11, dt=A00*A11-A01*A01;
+  const lam2=(tr-Math.sqrt(Math.max(tr*tr-4*dt,0)))/2; // 最小固有値（小=器械点が基線寄りで弱い）
+  let sp=null;
+  if(sigma0!=null && dt>1e-12){ const sp2=(A11+A00)/dt; sp=sigma0*Math.sqrt(Math.max(sp2,0)); }
+  return {x:X,y:Y,res,n,dof,sigma0,sp,lam2};
+}
+// 既知点そのものの一直線度（鏡像あいまいさの判定）＋最適直線
+function knownGeom(obs){
+  const n=obs.length; let cx=0,cy=0; obs.forEach(o=>{cx+=o.P.x;cy+=o.P.y;}); cx/=n; cy/=n;
+  let sxx=0,sxy=0,syy=0; obs.forEach(o=>{const ex=o.P.x-cx,ey=o.P.y-cy;sxx+=ex*ex;sxy+=ex*ey;syy+=ey*ey;});
+  const tr=sxx+syy, root=Math.sqrt(Math.max(tr*tr-4*(sxx*syy-sxy*sxy),0));
+  const lA=(tr+root)/2, lB=(tr-root)/2;
+  const coll= lA>1e-9? Math.sqrt(Math.max(lB,0)/lA):1; // 0に近いほど一直線
+  let ux,uy; if(Math.abs(sxy)>1e-12){ux=lA-syy;uy=sxy;}else{ux=sxx>=syy?1:0;uy=sxx>=syy?0:1;}
+  const un=Math.hypot(ux,uy)||1; ux/=un; uy/=un;
+  return {cx,cy,ux,uy,coll};
+}
+function mirrorAcross(pt,g){const rx=pt.x-g.cx,ry=pt.y-g.cy;const d=rx*g.ux+ry*g.uy;const px=d*g.ux,py=d*g.uy;return {x:g.cx+px-(rx-px),y:g.cy+py-(ry-py)};}
+function resectLSQ(obs){
+  let g0=initialGuess(obs); let X=g0.x, Y=g0.y;
+  for(let it=0;it<30;it++){
+    let a00=0,a01=0,a11=0,b0=0,b1=0;
+    for(const o of obs){
+      const dx=X-o.P.x, dy=Y-o.P.y; const R=Math.hypot(dx,dy)||1e-9;
+      const ax=dx/R, ay=dy/R; const r=R-o.d;
+      a00+=ax*ax; a01+=ax*ay; a11+=ay*ay; b0+=ax*r; b1+=ay*r;
+    }
+    const det=a00*a11-a01*a01; if(Math.abs(det)<1e-12)break;
+    const dX=-( b0*a11 - a01*b1)/det;
+    const dY=-( a00*b1 - b0*a01)/det;
+    X+=dX; Y+=dY;
+    if(Math.hypot(dX,dY)<1e-7)break;
+  }
+  const s=statsAt(obs,X,Y); s.geom=knownGeom(obs); s.coll=s.geom.coll;
+  return s;
+}
+
+function readThresholds(){
+  const ok=Number($('thOk').value), ng=Number($('thNg').value);
+  thresholds.ok=isFinite(ok)&&ok>0?ok:5;
+  thresholds.ng=isFinite(ng)&&ng>0?ng:15;
+  if(thresholds.ng<thresholds.ok)thresholds.ng=thresholds.ok;
+  return thresholds;
+}
+
+$('btnResect').onclick=()=>{
+  clearError();
+  const rows=[...document.querySelectorAll('#rsRows .rsrow')];
+  const obs=[]; const used=new Set();
+  for(const row of rows){
+    const name=row.querySelector('.rsP').value; const d=Number(row.querySelector('.rsD').value);
+    const P=findPt(name); if(!P||!(d>0))continue;
+    if(used.has(name)){showError('同じ点が重複しています：'+name+'（別の点にしてください）');return;}
+    used.add(name); obs.push({P,d,name});
+  }
+  if(obs.length<3){showError('3点以上の「点＋水平距離」を入力してください（現状 '+obs.length+' 点）');return;}
+  const th=readThresholds();
+  lastObs=obs;
+  const sol=resectLSQ(obs);
+  inst={name:'器械点',x:sol.x,y:sol.y};
+  renderResect(sol,th);
+  updateBsAz(); saveData();
+};
+
+function renderResect(sol,th){
+  const mm=v=>v*1000;
+  let maxAbs=0,worst=null;
+  sol.res.forEach(r=>{ if(Math.abs(r.v)>maxAbs){maxAbs=Math.abs(r.v);worst=r.name;} });
+  const maxMm=mm(maxAbs);
+  let status,badge,box,msg;
+  if(maxMm<=th.ok){status='OK';badge='bg-emerald-600';box='bg-emerald-50 border-emerald-200 text-emerald-800';msg='据付けOK。そのまま逆打ちに進めます。';}
+  else if(maxMm<=th.ng){status='注意';badge='bg-amber-500';box='bg-amber-50 border-amber-200 text-amber-800';msg='やや大きめ。可能なら点を追加、または最悪点を見直してください。';}
+  else{status='NG';badge='bg-red-600';box='bg-red-50 border-red-200 text-red-800';msg='残差が大きい。点を追加 / 悪い点を除外 / 距離を再測定してください。';}
+
+  let rowsHtml='';
+  sol.res.forEach(r=>{
+    const vmm=mm(r.v); const amm=Math.abs(vmm);
+    const c= amm>th.ng?'text-red-600 font-bold': amm>th.ok?'text-amber-600 font-semibold':'text-slate-500';
+    rowsHtml+=`<tr class="border-b border-slate-50">
+      <td class="py-1 px-2 text-left">${r.name}</td>
+      <td class="py-1 px-2 text-right text-slate-500">${r.d.toFixed(3)}</td>
+      <td class="py-1 px-2 text-right text-slate-500">${r.R.toFixed(3)}</td>
+      <td class="py-1 px-2 text-right ${c}">${vmm>=0?'+':''}${vmm.toFixed(1)}</td></tr>`;
+  });
+
+  const geomWarn = sol.lam2<0.3
+    ? `<p class="text-xs text-amber-600 mt-2">⚠ 配置注意：器械点が基線寄りで弱い配置です。器械点を<b>囲む</b>ように点を散らすと精度が上がります。</p>` : '';
+  const collWarn = sol.coll<0.06
+    ? `<p class="text-xs text-red-600 mt-2">⚠ 既知点がほぼ<b>一直線</b>です。距離だけの後方交会は<b>左右の区別ができず</b>、器械点が反対側に出ることがあります（残差は同じ）。一直線でない点を選ぶか、下の「左右反転」で正しい側を選んでください。</p>` : '';
+  const stat = sol.dof>0
+    ? `<div class="text-xs text-slate-500 mt-2">単位重量標準偏差 σ₀ = ${mm(sol.sigma0).toFixed(1)} mm ／ 器械点ばらつき ±${sol.sp!=null?mm(sol.sp).toFixed(1):'—'} mm（冗長度 ${sol.dof}）</div>`
+    : `<div class="text-xs text-slate-500 mt-2">3点未満は残差が出ません。</div>`;
+
+  $('rsResult').innerHTML=`
+    <div class="rounded-lg border ${box} px-3 py-2">
+      <div class="flex items-center gap-2 mb-1">
+        <span class="inline-flex items-center text-white text-xs font-bold px-2 py-0.5 rounded ${badge}">${status}</span>
+        <span class="text-sm font-bold">最大残差 ±${maxMm.toFixed(1)} mm <span class="font-normal text-xs">（${worst}）</span></span>
+      </div>
+      <div class="text-xs">${msg}</div>
+    </div>
+    <div class="mt-2 tbl-wrap overflow-x-auto">
+      <table class="w-full text-xs mono">
+        <thead><tr class="text-slate-400 border-b border-slate-200">
+          <th class="py-1 px-2 text-left font-medium">点名</th>
+          <th class="py-1 px-2 text-right font-medium">実測d</th>
+          <th class="py-1 px-2 text-right font-medium">計算d</th>
+          <th class="py-1 px-2 text-right font-medium">Δmm</th>
+        </tr></thead>
+        <tbody>${rowsHtml}</tbody>
+      </table>
+    </div>
+    ${stat}
+    ${geomWarn}
+    ${collWarn}
+    <div class="flex flex-wrap gap-2 mt-2">
+      <button id="rsFlip" class="text-xs px-3 py-2 rounded-lg bg-white border border-slate-200 text-slate-600">左右反転</button>
+      ${sol.n>3?`<button id="rsDropWorst" class="text-xs px-3 py-2 rounded-lg bg-white border border-slate-200 text-slate-600">最悪点（${worst}）を除外して再計算</button>`:''}
+    </div>`;
+
+  $('instShow').textContent=`器械点 X(北)=${sol.x.toFixed(3)} / Y(東)=${sol.y.toFixed(3)} ／ ${sol.n}点・最大残差±${maxMm.toFixed(1)}mm（${status}）`;
+  $('instShow').className=`mt-3 text-xs rounded-lg px-3 py-2 border ${box}`;
+  $('instShow').classList.remove('hidden');
+
+  const flip=$('rsFlip');
+  if(flip)flip.onclick=()=>{
+    if(!sol.geom||!lastObs)return;
+    const m=mirrorAcross({x:sol.x,y:sol.y},sol.geom);
+    // 反転点で残差を再評価（一直線なら同じ、非一直線なら悪化して誤りが分かる）
+    const re=statsAt(lastObs,m.x,m.y); re.geom=sol.geom; re.coll=sol.coll;
+    inst={name:'器械点',x:m.x,y:m.y};
+    renderResect(re,readThresholds()); updateBsAz(); saveData();
+  };
+  const drop=$('rsDropWorst');
+  if(drop)drop.onclick=()=>{
+    const rows=[...document.querySelectorAll('#rsRows .rsrow')];
+    if(rows.length<=3){showError('3点以上必要です');return;}
+    const t=rows.find(r=>r.querySelector('.rsP').value===worst);
+    if(t)t.remove();
+    $('btnResect').click();
+  };
+}
+
+// 直接据える
+$('dirInst').onchange=()=>{ if(mode==='direct') setDirectInst(); };
+function setDirectInst(){
+  const p=findPt($('dirInst').value); if(!p)return;
+  inst={name:p.name,x:p.x,y:p.y};
+  $('instShow').textContent=`器械点 ${p.name}（X${p.x.toFixed(3)} / Y${p.y.toFixed(3)}）に直接据える`;
+  $('instShow').className='mt-3 text-xs text-violet-700 bg-violet-50 border border-violet-200 rounded-lg px-3 py-2';
+  $('instShow').classList.remove('hidden');
+  updateBsAz();
+}
+
+$('bsSel').onchange=updateBsAz;
+function updateBsAz(){
+  if(mode==='direct' && !inst) setDirectInst();
+  const bs=findPt($('bsSel').value);
+  if(inst&&bs){
+    if(inst.x===bs.x&&inst.y===bs.y){$('bsAzNote').textContent='器械点と後視点が同じ座標です。別の点を選んでください。';$('bsAzNote').className='mt-2 text-xs text-amber-600';return;}
+    const az=azimuth(inst.x,inst.y,bs.x,bs.y);
+    $('bsAzNote').textContent=`後視方位角 器械点→${bs.name} = ${deg2dms(az)}`;
+    $('bsAzNote').className='mt-2 text-xs text-slate-500';
+  }else{$('bsAzNote').textContent='器械点を先に決めてください。';$('bsAzNote').className='mt-2 text-xs text-slate-400';}
+}
+
+// ===== 落とす点リスト =====
+function rebuildPtList(){
+  const rows=$('ptRows'); rows.innerHTML='';
+  const groups=[];
+  if($('grpRef').checked) groups.push(['基準点',refPts]);
+  if($('grpIP').checked) groups.push(['引照点',ipPts]);
+  if($('grpMy').checked) groups.push(['測点',myPts]);
+  if($('grpBk').checked) groups.push(['測点②',bkPts]);
+  groups.forEach(([label,arr])=>{
+    arr.forEach(p=>{
+      if(!(p.name in checked)) checked[p.name]=true;
+      const tr=document.createElement('tr');tr.className='border-b border-slate-50';
+      tr.innerHTML=`<td class="py-1.5 px-2 w-8"><input type="checkbox" data-n="${p.name}" class="ptck accent-violet-600" ${checked[p.name]?'checked':''}></td>
+        <td class="py-1.5 px-2 text-left font-medium">${p.name}</td>
+        <td class="py-1.5 px-2 text-right text-slate-400">${(+p.x).toFixed(3)}</td>
+        <td class="py-1.5 px-2 text-right text-slate-400">${(+p.y).toFixed(3)}</td>
+        <td class="py-1.5 px-2 text-slate-400 text-[10px]">${label}</td>`;
+      rows.appendChild(tr);
+    });
+  });
+  rows.querySelectorAll('.ptck').forEach(c=>c.onchange=e=>{checked[e.target.dataset.n]=e.target.checked;updateCount();});
+  updateCount();
+}
+function updateCount(){
+  const sel=Object.entries(checked).filter(([k,v])=>v && visibleNames().includes(k)).length;
+  $('ptCount').textContent=`表示 ${visibleNames().length} 点 / 選択 ${sel} 点`;
+}
+function visibleNames(){
+  let a=[];
+  if($('grpRef').checked) a=a.concat(refPts.map(p=>p.name));
+  if($('grpIP').checked) a=a.concat(ipPts.map(p=>p.name));
+  if($('grpMy').checked) a=a.concat(myPts.map(p=>p.name));
+  if($('grpBk').checked) a=a.concat(bkPts.map(p=>p.name));
+  return a;
+}
+['grpRef','grpIP','grpMy','grpBk'].forEach(id=>$(id).onchange=rebuildPtList);
+$('selAll').onclick=()=>{visibleNames().forEach(n=>checked[n]=true);rebuildPtList();};
+$('selNone').onclick=()=>{visibleNames().forEach(n=>checked[n]=false);rebuildPtList();};
+
+// 点を追加(測点)
+$('btnAddPt').onclick=()=>{
+  const name=prompt('点名（例：36ロ-1）'); if(!name)return;
+  const x=parseFloat(prompt('X（北）')); const y=parseFloat(prompt('Y（東）'));
+  if(!isFinite(x)||!isFinite(y)){alert('座標が正しくありません');return;}
+  myPts.push({name,x,y,note:''}); checked[name]=true;
+  if(!$('grpMy').checked)$('grpMy').checked=true;
+  saveData(); fillSelects(); rebuildPtList();
+};
+
+// ===== モード切替 =====
+function setMode(m){
+  mode=m;
+  const on='bg-violet-600 text-white border-violet-600', off='bg-white text-slate-600 border-slate-200';
+  $('modeResect').className=`flex-1 text-sm px-3 py-2 rounded-lg border font-medium ${m==='resect'?on:off}`;
+  $('modeDirect').className=`flex-1 text-sm px-3 py-2 rounded-lg border font-medium ${m==='direct'?on:off}`;
+  $('paneResect').classList.toggle('hidden',m!=='resect');
+  $('paneDirect').classList.toggle('hidden',m!=='direct');
+  inst=null; $('instShow').classList.add('hidden'); $('rsResult').innerHTML=''; updateBsAz();
+}
+$('modeResect').onclick=()=>setMode('resect');
+$('modeDirect').onclick=()=>setMode('direct');
+
+// ===== 逆打ち計算（V1と同じ） =====
+function calc(){
+  clearError();
+  if(mode==='direct'&&!inst) setDirectInst();
+  if(!inst){showError('先に器械点を決めてください（後方交会で計算、または直接据えるで選択）。');return;}
+  const bs=findPt($('bsSel').value);
+  if(!bs){showError('後視点を選んでください');return;}
+  if(inst.x===bs.x&&inst.y===bs.y){showError('器械点と後視点が同じです');return;}
+  const bsAz=azimuth(inst.x,inst.y,bs.x,bs.y);
+  const targets=allKnown().filter(p=>checked[p.name] && visibleNames().includes(p.name));
+  if(!targets.length){showError('落とす点を1つ以上選んでください');return;}
+  const rows=targets.map(p=>{
+    const az=azimuth(inst.x,inst.y,p.x,p.y);
+    const dist=Math.hypot(p.x-inst.x,p.y-inst.y);
+    const incl=normDeg(az-bsAz);
+    return {name:p.name,incl,az,dist,x:p.x,y:p.y};
+  });
+  result={inst,bs,bsAz,rows};
+  render(); saveData();
+}
+function render(){
+  const {inst,bs,bsAz,rows}=result;
+  $('resHead').textContent=`器械点 X${inst.x.toFixed(3)}/Y${inst.y.toFixed(3)}・後視 ${bs.name}・後視方位角 ${deg2dms(bsAz)}`;
+  $('resCount').textContent=`${rows.length}点`;
+  const tb=$('resRows');tb.innerHTML='';
+  rows.forEach(r=>{
+    const tr=document.createElement('tr');tr.className='border-b border-slate-50';
+    tr.innerHTML=`<td class="py-1.5 px-2 text-left">${r.name}</td><td class="py-1.5 px-2 text-right">${deg2dms(r.incl)}</td><td class="py-1.5 px-2 text-right text-slate-500">${deg2dms(r.az)}</td><td class="py-1.5 px-2 text-right">${r.dist.toFixed(3)}</td><td class="py-1.5 px-2 text-right text-slate-400">${r.x.toFixed(3)}</td><td class="py-1.5 px-2 text-right text-slate-400">${r.y.toFixed(3)}</td>`;
+    tb.appendChild(tr);
+  });
+  $('resultSec').classList.remove('hidden');
+  buildMeasRows();
+  $('resultSec').scrollIntoView({behavior:'smooth',block:'start'});
+}
+
+// ===== 測定結果（実測ズレ：前後・左右） =====
+let meas={}; // 点名 -> {ang:文字列, dist:文字列}
+// 夾角入力の解釈：度.分秒（DDD.MMSS）を主とし、度分秒の区切り入力や小数°もフォロー
+function parseAngleInput(str){
+  if(str==null)return null;
+  let s=String(str).trim(); if(!s)return null;
+  s=s.replace(/[，、]/g,' ').replace(/,/g,' ');
+  if(/[°'"\s]/.test(s)){ // 明示的な度 分 秒
+    const t=s.replace(/[°'"]/g,' ').trim().split(/\s+/).map(Number);
+    if(t.some(v=>!isFinite(v)))return null;
+    return (t[0]||0)+(t[1]||0)/60+(t[2]||0)/3600;
+  }
+  if(!/^[0-9]*\.?[0-9]+$|^[0-9]+\.?$/.test(s))return null;
+  const hadDot=s.includes('.');
+  let deg,frac;
+  if(hadDot){const p=s.split('.');deg=p[0]||'0';frac=p[1]||'';}
+  else if(s.length>=5){deg=s.slice(0,-4);frac=s.slice(-4);} // 点忘れ 1454559→145.4559
+  else return Number(s); // 90 などは度
+  if(frac==='')return Number(deg)||0;
+  const f=(frac+'0000').slice(0,Math.max(4,frac.length));
+  const mm=Number(f.slice(0,2)), ss=Number(f.slice(2,4)+'.'+(f.slice(4)||'0'));
+  if(mm<60&&ss<60)return (Number(deg)||0)+mm/60+ss/3600; // 度.分秒
+  if(hadDot)return Number(s); // 分秒が範囲外なら小数°とみなす（例 145.75）
+  return null;
+}
+function deg2packed(deg){
+  deg=normDeg(deg);
+  let d=Math.floor(deg),mf=(deg-d)*60,m=Math.floor(mf),s=Math.round((mf-m)*60);
+  if(s>=60){s-=60;m++;}if(m>=60){m-=60;d++;}
+  return `${d}.${String(m).padStart(2,'0')}${String(s).padStart(2,'0')}`;
+}
+function measDev(r,incDeg,dist){
+  const inst=result.inst, bsAz=result.bsAz;
+  const measAz=normDeg(bsAz+incDeg), ar=measAz*Math.PI/180;
+  const mX=inst.x+dist*Math.cos(ar), mY=inst.y+dist*Math.sin(ar);
+  const eX=mX-r.x, eY=mY-r.y, pa=r.az*Math.PI/180;
+  return {
+    mX,mY,measAz,
+    total:Math.hypot(eX,eY)*1000,
+    fb:(eX*Math.cos(pa)+eY*Math.sin(pa))*1000, // 前後 ＋遠い
+    lr:(-eX*Math.sin(pa)+eY*Math.cos(pa))*1000  // 左右 ＋右
+  };
+}
+function devCell(v){
+  const th=thresholds, a=Math.abs(v);
+  const c= a>th.ng?'text-red-600 font-bold': a>th.ok?'text-amber-600 font-semibold':'text-emerald-600';
+  return `<span class="${c}">${v>=0?'+':''}${v.toFixed(1)}</span>`;
+}
+function recomputeMeasRow(name){
+  if(!result)return;
+  const r=result.rows.find(x=>x.name===name); if(!r)return;
+  const tr=document.querySelector(`#measRows tr[data-n="${CSS.escape(name)}"]`); if(!tr)return;
+  const angStr=tr.querySelector('.mAng').value, dStr=tr.querySelector('.mDist').value;
+  meas[name]={ang:angStr,dist:dStr};
+  const inc=parseAngleInput(angStr), d=Number(dStr);
+  const cT=tr.querySelector('.cTot'), cF=tr.querySelector('.cFb'), cL=tr.querySelector('.cLr');
+  if(inc==null||!(d>0)){cT.innerHTML='<span class="text-slate-300">—</span>';cF.innerHTML='';cL.innerHTML='';return;}
+  const dev=measDev(r,inc,d);
+  cT.innerHTML=devCell(dev.total).replace('+','');
+  cF.innerHTML=devCell(dev.fb);
+  cL.innerHTML=devCell(dev.lr);
+}
+function buildMeasRows(){
+  const tb=$('measRows'); tb.innerHTML='';
+  result.rows.forEach(r=>{
+    const m=meas[r.name]||{ang:'',dist:''};
+    const tr=document.createElement('tr'); tr.dataset.n=r.name; tr.className='border-b border-slate-50';
+    tr.innerHTML=`<td class="py-1 px-1 text-left whitespace-nowrap">${r.name}</td>
+      <td class="py-1 px-1"><input class="mAng field w-20 rounded border border-slate-200 px-1 py-1 text-right mono" type="text" inputmode="decimal" placeholder="${deg2packed(r.incl)}" value="${m.ang}"></td>
+      <td class="py-1 px-1"><input class="mDist field w-16 rounded border border-slate-200 px-1 py-1 text-right mono" type="number" step="any" inputmode="decimal" placeholder="${r.dist.toFixed(3)}" value="${m.dist}"></td>
+      <td class="cTot py-1 px-1 text-right"><span class="text-slate-300">—</span></td>
+      <td class="cFb py-1 px-1 text-right"></td>
+      <td class="cLr py-1 px-1 text-right"></td>`;
+    tb.appendChild(tr);
+  });
+  tb.querySelectorAll('tr').forEach(tr=>{
+    const n=tr.dataset.n;
+    tr.querySelector('.mAng').oninput=()=>recomputeMeasRow(n);
+    tr.querySelector('.mDist').oninput=()=>recomputeMeasRow(n);
+    recomputeMeasRow(n);
+  });
+  $('measCount').textContent=`${result.rows.length}点`;
+  $('measSec').classList.remove('hidden');
+}
+
+// ===== 出力（V1と同じ） =====
+function aoaData(){
+  const {inst,bs,bsAz,rows}=result;
+  const aoa=[
+    ['逆打ちデータ（後方交会V2）'],
+    ['器械点','X北',+inst.x.toFixed(3),'Y東',+inst.y.toFixed(3)],
+    ['後視点',bs.name,'後視方位角',deg2dms(bsAz)],
+    [],
+    ['点名','夾角','方位角','距離(m)','X北','Y東']
+  ];
+  rows.forEach(r=>aoa.push([r.name,deg2dms(r.incl),deg2dms(r.az),+r.dist.toFixed(3),+r.x.toFixed(3),+r.y.toFixed(3)]));
+  return aoa;
+}
+function measAoaData(){
+  const {inst,bs,bsAz,rows}=result;
+  const aoa=[
+    ['測定結果（実測ズレ）'],
+    ['器械点','X北',+inst.x.toFixed(3),'Y東',+inst.y.toFixed(3)],
+    ['後視点',bs.name,'後視方位角',deg2dms(bsAz)],
+    ['判定基準','OK ≤',thresholds.ok,'NG >',thresholds.ng,'(mm)'],
+    ['前後 ＋遠い/−近い・左右 ＋右/−左（器械点から見て）'],
+    [],
+    ['点名','計画夾角','計画距離(m)','実測夾角','実測距離(m)','実測X北','実測Y東','Δ合計(mm)','前後(mm)','左右(mm)','判定']
+  ];
+  rows.forEach(r=>{
+    const m=meas[r.name]||{}; const inc=parseAngleInput(m.ang); const d=Number(m.dist);
+    if(inc!=null && d>0){
+      const dv=measDev(r,inc,d);
+      const j= dv.total>thresholds.ng?'NG': dv.total>thresholds.ok?'注意':'OK';
+      aoa.push([r.name,deg2dms(r.incl),+r.dist.toFixed(3),deg2dms(inc),+d.toFixed(3),+dv.mX.toFixed(3),+dv.mY.toFixed(3),+dv.total.toFixed(1),+dv.fb.toFixed(1),+dv.lr.toFixed(1),j]);
+    }else{
+      aoa.push([r.name,deg2dms(r.incl),+r.dist.toFixed(3),'','','','','','','','未測']);
+    }
+  });
+  return aoa;
+}
+function genXLSXBlob(){
+  const wb=XLSX.utils.book_new();
+  const ws=XLSX.utils.aoa_to_sheet(aoaData());ws['!cols']=[{wch:12},{wch:14},{wch:14},{wch:10},{wch:12},{wch:12}];
+  XLSX.utils.book_append_sheet(wb,ws,'逆打ち計画');
+  const ws2=XLSX.utils.aoa_to_sheet(measAoaData());ws2['!cols']=[{wch:12},{wch:13},{wch:11},{wch:13},{wch:11},{wch:12},{wch:12},{wch:10},{wch:9},{wch:9},{wch:6}];
+  XLSX.utils.book_append_sheet(wb,ws2,'測定結果');
+  return new Blob([XLSX.write(wb,{type:'array',bookType:'xlsx'})],{type:'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'});
+}
+function genPDFBlob(){
+  const {jsPDF}=window.jspdf; const doc=new jsPDF({orientation:'portrait',unit:'mm',format:'a4'});
+  const {inst,bs,bsAz,rows}=result;
+  doc.setFontSize(14);doc.text('Setting-out (resection V2)',14,16);
+  doc.setFontSize(9);
+  doc.text(`Instrument  X=${inst.x.toFixed(3)}  Y=${inst.y.toFixed(3)}`,14,24);
+  doc.text(`Backsight ${bs.name}   BS azimuth=${deg2dms(bsAz)}`,14,29);
+  let y=38; doc.setFontSize(8);
+  const head=['No','Name','Incl.angle','Azimuth','Dist(m)','X','Y']; const colX=[14,24,58,92,122,142,166];
+  doc.setFillColor(230,230,230);doc.rect(14,y-5,182,6,'F'); head.forEach((h,i)=>doc.text(h,colX[i],y-1)); y+=2;
+  rows.forEach((r,idx)=>{ if(y>285){doc.addPage();y=20;}
+    [String(idx+1),r.name,deg2dms(r.incl),deg2dms(r.az),r.dist.toFixed(3),r.x.toFixed(3),r.y.toFixed(3)].forEach((v,i)=>doc.text(String(v),colX[i],y)); y+=6; });
+  // 測定結果ページ
+  doc.addPage();
+  doc.setFontSize(14);doc.text('Measurement results (deviation)',14,16);
+  doc.setFontSize(8);
+  doc.text(`Instrument X=${inst.x.toFixed(3)}  Y=${inst.y.toFixed(3)}   Backsight ${bs.name}  BS az=${deg2dms(bsAz)}`,14,23);
+  doc.text(`Tolerance OK<=${thresholds.ok}  NG>${thresholds.ng} mm    F/B:+far/-near   L/R:+right/-left`,14,28);
+  let y2=38;
+  const h2=['No','Name','Meas ang','Meas dist','dTotal','F/B','L/R']; const cx2=[14,24,58,92,118,142,166];
+  doc.setFillColor(230,230,230);doc.rect(14,y2-5,182,6,'F'); h2.forEach((h,i)=>doc.text(h,cx2[i],y2-1)); y2+=2;
+  rows.forEach((r,idx)=>{ if(y2>285){doc.addPage();y2=20;}
+    const m=meas[r.name]||{}; const inc=parseAngleInput(m.ang); const d=Number(m.dist);
+    let ma='-',md='-',tot='-',fb='-',lr='-';
+    if(inc!=null&&d>0){const dv=measDev(r,inc,d);ma=deg2dms(inc);md=d.toFixed(3);tot=dv.total.toFixed(1);fb=(dv.fb>=0?'+':'')+dv.fb.toFixed(1);lr=(dv.lr>=0?'+':'')+dv.lr.toFixed(1);}
+    [String(idx+1),r.name,ma,md,tot,fb,lr].forEach((v,i)=>doc.text(String(v),cx2[i],y2)); y2+=6; });
+  return doc.output('blob');
+}
+function downloadBlob(blob,fn){try{const u=URL.createObjectURL(blob);const a=document.createElement('a');a.href=u;a.download=fn;document.body.appendChild(a);a.click();a.remove();setTimeout(()=>URL.revokeObjectURL(u),1500);}catch(e){alert('ダウンロード不可の環境です');}}
+function needRes(){if(!result){showError('先に計算してください');return false;}return true;}
+$('exXLSX').onclick=()=>{if(!needRes())return;downloadBlob(genXLSXBlob(),'setout_resection_v2.xlsx');};
+$('exPDF').onclick=()=>{if(!needRes())return;downloadBlob(genPDFBlob(),'setout_resection_v2.pdf');};
+$('exShare').onclick=async()=>{
+  if(!needRes())return;
+  const files=[new File([genXLSXBlob()],'setout_resection_v2.xlsx',{type:'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'})];
+  try{files.push(new File([genPDFBlob()],'setout_resection_v2.pdf',{type:'application/pdf'}));}catch(e){}
+  if(navigator.canShare&&navigator.canShare({files})){try{await navigator.share({files,title:'逆打ちデータ'});}catch(e){}}
+  else{files.forEach(f=>downloadBlob(f,f.name));alert('共有未対応のため個別保存しました');}
+};
+
+$('btnHelp').onclick=()=>$('helpPanel').classList.toggle('hidden');
+$('helpClose').onclick=()=>$('helpPanel').classList.add('hidden');
+$('btnCalc').onclick=calc;
+$('thOk').onchange=()=>{readThresholds();saveData();};
+$('thNg').onchange=()=>{readThresholds();saveData();};
+
+// 初期化
+loadData();
+$('thOk').value=thresholds.ok; $('thNg').value=thresholds.ng;
+DEFAULT_SURVEY.forEach(p=>{ if(!(p.name in checked)) checked[p.name]=false; });
+myPts.forEach(p=>{ if(!(p.name in checked)) checked[p.name]=false; });
+initRsRows();
+fillSelects(); setMode('resect'); rebuildPtList(); updateBsAz();
+</script>
+</body>
+</html>
