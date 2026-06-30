@@ -147,6 +147,8 @@ header .ttl small{display:block;font-size:11px;font-weight:500;color:var(--muted
 .rrow input{border:none;background:transparent;font-family:inherit;font-weight:700;font-size:13px;padding:4px;color:var(--ink);min-width:0;outline:none}
 .rrow .ri-d{width:74px;flex:0 0 auto}.rrow .ri-m{flex:1}.rrow .ri-a{width:78px;text-align:right;flex:0 0 auto}
 .rrow .rx{flex:0 0 auto;color:var(--muted);font-size:16px;width:24px;text-align:center}
+.rrow.dup{opacity:.5}
+.rrow .dupb{flex:0 0 auto;font-size:9px;font-weight:800;color:var(--rose);background:#FDECE9;padding:2px 6px;border-radius:6px}
 .toast{position:fixed;left:50%;bottom:calc(94px + var(--safe-b));transform:translateX(-50%) translateY(20px);background:var(--ink);color:#fff;padding:11px 20px;border-radius:30px;font-size:13px;font-weight:700;opacity:0;transition:all .3s;z-index:60;box-shadow:var(--shadow);white-space:nowrap}
 .toast.show{opacity:1;transform:translateX(-50%) translateY(0)}
 .mngrow{display:flex;align-items:center;gap:8px;background:var(--card);border-radius:12px;padding:9px 11px;margin-bottom:7px;box-shadow:var(--shadow-s)}
@@ -249,7 +251,7 @@ header .ttl small{display:block;font-size:11px;font-weight:500;color:var(--muted
 
 <div class="sheet" id="sheetImport">
   <div class="grab"></div><h3>JCBから取込</h3>
-  <div class="seg2"><button id="impTabImg" class="on">スクショ画像</button><button id="impTabTxt">テキスト貼付</button></div>
+  <div class="seg2"><button id="impTabImg">スクショ画像</button><button id="impTabTxt" class="on">テキスト貼付</button></div>
   <div id="impImg">
     <p class="hint">JCBアプリの明細をスクショ→読み取り。結果は確認リストで直してから登録（勝手に入りません）。</p>
     <label class="ghost" for="ocrFile" style="display:block;text-align:center">画像を選ぶ 📷</label>
@@ -285,7 +287,10 @@ header .ttl small{display:block;font-size:11px;font-weight:500;color:var(--muted
   <div class="field"><label>カード名</label><input id="setCardName" type="text"></div>
   <p class="hint">締め日=毎月15日、引落し=翌々月10日として計算（16日〜翌15日が1サイクル）。着地予測は過去サイクルの変動費ペースと、まだ来ていない定期の見込みを足したものです。</p>
   <button class="primary" id="setSave">保存</button>
+  <button class="ghost" id="dedupeBtn">重複を削除（同じ日付・店・金額）</button>
   <button class="ghost" id="exportData">データを書き出す（バックアップ）</button>
+  <button class="ghost" id="restoreData">バックアップから復元（読み込み）</button>
+  <input id="importFile" type="file" accept="application/json,.json" style="display:none">
   <button class="ghost" id="wipeData" style="color:var(--rose);border-color:#F2C5BE">全データを消す</button>
 </div>
 
@@ -396,9 +401,15 @@ function md(d){return (d.getMonth()+1)+'/'+d.getDate();}
 const yen=n=>Math.round(n).toLocaleString('ja-JP');
 const DAY=86400000;
 function curKey(){return cycleOf(toISO(new Date())).key;}
+function txKey(date,merchant,amount){return date+'|'+norm(merchant)+'|'+amount;}
+function dedupeAll(){
+  const seen=new Set(),keep=[];
+  st.txns.slice().sort((a,b)=>a.added-b.added).forEach(t=>{const k=txKey(t.date,t.merchant,t.amount);if(seen.has(k))return;seen.add(k);keep.push(t);});
+  const removed=st.txns.length-keep.length;st.txns=keep;save();render();return removed;
+}
 
 /* ===== matching ===== */
-function norm(s){return (s||'').replace(/[Ａ-Ｚａ-ｚ０-９]/g,c=>String.fromCharCode(c.charCodeAt(0)-0xFEE0)).replace(/[\s　・／/＊*]/g,'').toUpperCase();}
+function norm(s){return (s||'').replace(/[！-～]/g,c=>String.fromCharCode(c.charCodeAt(0)-0xFEE0)).replace(/[\s　・.,/*\-'"()＆&]/g,'').toUpperCase();}
 function recIndexFor(merchant){
   const m=norm(merchant);
   for(let i=0;i<st.tmpl.length;i++){const t=st.tmpl[i];if(t.kind==='rec'&&t.keys&&t.keys.some(k=>m.includes(norm(k))))return i;}
@@ -658,7 +669,7 @@ document.getElementById('mngAdd').onclick=()=>{
 document.getElementById('mngDone').onclick=()=>openRecurring();
 
 /* ===== import ===== */
-let imgTab=true;
+let imgTab=false;
 document.getElementById('qImport').onclick=()=>{resetImport();show('sheetImport');};
 function resetImport(){
   document.getElementById('impReview').style.display='none';
@@ -715,22 +726,30 @@ function loadScript(src){return new Promise((res,rej)=>{const s=document.createE
 function showReview(recs){
   const w=document.getElementById('revList');w.innerHTML='';
   recs.forEach((r,i)=>{
-    const row=document.createElement('div');row.className='rrow';
-    row.innerHTML='<input class="ri-d" value="'+r.date+'" data-k="date"><input class="ri-m" value="'+esc(r.merchant)+'" data-k="merchant"><input class="ri-a tnum" type="number" value="'+r.amount+'" data-k="amount"><button class="rx" data-i="'+i+'">✕</button>';
+    const dup=st.txns.some(t=>txKey(t.date,t.merchant,t.amount)===txKey(r.date,r.merchant,r.amount));
+    const row=document.createElement('div');row.className='rrow'+(dup?' dup':'');
+    row.innerHTML='<input class="ri-d" value="'+r.date+'" data-k="date"><input class="ri-m" value="'+esc(r.merchant)+'" data-k="merchant"><input class="ri-a tnum" type="number" value="'+r.amount+'" data-k="amount">'+(dup?'<span class="dupb">既出</span>':'')+'<button class="rx" data-i="'+i+'">✕</button>';
     w.appendChild(row);
   });
   w.querySelectorAll('.rx').forEach(b=>b.onclick=()=>{b.closest('.rrow').remove();updRev();});
   updRev();
   document.getElementById('impImg').style.display='none';document.getElementById('impTxt').style.display='none';document.getElementById('impReview').style.display='block';
 }
-function updRev(){document.getElementById('revCount').textContent=document.querySelectorAll('#revList .rrow').length+'件';}
+function updRev(){const rows=document.querySelectorAll('#revList .rrow');const dup=document.querySelectorAll('#revList .rrow.dup').length;document.getElementById('revCount').textContent=rows.length+'件'+(dup?'（既出'+dup+'件は登録時にスキップ）':'');}
 document.getElementById('impBack').onclick=()=>resetImport();
 document.getElementById('impCommit').onclick=()=>{
-  let n=0;[...document.querySelectorAll('#revList .rrow')].forEach(r=>{
+  const exist=new Set(st.txns.map(t=>txKey(t.date,t.merchant,t.amount)));
+  let n=0,dup=0;
+  [...document.querySelectorAll('#revList .rrow')].forEach(r=>{
     const g=k=>r.querySelector('[data-k="'+k+'"]').value;const d=g('date'),m=g('merchant').trim(),a=+g('amount');
-    if(/^\d{4}-\d{2}-\d{2}$/.test(d)&&m&&a>0){st.txns.push({id:newId(),date:d,merchant:m,pay:'1回払い',amount:a,added:Date.now()+Math.random()});n++;}
+    if(/^\d{4}-\d{2}-\d{2}$/.test(d)&&m&&a>0){
+      const key=txKey(d,m,a);
+      if(exist.has(key)){dup++;return;}
+      exist.add(key);
+      st.txns.push({id:newId(),date:d,merchant:m,pay:'1回払い',amount:a,added:Date.now()+Math.random()});n++;
+    }
   });
-  save();render();closeSheets();toast(n+'件 追加しました ✓');
+  save();render();closeSheets();toast(n+'件追加'+(dup?'／重複'+dup+'件スキップ':'')+' ✓');
 };
 
 document.getElementById('ordAdded').onclick=()=>{order='added';render();};
@@ -748,6 +767,14 @@ document.getElementById('setSave').onclick=()=>{
 document.getElementById('exportData').onclick=()=>{
   const blob=new Blob([JSON.stringify(st,null,2)],{type:'application/json'});const a=document.createElement('a');
   a.href=URL.createObjectURL(blob);a.download='jcb-backup-'+toISO(new Date())+'.json';a.click();
+};
+document.getElementById('dedupeBtn').onclick=()=>{const r=dedupeAll();toast(r>0?(r+'件の重複を削除しました ✓'):'重複はありませんでした');};
+document.getElementById('restoreData').onclick=()=>document.getElementById('importFile').click();
+document.getElementById('importFile').onchange=e=>{
+  const f=e.target.files[0];if(!f)return;
+  const rd=new FileReader();
+  rd.onload=()=>{try{const d=JSON.parse(rd.result);if(d&&Array.isArray(d.txns)){st=d;migrate(st);if(!st.nextId)st.nextId=Math.max(0,...st.txns.map(t=>t.id||0))+1;save();viewKey=curKey();render();closeSheets();toast('復元しました ✓');}else toast('このファイルは形式が違います');}catch(err){toast('読み込みに失敗しました');}};
+  rd.readAsText(f);e.target.value='';
 };
 document.getElementById('wipeData').onclick=()=>{if(confirm('全データを消します。よろしいですか？')){localStorage.removeItem(KEY);st=load();save();render();closeSheets();toast('消去しました');}};
 
