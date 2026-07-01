@@ -89,6 +89,7 @@ header .ttl small{display:block;font-size:11px;font-weight:500;color:var(--muted
 .uprow .um{flex:1;font-size:13px;font-weight:700;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 .uprow .ua{font-size:13px;font-weight:800;color:var(--ink2)}
 .uprow .ub{font-size:10.5px;font-weight:700;color:#fff;background:var(--mint);padding:5px 11px;border-radius:9px;flex:0 0 auto}
+.uprow .uprm{flex:0 0 auto;width:26px;height:26px;border-radius:50%;display:grid;place-items:center;color:var(--muted);font-size:14px;background:#F3ECDF;border:1px solid var(--line2)}
 .upnote{font-size:11px;color:var(--muted);font-weight:600;margin:3px 4px 0;text-align:right}
 
 .list{display:flex;flex-direction:column;gap:7px}
@@ -103,7 +104,8 @@ header .ttl small{display:block;font-size:11px;font-weight:500;color:var(--muted
 .tx .pill.rec{background:#EAF7F1;color:#2E9B79}
 .tx .am{font-size:14px;font-weight:800;white-space:nowrap}
 .tx .del{flex:0 0 auto;width:26px;height:26px;border-radius:50%;display:grid;place-items:center;color:var(--muted);font-size:15px;opacity:.5}
-.tx .mkrec{flex:0 0 auto;width:28px;height:28px;border-radius:50%;display:grid;place-items:center;font-size:13px;background:#EAF7F1;border:1px solid #CDEBDF}
+.tx .mkrec{flex:0 0 auto;width:28px;height:28px;border-radius:50%;display:grid;place-items:center;font-size:13px;background:#F3ECDF;border:1px solid var(--line2);opacity:.7}
+.tx .mkrec.on{background:#EAF7F1;border-color:#CDEBDF;opacity:1}
 .empty{text-align:center;color:var(--muted);font-size:12.5px;padding:24px 10px;line-height:1.7}
 
 .past{display:flex;flex-direction:column;gap:7px}
@@ -555,8 +557,9 @@ function render(){
     ul.innerHTML='';
     f.upcoming.forEach(u=>{
       const el=document.createElement('div');el.className='uprow';
-      el.innerHTML='<span class="uc">○</span><span class="um">'+esc(u.name)+'</span><span class="ua tnum">¥'+yen(u.amt)+'</span><span class="ub">'+(ph==='future'?'置く':'来た？')+'</span>';
+      el.innerHTML='<span class="uc">○</span><span class="um">'+esc(u.name)+'</span><span class="ua tnum">¥'+yen(u.amt)+'</span><button class="uprm" title="毎月から外す">✕</button><span class="ub">'+(ph==='future'?'置く':'来た？')+'</span>';
       el.onclick=()=>openManual({m:u.name,a:u.amt,p:'1回払い'});
+      const rm=el.querySelector('.uprm');rm.onclick=(ev)=>{ev.stopPropagation();removeTmpl(u.i);};
       ul.appendChild(el);
     });
   }else{us.style.display='none';}
@@ -573,9 +576,9 @@ function render(){
     const el=document.createElement('div');el.className='tx'+(isNew?' new':'');
     el.innerHTML='<div class="dt"><b>'+dd.getDate()+'</b><span>'+(dd.getMonth()+1)+'月</span></div>'+
       '<div class="mid"><div class="mc">'+esc(t.merchant)+'</div><div class="tag"><span class="pill '+(isRec?'rec':'')+'">'+(isRec?'毎月':esc(t.pay))+'</span></div></div>'+
-      '<div class="am tnum">¥'+yen(t.amount)+'</div>'+(isRec?'':'<button class="mkrec" title="毎月にする">🔁</button>')+'<button class="del" data-id="'+t.id+'">✕</button>';
+      '<div class="am tnum">¥'+yen(t.amount)+'</div><button class="mkrec'+(isRec?' on':'')+'" title="'+(isRec?'毎月をやめる':'毎月にする')+'">🔁</button><button class="del" data-id="'+t.id+'">✕</button>';
     wrap.appendChild(el);
-    const mb=el.querySelector('.mkrec');if(mb)mb.onclick=()=>makeMonthly(t.merchant);
+    const mb=el.querySelector('.mkrec');if(mb)mb.onclick=()=>{isRec?unmakeMonthly(t.merchant):makeMonthly(t.merchant);};
   });
 
   // cycle list (all cycles, tap to jump, highlight viewed)
@@ -596,8 +599,20 @@ function esc(s){return (s+'').replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':
 
 function makeMonthly(merchant){
   if(recIndexFor(merchant)>=0){toast('すでに毎月です');return;}
-  st.tmpl.push({name:merchant,amt:0,kind:'rec',keys:[merchant]});
-  save();render();toast('「'+merchant+'」を毎月に登録 ✓');
+  const t={name:merchant,amt:0,kind:'rec',keys:[merchant]};
+  st.tmpl.push(t);save();render();
+  toast('毎月に登録しました ✓',()=>{const idx=st.tmpl.indexOf(t);if(idx>=0)st.tmpl.splice(idx,1);save();render();toast('取り消しました');});
+}
+function unmakeMonthly(merchant){
+  const i=recIndexFor(merchant);if(i<0)return;
+  const removed=st.tmpl[i],pos=i,name=removed.name;
+  st.tmpl.splice(i,1);save();render();
+  toast('「'+name+'」を毎月から解除 ✓',()=>{st.tmpl.splice(pos,0,removed);save();render();toast('戻しました ✓');});
+}
+function removeTmpl(i){
+  const removed=st.tmpl[i];if(!removed)return;
+  st.tmpl.splice(i,1);save();render();
+  toast('「'+removed.name+'」を毎月から外しました',()=>{st.tmpl.splice(i,0,removed);save();render();toast('戻しました ✓');});
 }
 function addTx(date,merchant,pay,amount){
   const tx={id:newId(),date,merchant,pay:pay||'1回払い',amount:+amount,added:Date.now()};
