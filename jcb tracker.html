@@ -149,7 +149,9 @@ header .ttl small{display:block;font-size:11px;font-weight:500;color:var(--muted
 .rrow .rx{flex:0 0 auto;color:var(--muted);font-size:16px;width:24px;text-align:center}
 .rrow.dup{opacity:.5}
 .rrow .dupb{flex:0 0 auto;font-size:9px;font-weight:800;color:var(--rose);background:#FDECE9;padding:2px 6px;border-radius:6px}
-.toast{position:fixed;left:50%;bottom:calc(94px + var(--safe-b));transform:translateX(-50%) translateY(20px);background:var(--ink);color:#fff;padding:11px 20px;border-radius:30px;font-size:13px;font-weight:700;opacity:0;transition:all .3s;z-index:60;box-shadow:var(--shadow);white-space:nowrap}
+.rrow .etcb{flex:0 0 auto;font-size:8.5px;font-weight:800;color:#2E9B79;background:#EAF7F1;padding:2px 6px;border-radius:6px;white-space:nowrap}
+.toast{position:fixed;left:50%;bottom:calc(94px + var(--safe-b));transform:translateX(-50%) translateY(20px);background:var(--ink);color:#fff;padding:11px 18px;border-radius:30px;font-size:13px;font-weight:700;opacity:0;transition:all .3s;z-index:60;box-shadow:var(--shadow);white-space:nowrap;display:flex;align-items:center;gap:14px}
+.toast .tundo{color:#8FE3C6;font-weight:800;font-size:13px;text-decoration:underline}
 .toast.show{opacity:1;transform:translateX(-50%) translateY(0)}
 .mngrow{display:flex;align-items:center;gap:8px;background:var(--card);border-radius:12px;padding:9px 11px;margin-bottom:7px;box-shadow:var(--shadow-s)}
 .mngrow .mm{flex:1;font-size:13px;font-weight:700;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
@@ -598,12 +600,14 @@ function makeMonthly(merchant){
   save();render();toast('「'+merchant+'」を毎月に登録 ✓');
 }
 function addTx(date,merchant,pay,amount){
-  st.txns.push({id:newId(),date,merchant,pay:pay||'1回払い',amount:+amount,added:Date.now()});
-  viewKey=cycleOf(date).key;save();render();
+  const tx={id:newId(),date,merchant,pay:pay||'1回払い',amount:+amount,added:Date.now()};
+  st.txns.push(tx);viewKey=cycleOf(date).key;save();render();return tx;
 }
 document.getElementById('txList').addEventListener('click',e=>{
   const b=e.target.closest('.del');if(!b)return;
-  st.txns=st.txns.filter(t=>t.id!==+b.dataset.id);save();render();toast('削除しました');
+  const id=+b.dataset.id,tx=st.txns.find(t=>t.id===id);
+  st.txns=st.txns.filter(t=>t.id!==id);save();render();
+  toast('削除しました',tx?()=>{st.txns.push(tx);viewKey=cycleOf(tx.date).key;save();render();toast('戻しました ✓');}:null);
 });
 
 /* ===== sheets ===== */
@@ -630,7 +634,8 @@ document.getElementById('qManual2').onclick=()=>openManual();
 document.getElementById('mSave').onclick=()=>{
   const m=document.getElementById('mMerchant').value.trim(),a=+document.getElementById('mAmount').value,d=document.getElementById('mDate').value;
   if(!m||!a||!d){toast('お店・金額・日付を入れてね');return;}
-  addTx(d,m,document.getElementById('mPay').value,a);closeSheets();toast('追加しました ✓');
+  addTx(d,m,document.getElementById('mPay').value,a);closeSheets();
+  toast('追加しました ✓',()=>{const arr=st.txns;const last=arr[arr.length-1];st.txns=arr.slice(0,-1);save();render();toast('取り消しました');});
 };
 
 document.getElementById('qRecurring').onclick=openRecurring;
@@ -681,6 +686,15 @@ document.getElementById('impTabImg').onclick=()=>{imgTab=true;document.getElemen
 document.getElementById('impTabTxt').onclick=()=>{imgTab=false;document.getElementById('impTabTxt').classList.add('on');document.getElementById('impTabImg').classList.remove('on');resetImport();};
 
 function parseJCB(text){
+  text=text.split('\n').filter(ln=>{
+    const t=ln.trim();
+    if(!t)return true;
+    if(/^(ご利用者|ご利用日|ご利用先|支払区分|ご利用金額|ご利用明細|お支払金額|摘要|備考|訂正|サイン|詳細|カード名称|お支払|今回)/.test(t))return false;
+    if(/下[4４]桁/.test(t))return false;
+    if(/^[◆≪【（(].*(カード|表示|取組|小計|合計|明細)/.test(t))return false;
+    if(/次ページ|ページへ続く/.test(t))return false;
+    return true;
+  }).join('\n');
   const blocks=text.split(/\n\s*\n/).map(b=>b.trim()).filter(Boolean);let recs=[];
   function fromBlock(lines){
     let y=null,mo=null,da=null,merchant=[],amount=null,pay='1回払い';
@@ -723,12 +737,23 @@ document.getElementById('ocrFile').onchange=async e=>{
   }catch(err){stat.textContent='画像読み取りに失敗。ネット接続が必要です。「テキスト貼付」をお試しください。';}
 };
 function loadScript(src){return new Promise((res,rej)=>{const s=document.createElement('script');s.src=src;s.onload=res;s.onerror=rej;document.head.appendChild(s);});}
+function isETC(m){return norm(m).includes('ETC');}
 function showReview(recs){
+  // 特別処理: ETCは利用日を無視し、この明細の本体サイクル（＝請求月）に寄せる
+  const hasEtc=recs.some(r=>isETC(r.merchant));
+  if(hasEtc){
+    const nonEtc=recs.filter(r=>!isETC(r.merchant));
+    let target;
+    if(nonEtc.length){const tally={};nonEtc.forEach(r=>{const k=cycleOf(r.date).key;tally[k]=(tally[k]||0)+1;});target=Object.keys(tally).sort((a,b)=>tally[b]-tally[a])[0];}
+    else target=viewKey;
+    const tdate=toISO(cycleFromKey(target).end);
+    recs=recs.map(r=>isETC(r.merchant)?Object.assign({},r,{date:tdate,_etc:true}):r);
+  }
   const w=document.getElementById('revList');w.innerHTML='';
   recs.forEach((r,i)=>{
     const dup=st.txns.some(t=>txKey(t.date,t.merchant,t.amount)===txKey(r.date,r.merchant,r.amount));
     const row=document.createElement('div');row.className='rrow'+(dup?' dup':'');
-    row.innerHTML='<input class="ri-d" value="'+r.date+'" data-k="date"><input class="ri-m" value="'+esc(r.merchant)+'" data-k="merchant"><input class="ri-a tnum" type="number" value="'+r.amount+'" data-k="amount">'+(dup?'<span class="dupb">既出</span>':'')+'<button class="rx" data-i="'+i+'">✕</button>';
+    row.innerHTML='<input class="ri-d" value="'+r.date+'" data-k="date"><input class="ri-m" value="'+esc(r.merchant)+'" data-k="merchant"><input class="ri-a tnum" type="number" value="'+r.amount+'" data-k="amount">'+(r._etc?'<span class="etcb">ETC→請求月</span>':'')+(dup?'<span class="dupb">既出</span>':'')+'<button class="rx" data-i="'+i+'">✕</button>';
     w.appendChild(row);
   });
   w.querySelectorAll('.rx').forEach(b=>b.onclick=()=>{b.closest('.rrow').remove();updRev();});
@@ -778,7 +803,7 @@ document.getElementById('importFile').onchange=e=>{
 };
 document.getElementById('wipeData').onclick=()=>{if(confirm('全データを消します。よろしいですか？')){localStorage.removeItem(KEY);st=load();save();render();closeSheets();toast('消去しました');}};
 
-let toT;function toast(m){const t=document.getElementById('toast');t.textContent=m;t.classList.add('show');clearTimeout(toT);toT=setTimeout(()=>t.classList.remove('show'),1700);}
+let toT;function toast(m,undo){const t=document.getElementById('toast');t.innerHTML='<span>'+esc(m)+'</span>'+(undo?'<button class="tundo">元に戻す</button>':'');if(undo){t.querySelector('.tundo').onclick=()=>{undo();t.classList.remove('show');};}t.classList.add('show');clearTimeout(toT);toT=setTimeout(()=>t.classList.remove('show'),undo?4000:1700);}
 
 render();
 </script>
