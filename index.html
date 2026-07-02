@@ -1,481 +1,1082 @@
 <!DOCTYPE html>
 <html lang="ja">
 <head>
-<meta charset="UTF-8" />
-<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
-<title>任意点設置 放射観測ツール</title>
-<meta name="theme-color" content="#0d9488">
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
 <meta name="apple-mobile-web-app-capable" content="yes">
-<meta name="mobile-web-app-capable" content="yes">
-<meta name="apple-mobile-web-app-status-bar-style" content="default">
-<meta name="apple-mobile-web-app-title" content="放射観測">
-<link rel="apple-touch-icon" href="data:image/png;base64,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">
-<link rel="icon" type="image/png" href="data:image/png;base64,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">
-<link rel="manifest" href="data:application/manifest+json;base64,eyJuYW1lIjogIuS7u+aEj+eCueioree9riDmlL7lsIToprPmuKzjg4Tjg7zjg6siLCAic2hvcnRfbmFtZSI6ICLmlL7lsIToprPmuKwiLCAic3RhcnRfdXJsIjogIi4iLCAic2NvcGUiOiAiLiIsICJkaXNwbGF5IjogInN0YW5kYWxvbmUiLCAiYmFja2dyb3VuZF9jb2xvciI6ICIjZjFmNWY5IiwgInRoZW1lX2NvbG9yIjogIiMwZDk0ODgiLCAiaWNvbnMiOiBbeyJzcmMiOiAiZGF0YTppbWFnZS9wbmc7YmFzZTY0LGlWQk9SdzBLR2dvQUFBQU5TVWhFVWdBQUFMUUFBQUMwQ0FZQUFBQTl6UVl5QUFBSW1rbEVRVlI0bk8yZFBZL2NOaENHNXc2cGpDQnBqUlQ1YjZrTnBJd3JWMWZsU2dPcC9kOVNCRzV0QkZmR0tRNDhjM1drUkVvencvbDRueVlINzBha3BHZEhvK0dzOW80TThQTWZ2MzliUFFkd25TK1BIKzlXejJISkJDQndEbFlJcmpiZ25zVC8vZnFMMWpTQUlQZC8vOU45VFV0dTBVRjZFa1BnSFBRRWw1UmJaTU10a1NGeGJscHlTNGpOdnNHdHpCQVoxR3pGNXBhYWJXTVFHY3dnSlRiTFJtcVpJVEtZb1JhYlErcExHNERJZ0FzdXNlL1AvbytRR1hCU08zUmxuZUtVMEpBWlNNQWg5WFJvTHdOQlpDQkpTVUZtMDQrcENBMlpnUmJGc2RsSVBTdzBaQWJhbkpGNlNHaklERll4Sy9XaDBPaU1BMVlZY1hFNDVVQjBCcXVZY1c5WGFLUWF3QXFqcVVkWGFNZ01yREVpOWVtVlFnQXMwaFFhMFJsWTVTaEt2eElhVlEzZ2haYXIzWlFEMFJsWVpjL05HNkVSbllFM3RzNDJJelNpTTdCT3oxRlVPVUFvWG9SR1pRTjRvMVh4UUlRR29maGg5UVF5OFBYZCs1ZS9mL3JyejRVemljODlFZElONEpkdDJvR1VBNFFDUW9OUVFHZ1FpbnZrejhBN2RSNk5DQTFDQWFGQktGQ0hacVN1TjgrK0IvVnBIaUQwU1Via3ZibzlTRDRQaEI2RVcrQXpZMEx3WXlEMERyTVN0NFFibFhJMlhZSGNiU0IwZ3hHNXVJVWErVEMwWG9QWXQwRG9paU9SdGVXcHgrdk5EV0xmQXFGcFgyUXJvaHpKRGJHZlNTMjAxeExhbnR6WnhiN0x1UFN0TGJMR3paelhEeWNYNVFIcDZWWUtlL1ZlN3llK3R3OHJ5bzByU1NWMGhzV0w3RktueUtFemlGeFQ5cTNlN3l5NWRmZ0luVTNtbW96Uk9yVFFyVlc2TERJWFd2c2NXZXB3UXBlVGhUNklXMXBTUnhRN2xOQ1FlWjhNS1VnWW9iUFhZVWVKTG5VWW9TSHVHSkhrYlJGbXBkQlNQOGFNTkpwenM5Wjh4VWxaS1F3aDlJcDJ6NW14WjVHWWE2OThHZVYrSTR6UXZSTWlXWC9Xdkd4enpQbm9XRVNRT29UUVJ5ZUN1eWxvVk9TWmVaemQ1aXhIeDhLNzFFWG9NRXZmclJOUUxxbWNNb3lPUGNxbzRGZVhybytPUlN2OThJamJDTDJ5SlhOMnpMTnpYWEdqNi9WN2k2NGp0RVlrc2RBRGN0VElMejBmalRHNGNWZUgxc2oxTE1nOE1yNUdoY1ZiR3VJeVFoZTRKYk1vY28xV1c2am5mTnBWaEpZOHlOWmxydEZldnZZa3R5dWhhemhsODlobUt0MFdhbjMvZTdnUld1cnUyM3Y5VlV0cUwxSGFqZEFTZUplNTRQMUdqaE1YUWt0RTV5Z3lGNlNrOWhhbFhRZ3RqWGVaQzFIMjR3cm1oWmFPenRFa2tJaW9ucUswZWFHNXNYNUN1TW0ydjZhRmxuNUtmclRvWEpDK1NiVDhJVEV0ZEkzRzg1Z2prZlY0dVJINktwYWppZ1paOXQrczBKSW53RXUwdVlya2ZscjlnSmdWdWtiNjJ4cVI0YXhRZURoMnJydnRMUFA1emNQTDMwK2ZIcXAvZi83djI2Y1AybE5LZ1lzSWZRWHRTK1BuTnc4M01sOTlIemRXVXdVdVRBb3RsU0pJWGpMUENxb2h0dFF4dFBqaE1DbTBOemlFWEJHdEl4SmFhSTBJd2ltaWx0UVdJeXNYb1lXdWtVZzNKQVNVa3RwRGhZS0RORUp6SXhsTmtYNmN4NXpRbVd2R1hyQjhZMmhPYUE5b1JGQkU2WE9FRlJxUi9qV1dJeXNYWVlXV1FqTnlJa3JQQTZGQktDQTBDSVg2MDBlOTUyNVBuMzVVSGUvTmIvK3FqaWVCeGoxTTJoK3ZCN0dCMENBVTZ2M1FSNWNmcm5LYlZObXU5RE5ySWZtRVZZdkg5eXFJMENBVUVIb1N6VythNEZzdDgwQm9FSXF3UWtzdTgycEVUb2t4ck9hOW5JUVZHdVRFbk5CZUdtZ2tvN1QxM05seXBEY250Q2NreExNdXMzWFNDQzBWN1RrRmxKVFo4dFdPazlCQ2ExME9PVVRVak16VzBnUk84T1FrSm9xUXN6M01TREY0TVJtaHBXNE1OUzY3YjU4K0RFazYrajRPcEk2aHhVZ2ZQa0t2K2xYVVdsWkxFcXdlWHhxVEVScUFzN2dRbXZNeHNGbnU5Z3VjVndjUHg4NnMwQmtmMXMxTnhvZkdteFdhRzZzblFJc3MrKzlHNkV5LzVNUkIxdU5sV21qcFgzTHljcEpta2Y3NU9zdlIzclRRRWxnK0dSSmsyMS96UW1mL3FkOVpzditVdEhtaE5ZZ2lkWlQ5dUlJTG9hV2pOT2QyVnlHVk4zdUt6a1JPaEpZaWl0Ulpmc044QkRkQ1MrVzkzcVdXbE5sYmRDWnlKUFFXYWFtdGk5MmFvNVRNbm5BbHRHU1VhRzNiNmtsdHpVdjcyRmpGZGZ2bzEzZnZSWDVVc2hhbS9HM2hwR3FKYlBXRFBJS3JDRTJray9OYWpOYXJaTGJ3UVo3Qm5kQkVjd2Y1cklnOXFUWHo2NzN4em9nMk8yOXZNaE10ZU9BNUowZDM0UkpQMm16QitVVFZxMk5kbVlQSHFrYWhQUERjZFE1ZHM4Mm50MkpjeWJkYnVmVjIyNjMzanpBYU5Uay9rSzFqc1RxbDRzSjFoQ1pxeXlTZGIycWVmSWtWdisyMnZlZk5STjhqdEh1aGllUXUweHhqbjBGcXZpTno5U2d6VVRDaGlmb25hOFVKbXBGY2UzNTdjL01xTTFIQUhMckZxaE8wbDUrdWxrWWpKVnVKeTdKZEM0dTFZeTlFa1prb2tOQkVrSHFFQ0RlQWU0UVNtdWo1QkVVdFNWMGx1c3hFQVlVdVFPcGJNc2hNRkZob0lwOXRvZHhJdDVsYUk3VFFSTG56NnNqVmpCNmh5M1lGNjIyaDNHUVV1UkErUXRka2lOYVpaU1pLSmpUUmZsdW9aempiVEQyVEl1WFkwbXZLOFppR1dGcnl0MEJLb1F0SFl0ZnZzVVRVZmd3T1VndGQyT3QzdGlMM3lvNUNUMERvaXBsR2ZnMkJJcmQ3U2dHaEd4eUozWHROOG10ZW5HTkZKa3cvdERRV3FpQ1F1RStLZm1oT1Z2U0dRT0I1SVBSSnVCZHBJQzhQRUpxUmlJOEg4RWE2bFVJUW0vc3ZqeC92aUw0bjFRQjRvN2o3NWZIakhTSTBDQVdFQnFHQTBDQVU5MFRQdVFjUjhtamdqenAvSmtLRUJzRkFIVm9CMUo3MWVJblFTRHVBTjdicEJoRlNEaENNcHRDSTBzQTZQVWR2aEs1RE53QWUyRHJiVFRrUXBZRlY5dHg4SlRTaU5QQkN5OVZtaEViRkExaWxWZG00ZVYxMU5nQUkweFVhVVJwWTR5ZzZFeDFFYUVnTnJEQWlNOUZFeWdHcHdTcG0zRHNVR2xVUFlJVVJGNGNpTkZJUHNJclJWT1BsL2FNYmh0UkFtMW1aaVNiTGRwQWFhSEZHWmlLaVUvbHhlWHdZRVI0aEJuaXBnK1daKzdkVEN5czMvYWVJMW9DSnF6SVRYVmdwaE5TQUV3NlppVTZtSEZ1UWdvQ3pjSWxjWUtzeDExSVRRV3l3ei9hcXpyWGV3YjVvQXJIQkhsSWlGMFJXQWJkU0UwSHM3TFR1c3lSV29VV1h0VnRpRTBIdUxQU0tCWkx0RkdwOUdqMjVpU0I0RlBhcVhWbzlRVXNhai9ia0JuRlkwZGhtb3BNT2dzZkFRbWZtL3dvZjdham9tQUF1QUFBQUFFbEZUa1N1UW1DQyIsICJzaXplcyI6ICIxODB4MTgwIiwgInR5cGUiOiAiaW1hZ2UvcG5nIiwgInB1cnBvc2UiOiAiYW55In0sIHsic3JjIjogImRhdGE6aW1hZ2UvcG5nO2Jhc2U2NCxpVkJPUncwS0dnb0FBQUFOU1VoRVVnQUFBZ0FBQUFJQUNBWUFBQUQwZU5UNkFBQWNLRWxFUVZSNG5PM2RPNDhVV1pvRzRLQ0UxVnFCTzhMZ3Y2Mk5oQW5XV0cweDVralk4OTh3VUx1RFZtMDJhMVFuZGN0TFhNNzErNTVIV3FkMk9zazRHWEhlOTV5SXFueTFNS1Mzbno3KzdQMGVBRXI0NzcvKy9hcjNlK0FsSDBvbkFoN2dub0xRaDBGdlFOZ0RiS01VMUdlQUt4RDRBR1VwQk9VWjBBSUVQa0JiQ3NGeEJuQ24ycUgvMS90M05WOGVvSm03YjkrcnZyNHlzSTlCMjZCMDZBdDVJTHZTNVVBWldNOUEzVkFpOUFVOXdEWWxpb0V5Y0ozQnVlQkk4QXQ4Z0xLT0ZBSkY0RHlEOG9qUUJ4aWZNbENHZ1ZqMkJiL0FCeGpEbmtLZ0NDUXZBSUlmSUE1RllKdVVCNzQxK0lVK3dGeTJsb0dNUlNEVkFRdCtnRndVZ2N0U0hPaVc0QmY2QURGdEtRTVppa0Q0QTF3Yi9vSWZJSWUxUlNCNkNRaDdjSUlmZ0d1eUY0RndCeVg0QWRnaWF4RUlkVEJyd2wvd0EzRE9taUlRcVFTRU9CREJEMEFwV1lyQVhlODNjSlR3QjZDa05abFIreXZoVzVpNndkejZBQVEvQUVmYzJnMlllU2RneWpkdTFROUFLMUZ2Q1V6M2hxMzZBZWdoMm03QVZNOEFDSDhBZXJtVk1iTTlGekJGV3hIOEFJd2t3bTdBOERzQXdoK0EwVVRZRFJpNkFBaC9BRVkxZXdrWWRvdmkyc0FKZmdCR2N1Mld3S2kzQTRiY0FSRCtBTXprV2phTnVoTXdYQUVRL2dETWFMWVNNRlFCRVA0QXpHeW1FakJNQVJEK0FFUXdTd2tZNHNHRVN3TWkrQUdZMmFXSEEwZDRNTEQ3RG9Ed0J5Q3FTMWsyd2s1QTF3SWcvQUdJYnRRUzBLMEFDSDhBc2hpeEJIUXBBTUlmZ0d4R0t3SE5DNER3QnlDcmtVcEEwd0lnL0FISWJwUVMwS3dBOUg3WUFRQkcxeklybXhRQWYrUUhBQjZNOE1lQ3V2NGFvUEFISUt2ZUdWaTlBTGp2RHdEbjlYd2VvR29CRVA0QWNGMnZFbEN0QUFoL0FGaW5Sd25vL2wwQUFFQjdWUXFBMVQ4QWJOTjZGNkI0QVJEK0FMQlB5eEpRdEFBSWZ3QTRwbFVKOEF3QUFDUlVyQUJZL1FOQUdTMTJBWW9VQU9FUEFHWFZMZ0Z1QVFCQVFvY0xnTlUvQU5SUmN4ZWd5ZzZBOEFlQU1tcGw2cUVDMFBKN2l3R0FCMGN6ZUhjQnNQVVBBRzNVdUJWUTlCYUE4QWVBT2twbjdLNENZT3NmQU1hd041T0w3UUJZL1FOQVhTV3pkbk1Cc1BvSGdMSHN5ZVlpT3dCVy93RFFScW5NM1ZRQXJQNEJZRXhiTS9yd0RvRFZQd0MwVlNKN1Z4Y0FxMzhBR051V3JENjBBMkQxRHdCOUhNM2dWUVhBNmg4QTVyQTJzM2Z2QUZqOUEwQmZSN0s0eXJjQkFnQmp1MWtBYlA4RHdGeldaUGV1SFFEYi93QXdocjJaZkxVQVdQMER3Snh1WmZqbUhRQ3Jmd0FZeTU1czloQWdBQ1Iwc1FEWS9nZUF1VjNMOGswN0FMYi9BV0JNV3pQYUxRQUFTT2hzQVRpM1pXRDFEd0JqTzVmVmwyNEQyQUVBZ0lRVUFBQkk2Tlh6SDF6YUtuQUxBT2IzNDhQbm0vK2JOMSsvTkhnblFDMTMzNzZmL2ZsLy8vWHZKNW0vYWdkQStBUEFITlptdGxzQUFKQ1FBZ0FBQ1QwcEFINzlEd0RtdCtiWEFlMEFBRUJDQ2dBQUpLUUFBRUJDdndxQSsvOEFFTWV0NXdEc0FBQkFRZ29BQUNTa0FBQkFRZ29BQUNSMHR5eVh2d0FJQUlqbGxQa1hkd0Q4QmdBQXpPMWFscnNGQUFBSktRQUFrSkFDQUFBSktRQUFrSkFDQUFBSktRQUFrTkFyWHdJRWNmejQ4TG5xNjcvNStxWHE2d04xM0gzNy91Sm5yenU4RDJDSDJ1RmU2ajBvQ1RBSEJRQUdNa0xJSDNYdEdKUURHSWNDQUoxRUNQdXR6aDJ6VWdCOUtBRFFTTWJBWCtQNXVDZ0UwSVlDQUpVSS9IMFVBbWhEQVlDQ2hINTVqOGRVR1lCeUZBQTRTT2kzb3d4QU9Rb0E3Q0QwKzFNRzRCZ0ZBRmFhSWZTdkJlSGE5MS9pTlZwVEJtQTdCUUN1R0Nud1JnaTJOZStoOTVncEE3Q09BZ0JuOUF5eDJVUHIwdnZ2TWFhbmYzUDJNWVVhRkFENFc0K0F5aFJNNTQ2MTFaamJGWUNYRkFEU2F4bjh3dWVwNStQUjRyT3dLd0QzRkFEU2FoRTJRbWFibG9WQUVTQTdCWUIwZkdYdVBCNlBaYTNQVFJFZ0t3V0FOR29Hdi9Db3IzWVpVQVRJUmdFZ3ZGckJMeWo2cVZrR0ZBR3lVQUFJcTBid0M0WHgxQ29EaWdEUktRQ0VJL2p6T24xT2lnRGNwZ0FRUnVuZ04rSFBxOGF1Z0NKQU5IZTkzd0NVVURMODMzejlZcElQcFBUbjJmdFBIVU1wcjk1Kyt2anorUS8vZXYrdXgzdUJ6VW9IZjNScnhpdjZPRGhueU9qdTIvY1hQM01MZ0NtWnhObXI1SE1DYmdzd003Y0FtRTZwOExmVm4xdkp6OTl0QVdaa0I0QnBsQXgrT0NtMUkyQTNnTm5ZQVdBS0pjTGZpcDlyU3AwZmRnT1loUjBBaGxZcStHR3RFanNDZGdPWWdSMEFoblUwL0szNE9hTEUrV00zZ0pFcEFBeXBSUGhEQ1VvQVVia0Z3RkFFUHlNNmVsdkFMUUZHWkFlQVlSd0pmOXY5dEhEMFBMTWJ3RWdVQUlad05QeWhKU1dBQ053Q29DdkJ6NnlPM0Jad1M0QVIyQUdnRytGUEJIWURtSlVDUUJkN0p6NzMraG5Sa2ZOU0NhQVhCWURtam9RL2pFd0pZQ1lLQU0zOCtQQlorQlBla1JLZ0NOQ1NBa0FUdHZ6SnhDMEJacUFBVUoxVlAxa3BBWXhNQWFBcTRVOTJTZ0NqVWdDb1pzOEVac3VmaVBhZTEwb0FOU2tBVkxFMy9DRXlKWUNSS0FBVUovemhNaVdBVVNnQUZDWDg0VFlsZ0JFb0FCUWovR0U5SllEZUZBQ0tFUDZ3blJKQVR3b0FoMjJka0R6cER3LzJYQTlLQUNVb0FCeGlJb0krWEhzY3BRQ3cyOTRKeU1RRlQ3bVc2RUVCWUplakU0K0pDKzY1bHVqbDFkdFBIMzgrLytGZjc5LzFlQzlNb3VTRTQxbUFPa3FIZ3MrcER0Y1NyZHg5Ky83aVp3b0FtOVJZYlppNDlobGw1ZWZ6MjhlMVJFc0tBSWZVREJ3VDEzV2poUDFhUHMvclhFdTBkcTRBdk83d1B1Q0ZIeDgrbTdqK05sdlluM1B1R0h5Kzl5Sjh2c1JnQjRCVnRreGFwNG5lSHdkYUwxc28rSnpYMjNNOVpSMWZMbk1MZ0YzMi9LR2Z2Zi90OC84K3NteWhmNG5QKzdJajExS1djV1VkQllETlNrdzZTc0FEb1grZHovMUJpV3NwNm5peW5RTEFKaVVubSt6Ymw0Si9tK3puUUtscjZkWnJrWWNDd0NhbFEzdk42MFdhcklSK0dkbk9pVkxYMHBiWEl6NEZnTlZxVFREWFhqZktSRFZDOEY4YXk3MEJOUEl4emFiVU5hQUVzSVVDd0NxMUo1YW92eUxXT2lScmZaWHM2TjlNRi9WY3FmM1Z3QkhHamYwVUFHNXFOYUU4L25kbW41aGFCR0NwTVdwMUcyYW1NZW1sMURXZ0JMQ0dQd1RFTU41OC9UTDlILytwSFhJemo4M1JYd1ZkNC9TNnM0NVRoR3VBdWRrQjRCY3JpWFZxQlZxTE1SM2hRY3laeDI5VXJsMXVjUXVBaTB3Z3QwWDQ4cFlSQ3NCakVjWjBGSzVocmpsWEFPNDZ2QThHWStLNHJjYlg2MllkeThkcWpNTUl2N0hRUTYzZklDQXV6d0RBRmI2dnZZM1N6d3pNL253QXRHQUhJRG1yLzh0S2hiL1YvallseHl2YlN0Y3VBRnQ0QmlBeDRYOWV5ZUFmeldqUEFLd1IrZk9veGJYTmM1NEJZSmRNRTBTSnNMSGlMNnZVZUdaYThUci9XRU1CU0NyVFpMalcwVEVSL0hXVkdGL24vVXZHSkMrM0FCS3lQZmhVaWVDZnhZeTNBQzdKOUxudDVWcm54QzBBTnNrd0lSd0pFU3Yrdm82T2Y0YVZyL09UYXhTQVpESk1lbXNkRFgvR29BU1VZU3p5VVFBNEszckE3WjNzclBySGRPUnppUjU4emxjdVVRQVNXVHZSUlo0d2ZuejRmQ2o4R2R1UkVoQzVDS3dkbDhoandFc0tRQkl1Ykt2K0xPd0dIR01NOGxBQWVDSnEwRm4xNTZNRVBPVmM1amtGSUlHb0U5cGF3ajh2SldDZjdNZWZoUUxBTHhFRGI4OUVac3MvbHIyZlo4UVFkRjd6bUFJUVhPWUgvL2FHUHpFcEFmYzhFTWlKQWtCSXdwOXpsQUI0b0FBRWxuWDFML3k1Umdtd0M4QTlCWUJRaEQ5cktBR2dBSVNWY2ZXL2RZTDJzRjl1ZXo3L1NDWEFMZ0FLQUNIc0NYOVlsdTNuZ2tBa0NnVWdvSXlyL3kyeUhqZVhaVDBuN0FMa3BnQXdQZDk1VGdsYnpnMkJTQVFLUUREWlZ2L0NuNUl5bGdDN0FIa3BBRXpMaEVSdnprRm1wZ0FFa21uMTc2RS9hc240VUtCZGdKd1VBTUlUL216bG5DRURCU0FJcS8veklod3ZmV1I3SHNBdVFENEtBRk1SL3JTVXJRU1Fpd0tReU95QktQenBJVk1KY04za29nQUVNUHVrQTh6Rm5CT0RBcERFN00zZTZwK2U3QUlRa1FJd3Vka25teldFUHlQSVZBTFd5SENNMFNrQWhDSDhxYzA1UmlRS1FBSXpUMXBXR2N4cTVuTjM1am1EOVJTQWljMDh3YXhoNjU4UnVSWHdJUHJ4UmFjQUJKY2hHRE1jSTJQSmNNNWxPTWJzRkFDR1pHVkJGTTVsUnFVQVRNcWtjczhxaFY2Y2UvZk1SZk5TQUFLYmRZTEs5TDBHekMzNjM4OTNqY1dtQUFCQVFnckFoR1pkVGF4aDljOXNvdThDckJINTJDSlRBSUlTa0VBSjVwSzRGQUNHWWZYUHJPd0NNQ01GWURJbUVHQkU1cWI1S0FBQnpiaEN0dnBuZHBGM0FWeDNNU2tBQUpDUUFqQ1JHVmNPYTFqOUUwWGtYWUExb2g1WFZBcEFNRUlTcU1IY0VzL3IzbThBMWpENUhQUEhiNzh2eTdJc2YvN245eFgvMjJYNXg1Ly9yUDJXd25yejlZdVZNRk5RQU9qS1JGbmVLZXhMdjRaU1VOYVBENThWVzdweUMyQVNtWVBTSkhuYkg3LzkvdXYvWnY0M29zaDh6bWFlcTJhakFBUXkyNlJqb2ppdVZ5QXJBbVhNZGczTU5zZHduVnNBTUtGUnd2ZjBQdHdlZ1BuWUFXQm9WaHhQamJyeUh2Vjk5ZVRjWlhRS3dBUm0yeVpjSStJeDFUWkR3TTd3SGtjVDhWcUllRXdSS1FCQlJGeHRSRHltUFdaYlhjLzJmbXVLZUE1SFBLYXNGQUFZMk14Qk92Tjdod3dVQUpxelBiaE9oQUNOY0F3dHVDYm9RUUZnU05tM0dTTUZaNlJqMlNQN3VjeTRGSURCV1Jua0V6RXdJeDRUMTVtN3hxY0FCRERUQ3NPa2NGM2tvSXg4YkNYTWRHM01OT2R3bVFJQWc4Z1FrQm1PRVdhaEFEQ2NqS3VMVE1HWTZWaFBNcDdUakU4QmdNNHlCbUxHWTRiUktBRFFVZVlnekh6c01BSUZnR2JXUE9Sa3E1U28xcHpiTXowSXlQd1VnSUVKek5pc2dJM0J6QlNhK1NrQTBJSGdlMkFzb0E4RkFBQVNVZ0NnTVN2ZWw0d0p0S2NBMElUbkdjQjljOGFpQUVCRFZycVhHUnRvU3dFQWdJUVVBR2pFQ3ZjMll3VHRLQUFBa0pBQ01DZ1B6UUdqODFEajNCUUFhTURXOW5yR0N0cFFBS2pPYmdZOHNHcG1GQW9BQUNTa0FBQkFRZ29BQUNTa0FFQmxIbXJienBoQmZRb0FBQ1QwNnUybmp6K2YvL0N2OSs5NnZKZHBlV0tYYS83OHovLzBmZ3RUK3UxLy82LzNXMkJ3Zm50b3ZidHYzMS8rck1QN0FBQTZVd0FBSUNFRkFBQVNVZ0FBSUNFRkFBQVNVZ0FBSUNFRkFBQVNVZ0FBSUtIWHZkOUFCRFgrR0VXa3I5Q05kQ3g3L1BGYjczY3dwOGpuUktSckl0S3haR01IQUNyN3g1Ly83UDBXcG1QTW9ENEZBQUFTVWdBQUlDRUZBQUFTVWdDb2JzMERRTDVSa1N3OE5NY29GQUJvd0VOdDZ4a3JhRU1CR0pSVk16QTZ1eGx6VXdBQUlDRUZBQnF4dFgyYk1ZSjJGQUFBU0VnQmdJYXNjQzh6TnRDV0FrQVRIbW9FRDgweEZnVUFHclBTZmNtWVFIc0tBQUFrcEFCQUIxYThENHdGOUtFQURNeDk4OWdFbnpHWW1lY1o1cWNBMEl4Q1EyWUNrOUVvQU5CUjVoVnc1bU9IRVNnQTBGbkdJTXg0ekRBYUJZRGhaTHdOa0NrUU14M3JTY1p6bXZFcEFEQ0lETUdZNFJoaEZncEFBRE90TGp6a2RGM2tnSXg4YkNYTWRHM01OT2R3bVFJd3VKa21CY3FJR0pRUmo0bnJ6RjNqVXdBWVV2WVZScVRBakhRc2UyUS9seG1YQWtCelZnYnJSQWpPQ01mUWdtdUNIaFFBR05qTUFUcnplNGNNRklBZ0ltNHpSanltUGY3eDV6K25DdFBaM205TkVjL2hpTWVVbFFJd2dZamJneEdQcWJZWlFuV0c5emlhaU5kQ3hHT0tTQUZnYUZZYlQ0MjZ1aDcxZmZYazNHVjByM3UvQVdDN1U5ais4ZHZ2UTd3UFlENTJBQUtaYmNWaG0vQzRYaXR2Sy80eVpyc0dacHRqdUU0Qm1NUnNFMFZKSnAzYlRvRmNNNVJiL0J0UlpENW5NODlWczNFTGdLN2VmUDJTZXJLczRWeEFiNzFWSU9UckU1VDBwZ0F3aFI4ZlBwc3dEemdGK3BxeVpaeVBVV2laaFZzQXdaaDhnQnJNTGZFb0FCT0p1akpiZTF3bUlFYTM5aHpOZmkwekJnVUFBQkpTQUFLYWNhVnNGNERaUlY3OXUrNWlVZ0FtTStQa0FjUm5icHFQQXNBdzdBSXdxOGlyZitKU0FJSVNra0FKNXBLNEZJQUpSVjVGMkFWZ05sYi9zWTh0TWdVQUFCSlNBQUtiZFpWc0Y0QlpSRi85dThaaVV3QW1OZXVFVXBvSmlsNmNlL2ZNUmZOU0FCaVNTWVVvbk11TVNnRUlMc01xSmNNeE1wWU01MXlHWTh4T0FaaFk5SlhGbHVNeldkSEtsblBOTmNySUZJQUVaZzVIRXd5em12bmNuWG5PWUQwRmdEQk1XdFRtSENNU0JXQnlNNjh5MW5JcmdCSFkrbjhxd3pGR3B3QWtNWHN3S2dIMGxDbjhYVDk1S0FBQnpEN2hBSE14NThTZ0FDUXllN08zQzBBUFZ2OUVwUUF3RlNXQWxqS0ZQL2tvQUVGayt2djVTZ0F0WkF2LzZOOXJ3RXNLQU9FcEFXemxuQ0VEQlNBUXV3Q1hSVGhtMnRoNnJrUllFVnY5NTZRQU1DMlRFYjA1QjVtWkFoQk1wbDJBWmZFOEFHVmx1KysvTEZiL21Ta0FURThKb0lTTTRVOXVDa0JBMlhZQnRzcDYzRnlXOVp5dytzOU5BU0FFRHdXeVY4YUgvbUJaRklDd011NEM3Q2tCa1k2ZmJmWjgvcEhDMytvZkJZQlE5a3hXU2tBK2V6NXpRVWcwQ2tCZ0dYY0Jsa1VKNERyaGIvWFBQUVdBa0pRQXpoSCs4RUFCQ0M3ckxzQ3lLQUU4SmZ6dldmMXpvZ0R3UzhUdzIxc0NJbzVGVm5zL3o0Z0I2THptTVFVZ2dZZ1QyUlo3ajk5a09iKzluNkZySnZmeFo2RUE4RVRVMEZNQzhoSCtUem1YZVU0QlNDTHFwTGJGa1JKZzhwekhrYy9MZFdJTU1sRUFFc244UU9ESm02OWY3QVlFZGlUNEl3ZWZCLzg0UndIZ3JPaGhaemNnRnF2K3k1eXZYS0lBSkJOOXN0dml5RmlZVk1keDVMTndQVHd3RnZrb0FGeVVJZVNPbG9BTVl6U3FvK09mSWZDY24xeno2dTJuanorZi8vQ3Y5Kzk2dkJjYTh0M25MeDJkTEdjWXB6WEhPUHB4WlBpY1NuQ044OWpkdCs4dmY5YmhmVEFBRi94TFI4ZkVqa0JkSmNiWGVmK1NNY2xMQWVDbVRLRldZakpVQk1vcU5aNlpnczc1eHhwdUFTUm5tL0N5VXBQb1NPTTIweTJBaU9QZmdtdWFjOXdDNElVdEUwQzJWVVdweWRHT3dEWWx4eXRid0FsL3RuamQrdzNBeUU2VFpJbEFldndhSnQrblNoY2s0d3UzMlFIQUxzQUtwUVBGcnNDOUd1T1FOZnl0L3RuS013RDhZZ0pacDFad3R4alRFWjRCbUhuOFJ1WGE1Wlp6endBb0FEelJjaUw1OGVIejFKTlI3UlY4amJIcFVRQm1IS2RXU2x3RHdwODF6aFVBendEUXhXblNtcmtFbEh3KzRKeVpueGxvY1h0anRqRjVMc0kxd056c0FQQkM3UlhGdWRlUE1BRzJ2cWRmYXV5UHZ1NE14ejJhVXRlQTFUOXJ1UVhBYXJVbWxtdXZHMldDR3VIaHZrdGp1YmNBakh4TXN5bDFEUWgvdGxBQTJLVDBCRFBDQTJndGpSQ2FFV1E3SjBwZFMxdGVqL2dVQURiWkdtRFhKcHJzRTVZeXNFMzJjNkRVdFhUcnRjaERBV0N6RXBQTm52Q0xPbWtwQXRmNTNCK1V1SmFpamlmYktRRHNjbVRTRWY2WEtRUDNmTjZYSGJtV3Nvd3I2eWdBN0xabisxTDRyNWV0RFBpYzE5dHpQV1VkWHk1VEFEakVIM1JwSTJvWjhQbmVjeDNSZ3o4RXhMQk1XZzlHL1RXOExYeWVsNzM1K21XNno1T1k3QUN3U1kySlMxanNNMHFJK1B6MmNTM1JrbHNBRkZGeTRqSmgxZUViOXViZ1dxSVZCWUJpU2t4Y0pxejJzdjB4cGhtNGxtamhYQUc0Ni9BK0NPRG9oR1BDZ251dUpYcFJBTmh0NzhSandvS25YRXYwb0FCd2lBa0krbkR0Y1pRQ3dHRjd2ajUybENmWW9iYzkxNFB3cHdRRmdDSnFmNWM1Uk9TdlpkS1RBa0F4U2dDc0ovenBUUUdnS0NVQWJoUCtqRUFCb0RnbEFDNFQvb3hDQWFBS0pRQmVFdjZNUkFHZ21yMGxRQkVnbXIzbnRmQ25KZ1dBcXZaT1lFb0FVZXc5bDRVL3RTa0FWS2NFa0pYd1oyUUtBRTBjS1FHS0FMTTVjdDRLZjFwUkFHam16ZGN2ZGdNSTcwandDMzlhVWdCb1Rna2dLcXQrWnFJQTBJVmJBa1JpeTU4WktRQjBjMlRpVXdJWXhaRnpVZmpUMCt2ZWI0RGNUaFBnbmtuMDlOK1lST2xCOERNN093QU13VzRBTXhIK1JLQUFNSXlqSlVBUm9MYWo1NW53WnlSdUFUQ1VJN2NFSHY5M0pscEtPbG91blkrTXlBNEFRem82WWRvTm9CVGhUMVFLQU1NcVVRSVVBZllxY2Y0SWYwYm1GZ0JETzNwTDRQRi9hekptalJLbDBibkdET3dBTUlVU0U2b2RBYTRwZFg0SWYyWmhCNEJwbE5nTmVQemZtNmhabG5MUGl6aWZtSTBkQUtaVGFxSzFJNUJieWM5ZitETWpPd0JNcWRSdXdPUFhNSW5uVUxMME9XZVltUUxBMUJRQjFoTDg4SlJiQUlSUWNrSjJheUNXMHArbjhDY0tPd0NFVVhJMzRQbnJtUFRuVXFQQU9RZUlSZ0Vnbk5KRjRQRnJDWUd4Q1g1WVR3RWdySnBGNFBIcjAxZXQyelUrWDZKVEFBaXZSaEY0L25yQ29xMmF6Mmo0TE1sQ0FTQ05Xa1hnK1dzS2tEcHFQNWpwY3lNYkJZQjBhaGFCNTY4clZJNXA4ZHNZUGlPeVVnQklxM1lST1BmYXd1YTZscjkrNmJNZ093V0E5Rm9VZ1JPRjRLa2VmMjhoKzVqRGlRSUFmM3NjREsyQzZkeS9FeldnZXY1eHBhaGpDa2NvQUhCR3kxMkI1eTc5bTdPRTJFaC9SWEdXTVlNZUZBQzRvc2V1d0NWci92M2FnZGQ3RE5ZUStyRE9xN2VmUHY1OC9zTy8zci9yOFY1Z0dqTUVZU1pDSDY2NysvYjl4Yy9zQU1BT0krME1aQ1gwNFJnRkFBNVNCdG9SK2xDT0FnQUZLUVBsQ1gyb1F3R0FTcDRIbDBLd2pzQ0hOaFFBYUVRaE9FL2dReDhLQUhSeUx2aWlsd0poRCtOUUFHQWcxd0p5bG5JZzVHRU9DZ0JNWWsydytzcGNZSzFYeTdJcy9oZ1E1RERDWHhNRTJqcjNSNEQrKzY5L3Y3cnI4RjRBZ000VUFBQklTQUVBZ0lRVUFBQklTQUVBZ0lRVUFBQkk2R0lCT1BkckF3REFQSzVsK2QyeTNQOCtZTE4zQXdCMGM4cDh0d0FBSUNFRkFBQVNVZ0FBSUNFRkFBQVMrbFVBemowSTZEY0JBR0JPbDc0RTZOZi92K203QVFDR29BQUFRRUlLQUFBazlLUUFlQTRBQU9aMzYvNy9zdGdCQUlDVUZBQUFTR2hWQVhBYkFBRG1zRGF6WHhRQVh3d0VBTEdjeS9iWFBkNEkwTWVicjE5NnZ3VmdFSjRCQUlDRXpoWUF2dzRJQVBOWjgrdC92LzYzMWQ4TkFEQ2NUUVhBTGdBQWpHbHJSbDhzQUg0YkFBRG1kaTNMM1FJQWdJUTJGd0MzQVFCZ0xIdXkrV29CY0JzQUFPWjBLOE4zM1FLd0N3QUFZOWlieVRjTGdGMEFBSmpMbXV6MkVDQUFKTFM3QUxnTkFBQjlIY25pVlFYQWJRQUFtTVBhekQ1MEM4QXVBQUQwY1RTRFZ4Y0F1d0FBTUxZdFdYMzRJVUM3QUFEUVZvbnMzVlFBN0FJQXdKaTJablNSWHdPMEN3QUFiWlRLM00wRndDNEFBSXhsVHpZWCswTkFkZ0VBb0s2U1didXJBTmdGQUlBeDdNM2tvbjhLMkM0QUFOUlJPbU4zRjRCTGpVTUpBSUN5TG1YcmtSMzVRenNBYmdVQVFCOUhNN2pLdHdIYUJRQ0FNbXBsNnVFQzRGWUFBTlJSWSt2LzEyc2ZmUUVBWUQ1RkNvQmRBQUFvcSticWYxa0s3Z0FvQVFCUVJ1M3dYeGEzQUFBZ3BhSUZ3QzRBQUJ6VFl2Vy9MQlYyQUpRQUFOaW5WZmd2UzZWYkFFb0FBR3pUTXZ5WHhUTUFBSkJTdFFKZ0Z3QUExbW05K2wrV3lqc0FTZ0FBWE5jai9KZWx3UzBBSlFBQXp1c1Yvc3ZTK1JrQUpRQ0FySHBuWUpNQ2NLM0o5QjRBQUdqdFd2YTFXUDB2UzhNZGdGWUhCQUN6YXBtVlRXOEJlQjRBZ094NjN2ZC84ajVhL21QTG9nUUFrTmNvNGI4c25SNENWQUlBeUdhazhGK1dqcjhGb0FRQWtNVm80Yjhzblg4TlVBa0FJTG9SdzM5WkJ2Z3VBQ1VBZ0toR0RmOWxXWmJ1YitEazdhZVBQeS85Ly81Ni82N2xXd0dBUTBiNFBmOWJ1dThBblBoalFRQkVNRVA0TDh0QUJXQlpsQUFBNWpaTCtDL0xZQVZnV1pRQUFPWTBVL2d2eTRBRllGbVVBQURtTWx2NEw4dEFEd0dlYyszQndHWHhjQ0FBZmQxYWxJNGEvc3N5NkE3QXlhMkJzeHNBUUM4emgvK3lERjRBbGtVSkFHQThzNGYvc2d4K0MrQTV0d1FBNkNsQzhKOE12d1B3bU4wQUFIcUpGUDdMTXRrT3dNbXRuWUJsc1JzQVFCbHJGcGV6aGYreVRGb0FUdHdTQUtDbWFLdit4Nlo5NHlkMkF3QW9MZXFxLzdHcG5nRTRaODBINE5rQUFOYktFUDdMRW1BSDRERzdBUURzbFNYNFQ4SWN5TW1hRXJBc2lnQUE5OWJ1RWtjSy8yVUpXQUJPRkFFQXJza2EvQ2NoRCtveFJRQ0F4N0lILzBub2d6dFpXd0tXUlJFQWlHckxBK0hSdzM5WmtoU0FreTFGWUZtVUFZRFpiZjB0c0F6QmY1TG1RQjlUQkFCaUUveTNwVHZneDdZV2dXVlJCZ0JHdGVkdnZtUU0vcE8wQi82WUlnQXdMOEcvVC9vQmVHeFBFVGhSQ0FEYU9QTFhYUVgvQXdOeGdUSUFNQTZoWDU1QnVlRklFVGhSQ0FDMktmRWRMb0wvT29PelFZa3k4SmhpQUdSWCtzdmFoUDU2Qm1xbjBtWGdPZVVBaUtMMk43SUsvWDBNV2dHMXl3QUFUd245NHd4Z0JRb0JRRmtDdnp3RDJvQkNBTENOd0svUEFIZWlGQURjRS9aOUdQUkJLUWhBRkFKK1RQOFBGMEtLRExMTW1WQUFBQUFBU1VWT1JLNUNZSUk9IiwgInNpemVzIjogIjUxMng1MTIiLCAidHlwZSI6ICJpbWFnZS9wbmciLCAicHVycG9zZSI6ICJhbnkgbWFza2FibGUifV19">
-<script src="https://cdn.tailwindcss.com"></script>
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="theme-color" content="#1B2A4A">
+<title>運転日報・アルコールチェック</title>
+<!-- ▼ ファビコン：レール×自動車の融合アイコン（SVGをdata URIで埋め込み） -->
+<link rel="icon" href='data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64"><rect width="64" height="64" rx="14" fill="%231B2A4A"/><rect x="13" y="46" width="5" height="11" rx="1.5" fill="%236B7488"/><rect x="24" y="46" width="5" height="11" rx="1.5" fill="%236B7488"/><rect x="35" y="46" width="5" height="11" rx="1.5" fill="%236B7488"/><rect x="46" y="46" width="5" height="11" rx="1.5" fill="%236B7488"/><rect x="6" y="48" width="52" height="4" rx="2" fill="%23AEB6C6"/><path d="M14 40 q0 -12 10 -13 l14 -1 q10 0 14 8 l3 6 q1 2 -1 2 l-38 0 q-2 0 -2 -2 z" fill="%23FF6B35"/><path d="M27 29 l10 -0.8 q6 0 9 5.8 l-19 0 z" fill="%23BFE7FF"/><circle cx="22" cy="43" r="6" fill="%232B3245"/><circle cx="22" cy="43" r="2.6" fill="%23FFD35C"/><circle cx="44" cy="43" r="6" fill="%232B3245"/><circle cx="44" cy="43" r="2.6" fill="%23FFD35C"/><circle cx="51.5" cy="36.5" r="1.8" fill="%23FFF3B0"/><path d="M31 36 q3 2.4 6 0" stroke="%23fff" stroke-width="1.6" fill="none" stroke-linecap="round"/></svg>'>
+<!-- ▼ SheetJS（Excel読み込みライブラリ）をCDNから読み込み -->
 <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
 <style>
-  :root{ --teal:#0d9488; }
-  *{ -webkit-tap-highlight-color:transparent; }
-  body{ font-feature-settings:"tnum" 1,"lnum" 1; }
-  .mono{ font-family:ui-monospace,SFMono-Regular,Menlo,Consolas,monospace; }
-  input[type="text"],input[type="number"],textarea,select{ font-family:ui-monospace,SFMono-Regular,Menlo,Consolas,monospace; }
-  input[type=number]::-webkit-outer-spin-button,input[type=number]::-webkit-inner-spin-button{ -webkit-appearance:none;margin:0; }
-  input[type=number]{ -moz-appearance:textfield; }
-  .field:focus{ outline:none;border-color:var(--teal);box-shadow:0 0 0 3px rgba(13,148,136,.15); }
-  .acc{ box-shadow:inset 4px 0 0 0 var(--teal); }
-  @media (prefers-reduced-motion: no-preference){ .reveal{ animation:rise .35s ease both; } @keyframes rise{ from{opacity:0;transform:translateY(6px)} to{opacity:1;transform:none} } }
+:root{
+  --navy:#1B2A4A;      /* レールの鋼色（メイン） */
+  --navy-2:#2C3E63;
+  --orange:#FF6B35;    /* 車体オレンジ（アクセント） */
+  --orange-dark:#E5501B;
+  --bg:#F2F4F8;
+  --card:#FFFFFF;
+  --line:#DCE1EA;
+  --text:#22293A;
+  --muted:#6B7488;
+  --ok:#0E9F6E;
+  --ng:#E02424;
+  --radius:14px;
+}
+*{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent}
+html{font-size:16px}
+body{
+  font-family:"Hiragino Sans","Hiragino Kaku Gothic ProN","Yu Gothic UI","Yu Gothic",Meiryo,sans-serif;
+  background:var(--bg);color:var(--text);
+  padding-bottom:90px; /* 下部タブバーの分 */
+}
+/* ===== ヘッダー ===== */
+header{
+  background:var(--navy);color:#fff;
+  padding:14px 16px 12px;
+  display:flex;align-items:center;gap:10px;
+  position:sticky;top:0;z-index:50;
+}
+header svg{width:38px;height:38px;flex-shrink:0}
+header h1{font-size:1.05rem;font-weight:700;letter-spacing:.02em;line-height:1.3}
+header .sub{font-size:.7rem;opacity:.75;font-weight:400}
+
+/* ===== 下部タブバー ===== */
+nav{
+  position:fixed;bottom:0;left:0;right:0;z-index:60;
+  background:#fff;border-top:1px solid var(--line);
+  display:flex;
+  padding-bottom:env(safe-area-inset-bottom);
+}
+nav button{
+  flex:1;background:none;border:none;
+  padding:10px 4px 12px;font-size:.78rem;color:var(--muted);
+  display:flex;flex-direction:column;align-items:center;gap:3px;
+  font-family:inherit;cursor:pointer;
+}
+nav button .nicon{font-size:1.45rem;line-height:1}
+nav button.active{color:var(--orange-dark);font-weight:700}
+nav button.active::after{
+  content:"";display:block;width:34px;height:4px;border-radius:2px;
+  background:repeating-linear-gradient(90deg,var(--orange) 0 6px,transparent 6px 10px); /* 枕木風 */
+  margin-top:2px;
+}
+
+/* ===== 共通レイアウト ===== */
+main{max-width:640px;margin:0 auto;padding:14px 14px 20px}
+section.tab{display:none}
+section.tab.active{display:block;animation:fade .18s ease}
+@keyframes fade{from{opacity:0;transform:translateY(4px)}to{opacity:1;transform:none}}
+.card{
+  background:var(--card);border-radius:var(--radius);
+  padding:16px 14px;margin-bottom:14px;
+  box-shadow:0 1px 3px rgba(27,42,74,.08);
+}
+.card h2{
+  font-size:.95rem;color:var(--navy);margin-bottom:12px;
+  display:flex;align-items:center;gap:8px;
+}
+.card h2::before{content:"";width:5px;height:18px;border-radius:3px;background:var(--orange)}
+.field{margin-bottom:13px}
+.field label{
+  display:block;font-size:.8rem;font-weight:700;color:var(--muted);
+  margin-bottom:5px;
+}
+.req::after{content:" 必須";font-size:.65rem;color:#fff;background:var(--ng);
+  border-radius:4px;padding:1px 5px;margin-left:5px;font-weight:700;vertical-align:1px}
+input[type=text],input[type=date],input[type=time],input[type=number],input[type=email],select,textarea{
+  width:100%;font-size:1.05rem;font-family:inherit;
+  padding:13px 12px;border:1.5px solid var(--line);border-radius:10px;
+  background:#fff;color:var(--text);appearance:none;
+  min-height:50px;
+}
+input:focus,select:focus,textarea:focus{outline:none;border-color:var(--orange)}
+textarea{min-height:80px;resize:vertical}
+select{
+  background-image:url('data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" width="14" height="9" viewBox="0 0 14 9"><path d="M1 1l6 6 6-6" stroke="%236B7488" stroke-width="2" fill="none" stroke-linecap="round"/></svg>');
+  background-repeat:no-repeat;background-position:right 12px center;padding-right:36px;
+}
+.row2{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.row3{display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px}
+.inline-now{display:flex;gap:8px}
+.inline-now input{flex:1}
+.btn-now{
+  flex-shrink:0;min-height:50px;padding:0 13px;border-radius:10px;border:1.5px solid var(--navy-2);
+  background:#fff;color:var(--navy-2);font-weight:700;font-size:.85rem;font-family:inherit;cursor:pointer;
+}
+.btn-now:active{background:var(--navy-2);color:#fff}
+
+/* ===== セグメント（あり/なし・OK/NG） ===== */
+.seg{display:flex;border:1.5px solid var(--line);border-radius:10px;overflow:hidden}
+.seg label{flex:1;margin:0}
+.seg input{position:absolute;opacity:0;pointer-events:none}
+.seg span{
+  display:flex;align-items:center;justify-content:center;
+  min-height:50px;font-size:1rem;font-weight:700;color:var(--muted);
+  background:#fff;cursor:pointer;border-left:1.5px solid var(--line);
+}
+.seg label:first-child span{border-left:none}
+.seg input:checked + span{background:var(--navy);color:#fff}
+.seg.judge input[value="OK"]:checked + span{background:var(--ok)}
+.seg.judge input[value="NG"]:checked + span{background:var(--ng)}
+
+/* ===== アルコールチェック枠 ===== */
+.alc{
+  border:2px solid var(--navy);border-radius:12px;padding:12px;margin-bottom:12px;background:#FAFBFF;
+}
+.alc-title{font-weight:800;color:var(--navy);font-size:.92rem;margin-bottom:10px;display:flex;align-items:center;gap:6px}
+.alc-title .badge{font-size:.65rem;background:var(--orange);color:#fff;border-radius:5px;padding:2px 7px}
+.ng-alert{
+  display:none;margin-top:10px;padding:11px 12px;border-radius:10px;
+  background:#FDE8E8;color:var(--ng);font-weight:800;font-size:.9rem;line-height:1.5;
+}
+.ng-alert.show{display:block}
+
+/* ===== ボタン ===== */
+.btn{
+  display:flex;align-items:center;justify-content:center;gap:8px;width:100%;
+  min-height:56px;border:none;border-radius:12px;
+  font-size:1.08rem;font-weight:800;font-family:inherit;cursor:pointer;
+}
+.btn:active{transform:scale(.985)}
+.btn-primary{background:var(--orange);color:#fff;box-shadow:0 3px 10px rgba(255,107,53,.35)}
+.btn-navy{background:var(--navy);color:#fff}
+.btn-outline{background:#fff;color:var(--navy);border:1.8px solid var(--navy)}
+.btn-sm{min-height:44px;font-size:.9rem;border-radius:10px}
+.btn+.btn{margin-top:10px}
+.btn:disabled{opacity:.4;box-shadow:none}
+
+.dist-view{
+  font-size:1.5rem;font-weight:800;color:var(--navy);
+  padding:8px 12px;background:#F0F3F9;border-radius:10px;text-align:center;
+}
+.dist-view small{font-size:.8rem;color:var(--muted);font-weight:700}
+
+/* ===== マスタ設定 ===== */
+.file-drop{
+  border:2px dashed var(--line);border-radius:12px;padding:16px 12px;text-align:center;
+  color:var(--muted);font-size:.86rem;background:#FAFBFD;
+}
+.file-drop input{display:none}
+.file-drop .btn{margin-top:10px}
+.master-status{
+  margin-top:10px;font-size:.85rem;font-weight:700;color:var(--ok);
+  display:flex;align-items:center;gap:6px;justify-content:center;
+}
+.hint{font-size:.75rem;color:var(--muted);line-height:1.6;margin-top:8px}
+.hint code{background:#EEF1F6;border-radius:4px;padding:1px 5px;font-size:.72rem}
+
+/* ===== 運転指示事項 ===== */
+.instr-tools{display:flex;align-items:center;gap:10px;margin-bottom:8px}
+.instr-tools span{flex:1;font-size:.8rem;font-weight:700;color:var(--muted)}
+#instr-list{border:1.5px solid var(--line);border-radius:12px;overflow:hidden}
+.instr-row{display:flex;align-items:center;gap:10px;padding:11px 12px;border-top:1px solid var(--line);background:#fff;cursor:pointer;margin:0}
+.instr-row:first-child{border-top:none}
+.instr-row input{width:22px;height:22px;accent-color:var(--orange);flex-shrink:0}
+.instr-row .no{flex-shrink:0;width:24px;height:24px;border-radius:50%;background:#EEF1F6;color:var(--navy);font-size:.72rem;font-weight:800;display:flex;align-items:center;justify-content:center}
+.instr-row .txt{font-size:.86rem;line-height:1.45;color:var(--text)}
+.instr-row.on{background:#FFF3EC}
+.instr-row.on .no{background:var(--orange);color:#fff}
+
+/* ===== 履歴 ===== */
+.hist-toolbar{display:flex;align-items:center;gap:10px;margin-bottom:12px}
+.hist-toolbar label{display:flex;align-items:center;gap:7px;font-size:.85rem;font-weight:700;color:var(--muted)}
+.hist-item{
+  background:#fff;border:1.5px solid var(--line);border-radius:12px;
+  padding:12px;margin-bottom:10px;display:flex;gap:11px;align-items:flex-start;
+}
+.hist-item.checked{border-color:var(--orange);background:#FFF8F4}
+.hist-item input[type=checkbox]{width:24px;height:24px;margin-top:3px;accent-color:var(--orange);flex-shrink:0}
+.hist-body{flex:1;min-width:0}
+.hist-date{font-weight:800;color:var(--navy);font-size:.95rem}
+.hist-meta{font-size:.8rem;color:var(--muted);margin-top:3px;line-height:1.55;word-break:break-all}
+.hist-alc{display:inline-block;font-size:.7rem;font-weight:800;border-radius:5px;padding:2px 7px;margin-top:5px}
+.hist-alc.ok{background:#DEF7EC;color:var(--ok)}
+.hist-alc.ng{background:#FDE8E8;color:var(--ng)}
+.hist-actions{display:flex;flex-direction:column;gap:6px;flex-shrink:0}
+.mini-btn{
+  border:1.5px solid var(--line);background:#fff;border-radius:8px;
+  min-width:56px;min-height:38px;font-size:.78rem;font-weight:700;color:var(--navy);font-family:inherit;cursor:pointer;
+}
+.mini-btn.del{color:var(--ng);border-color:#F5C2C2}
+.empty{
+  text-align:center;color:var(--muted);font-size:.88rem;padding:26px 10px;line-height:1.7;
+}
+.empty .nicon{font-size:2rem;display:block;margin-bottom:6px}
+
+/* ===== トースト ===== */
+#toast{
+  position:fixed;left:50%;bottom:100px;transform:translateX(-50%) translateY(20px);
+  background:var(--navy);color:#fff;padding:12px 20px;border-radius:30px;
+  font-size:.9rem;font-weight:700;opacity:0;pointer-events:none;transition:.25s;z-index:99;
+  max-width:90vw;text-align:center;
+}
+#toast.show{opacity:1;transform:translateX(-50%) translateY(0)}
+
+/* ===== 印刷（PDF）レイアウト ===== */
+#printArea{display:none}
+@media print{
+  body{background:#fff;padding:0}
+  header,nav,main,#toast{display:none !important}
+  #printArea{display:block;font-size:11pt;color:#000}
+  .p-page{page-break-after:always;padding:6mm 4mm}
+  .p-page:last-child{page-break-after:auto}
+  .p-title{text-align:center;font-size:15pt;font-weight:800;letter-spacing:.3em;margin-bottom:2mm}
+  .p-sub{text-align:center;font-size:9pt;margin-bottom:5mm}
+  table.p-tbl{width:100%;border-collapse:collapse;margin-bottom:4mm}
+  table.p-tbl th,table.p-tbl td{border:1px solid #000;padding:2.2mm 2mm;font-size:10pt;text-align:left;vertical-align:middle}
+  table.p-tbl th{background:#EDEDED;width:30%;font-weight:700}
+  .p-sec{font-weight:800;margin:3mm 0 1.5mm;font-size:10.5pt;border-left:3.5px solid #000;padding-left:2mm}
+  .p-judge-ok{font-weight:800}
+  .p-judge-ng{font-weight:800;text-decoration:underline}
+  .p-sign{display:flex;justify-content:flex-end;gap:4mm;margin-top:5mm}
+  .p-sign div{border:1px solid #000;width:22mm;height:22mm;font-size:8pt;text-align:center;padding-top:1mm}
+}
+@media (min-width:640px){
+  header h1{font-size:1.2rem}
+}
 </style>
 </head>
-<body class="bg-slate-100 text-slate-800 min-h-screen">
-<div class="max-w-5xl mx-auto px-4 py-6 sm:py-8">
+<body>
 
-  <header class="mb-5">
-    <div class="flex items-center gap-3">
-      <div class="grid place-items-center w-11 h-11 rounded-lg bg-teal-700 text-white shrink-0">
-        <svg viewBox="0 0 24 24" width="24" height="24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2v3M12 19v3M2 12h3M19 12h3"/><circle cx="12" cy="12" r="3"/><path d="m4.9 4.9 2.1 2.1M17 17l2.1 2.1M19.1 4.9 17 7M7 17l-2.1 2.1"/></svg>
+<header>
+  <!-- ヘッダー用アイコン（ファビコンと同一デザイン） -->
+  <svg viewBox="0 0 64 64" aria-hidden="true"><rect width="64" height="64" rx="14" fill="#2C3E63"/><rect x="13" y="46" width="5" height="11" rx="1.5" fill="#6B7488"/><rect x="24" y="46" width="5" height="11" rx="1.5" fill="#6B7488"/><rect x="35" y="46" width="5" height="11" rx="1.5" fill="#6B7488"/><rect x="46" y="46" width="5" height="11" rx="1.5" fill="#6B7488"/><rect x="6" y="48" width="52" height="4" rx="2" fill="#AEB6C6"/><path d="M14 40 q0 -12 10 -13 l14 -1 q10 0 14 8 l3 6 q1 2 -1 2 l-38 0 q-2 0 -2 -2 z" fill="#FF6B35"/><path d="M27 29 l10 -0.8 q6 0 9 5.8 l-19 0 z" fill="#BFE7FF"/><circle cx="22" cy="43" r="6" fill="#2B3245"/><circle cx="22" cy="43" r="2.6" fill="#FFD35C"/><circle cx="44" cy="43" r="6" fill="#2B3245"/><circle cx="44" cy="43" r="2.6" fill="#FFD35C"/><circle cx="51.5" cy="36.5" r="1.8" fill="#FFF3B0"/><path d="M31 36 q3 2.4 6 0" stroke="#fff" stroke-width="1.6" fill="none" stroke-linecap="round"/></svg>
+  <div>
+    <h1>運転日報・アルコールチェック</h1>
+    <div class="sub">社有車 運転記録アプリ</div>
+  </div>
+</header>
+
+<main>
+
+<!-- ============================================================
+     タブ1：日報入力
+============================================================ -->
+<section id="tab-input" class="tab active">
+
+  <div class="card">
+    <h2>基本情報</h2>
+    <div class="field">
+      <label class="req" for="f-date">日付</label>
+      <input type="date" id="f-date">
+    </div>
+    <div class="field">
+      <label class="req" for="f-driver">運転者名</label>
+      <select id="f-driver"><option value="">-- 選択してください --</option></select>
+    </div>
+    <div class="field">
+      <label for="f-vehicle">使用車両</label>
+      <select id="f-vehicle"><option value="">-- 選択してください --</option></select>
+    </div>
+    <div class="field">
+      <label for="f-dest">目的地</label>
+      <input type="text" id="f-dest" placeholder="例：戸越公園駅 工事現場">
+    </div>
+    <div class="row2">
+      <div class="field">
+        <label for="f-time-start">使用開始時間</label>
+        <div class="inline-now">
+          <input type="time" id="f-time-start">
+          <button type="button" class="btn-now" data-now="f-time-start">今</button>
+        </div>
       </div>
-      <div class="flex-1">
-        <h1 class="text-xl sm:text-2xl font-bold text-slate-900 tracking-tight">任意点設置 放射観測ツール</h1>
-        <p class="text-sm text-slate-500">後方交会で標定 → 測点を追加 → Excel・AutoCADへ書き出し</p>
+      <div class="field">
+        <label for="f-time-end">使用終了時間</label>
+        <div class="inline-now">
+          <input type="time" id="f-time-end">
+          <button type="button" class="btn-now" data-now="f-time-end">今</button>
+        </div>
       </div>
     </div>
-  </header>
-
-  <div class="flex flex-wrap gap-2 mb-4">
-    <button id="btnHelp" class="text-sm px-3 py-1.5 rounded-md bg-teal-50 border border-teal-200 text-teal-800 hover:bg-teal-100 active:scale-95 transition font-medium">？ 使い方ガイド</button>
-    <button id="btnSample" class="text-sm px-3 py-1.5 rounded-md bg-white border border-slate-200 hover:bg-slate-50 active:scale-95 transition">サンプル一式</button>
-    <button id="btnClearIn" class="text-sm px-3 py-1.5 rounded-md bg-white border border-slate-200 hover:bg-slate-50 active:scale-95 transition">入力クリア</button>
-    <span class="text-xs text-slate-400 self-center ml-auto">X=北 / Y=東（角度は後視Aを0°→右回り）</span>
   </div>
 
-  <!-- 使い方ガイド -->
-  <div id="helpPanel" class="hidden mb-5 bg-white rounded-xl border border-teal-200 p-4 reveal">
-    <div class="flex items-center justify-between mb-2"><h2 class="font-bold text-slate-900">使い方ガイド</h2><button id="helpClose" class="text-slate-400 hover:text-slate-600 text-xl leading-none">×</button></div>
-    <div class="space-y-3 text-sm text-slate-700">
-      <div>
-        <p class="font-semibold text-teal-800">測定の流れ</p>
-        <ol class="list-decimal ml-5 space-y-0.5 mt-1">
-          <li><b>① 機械点を標定</b>：既知点A・Bの座標と実測距離、∠APB（Aで0セット→右回りでB）を入れて「① 機械点を標定」。左右はアプリが自動判定します。</li>
-          <li><b>② 測点を追加</b>：点名・実測距離・観測角（Aで0セット→右回りで測点）を入れて「② 測点を計算してリストに追加」。これを繰り返すだけ。既知座標を入れた点は点検（残差・OK/NG）になります。</li>
-          <li><b>③ 書き出し</b>：下の「書き出し」からExcel／AutoCAD（.scr / .dxf）を出力。</li>
-        </ol>
-      </div>
-      <div>
-        <p class="font-semibold text-teal-800">角度の入れ方</p>
-        <p>度・分・秒の3欄にそのまま入力（例：108°26′06″）。すべて「後視Aを0°→右回り」で統一。180°を超えてもOK。</p>
-      </div>
-      <div>
-        <p class="font-semibold text-teal-800">ホーム画面に追加（アプリ化）</p>
-        <p>このページをネット上（例：GitHub Pages）に置いて開き、<br>・iPhone：共有 <span class="mono">⬆</span> →「ホーム画面に追加」<br>・Android：メニュー →「ホーム画面に追加 / アプリをインストール」<br>アイコンで起動でき、入力は端末内に保存されます。</p>
-      </div>
-      <div>
-        <p class="font-semibold text-teal-800">会社へ送る → AutoCADで取り込む</p>
-        <p>「共有 / メール」ボタンで <b>Excel(.xlsx)</b> を添付メール送信（送信先固定はメール側の宛先・自動転送ルールで）。受け取った人は <b>.scr</b> を「スクリプトの実行」、または <b>.dxf</b> を開く/挿入。点は専用画層（既定 SURVEY_PT 等）に入ります。</p>
-      </div>
-      <p class="text-xs text-slate-400">座標系は X=北・Y=東。AutoCAD書き出しは既定で「東=X・北=Y（北が上）」に変換します。</p>
-    </div>
-  </div>
+  <div class="card">
+    <h2>アルコールチェック</h2>
 
-  <!-- ① 機械点の標定 -->
-  <h2 class="text-sm font-bold text-slate-500 mb-2">① 機械点の標定（後方交会）</h2>
-  <div class="grid md:grid-cols-3 gap-4">
-    <section class="bg-white rounded-xl border border-slate-200 acc">
-      <div class="px-4 pt-3 pb-2 flex items-center justify-between"><h3 class="font-semibold text-slate-900">既知点 A（後視）</h3><span class="mono text-xs text-teal-700">KNOWN</span></div>
-      <div class="px-4 pb-4 grid grid-cols-2 gap-3">
-        <label class="col-span-2 text-xs text-slate-500">点名<input id="nameA" type="text" placeholder="例: A1" class="field mt-1 w-full rounded-md border border-slate-200 px-3 py-2 text-sm"></label>
-        <label class="text-xs text-slate-500">X（北）<input id="xa" type="number" inputmode="decimal" step="any" placeholder="100.000" class="field mt-1 w-full rounded-md border border-slate-200 px-3 py-2 text-sm"></label>
-        <label class="text-xs text-slate-500">Y（東）<input id="ya" type="number" inputmode="decimal" step="any" placeholder="100.000" class="field mt-1 w-full rounded-md border border-slate-200 px-3 py-2 text-sm"></label>
-        <label class="col-span-2 text-xs text-slate-500">→A 実測距離（m）<input id="dA" type="number" inputmode="decimal" step="any" placeholder="70.711" class="field mt-1 w-full rounded-md border border-slate-200 px-3 py-2 text-sm"></label>
-      </div>
-    </section>
-    <section class="bg-white rounded-xl border border-slate-200 acc">
-      <div class="px-4 pt-3 pb-2 flex items-center justify-between"><h3 class="font-semibold text-slate-900">既知点 B</h3><span class="mono text-xs text-teal-700">KNOWN</span></div>
-      <div class="px-4 pb-4 grid grid-cols-2 gap-3">
-        <label class="col-span-2 text-xs text-slate-500">点名<input id="nameB" type="text" placeholder="例: A2" class="field mt-1 w-full rounded-md border border-slate-200 px-3 py-2 text-sm"></label>
-        <label class="text-xs text-slate-500">X（北）<input id="xb" type="number" inputmode="decimal" step="any" placeholder="100.000" class="field mt-1 w-full rounded-md border border-slate-200 px-3 py-2 text-sm"></label>
-        <label class="text-xs text-slate-500">Y（東）<input id="yb" type="number" inputmode="decimal" step="any" placeholder="200.000" class="field mt-1 w-full rounded-md border border-slate-200 px-3 py-2 text-sm"></label>
-        <label class="col-span-2 text-xs text-slate-500">→B 実測距離（m）<input id="dB" type="number" inputmode="decimal" step="any" placeholder="70.711" class="field mt-1 w-full rounded-md border border-slate-200 px-3 py-2 text-sm"></label>
-      </div>
-    </section>
-    <section class="bg-white rounded-xl border border-slate-200 acc">
-      <div class="px-4 pt-3 pb-2 flex items-center justify-between"><h3 class="font-semibold text-slate-900">観測（A–B）</h3><span class="mono text-xs text-teal-700">OBS</span></div>
-      <div class="px-4 pb-4">
-        <div class="text-xs text-slate-500">∠APB（Aを0°→右回りでB）
-          <div class="mt-1 flex items-center gap-1.5">
-            <input id="omegaD" type="number" inputmode="numeric" placeholder="度" class="field w-full rounded-md border border-slate-200 px-2 py-2 text-sm text-center"><span class="text-slate-400">°</span>
-            <input id="omegaM" type="number" inputmode="numeric" placeholder="分" class="field w-full rounded-md border border-slate-200 px-2 py-2 text-sm text-center"><span class="text-slate-400">′</span>
-            <input id="omegaS" type="number" inputmode="decimal" placeholder="秒" class="field w-full rounded-md border border-slate-200 px-2 py-2 text-sm text-center"><span class="text-slate-400">″</span>
+    <!-- 運転前 -->
+    <div class="alc">
+      <div class="alc-title">🚗 運転前チェック <span class="badge">必須</span></div>
+      <div class="row2">
+        <div class="field">
+          <label for="pre-time">確認時刻</label>
+          <div class="inline-now">
+            <input type="time" id="pre-time">
+            <button type="button" class="btn-now" data-now="pre-time">今</button>
           </div>
         </div>
-        <p class="text-[11px] leading-snug text-slate-400 mt-2">この角から機械点が線ABのどちら側かを自動判定します。</p>
-        <button id="btnStand" class="mt-3 w-full rounded-lg bg-teal-700 hover:bg-teal-800 text-white font-semibold py-2.5 text-sm active:scale-[.99] transition">① 機械点を標定</button>
-      </div>
-    </section>
-  </div>
-
-  <div id="stationCard" class="hidden mt-4 bg-white rounded-xl border border-amber-200 p-4 reveal">
-    <div class="flex items-center justify-between mb-2"><h3 class="font-semibold text-slate-900">機械点 P</h3><button data-copy="copyP" class="copybtn text-xs px-2.5 py-1 rounded border border-slate-200 hover:bg-slate-50">座標コピー</button></div>
-    <div class="grid sm:grid-cols-2 gap-3">
-      <div class="rounded-lg bg-amber-50 border border-amber-200 px-4 py-3"><p class="text-xs text-amber-700">X<sub>P</sub>（北）</p><p id="rXp" class="mono text-2xl font-bold">–</p></div>
-      <div class="rounded-lg bg-amber-50 border border-amber-200 px-4 py-3"><p class="text-xs text-amber-700">Y<sub>P</sub>（東）</p><p id="rYp" class="mono text-2xl font-bold">–</p></div>
-    </div>
-    <div id="sideRec" class="mt-3 text-sm rounded-md px-3 py-2"></div>
-    <div class="grid sm:grid-cols-2 gap-x-6 gap-y-1 text-sm mt-3">
-      <div class="flex justify-between border-b border-slate-100 py-1"><span class="text-slate-500">∠APB 実測 / 計算</span><span id="rChkAPB" class="mono">–</span></div>
-      <div class="flex justify-between border-b border-slate-100 py-1"><span class="text-slate-500">P→A 方向角</span><span id="rAzA" class="mono">–</span></div>
-    </div>
-    <div id="copyP" class="sr-only"></div>
-  </div>
-
-  <!-- ② 測点 -->
-  <h2 class="text-sm font-bold text-slate-500 mt-6 mb-2">② 測点の観測（放射）</h2>
-  <section class="bg-white rounded-xl border border-rose-200" style="box-shadow:inset 4px 0 0 0 #e11d48">
-    <div class="px-4 pt-3 pb-2 flex items-center justify-between"><h3 class="font-semibold text-slate-900">測点を観測して追加</h3><span class="mono text-xs text-rose-600">SHOT</span></div>
-    <div class="px-4 pb-4 grid grid-cols-2 gap-3">
-      <label class="text-xs text-slate-500">点名<input id="ptName" type="text" placeholder="例: 1" class="field mt-1 w-full rounded-md border border-slate-200 px-3 py-2 text-sm"></label>
-      <label class="text-xs text-slate-500">実測水平距離（m）<input id="ptDist" type="number" inputmode="decimal" step="any" placeholder="例: 67.082" class="field mt-1 w-full rounded-md border border-slate-200 px-3 py-2 text-sm"></label>
-      <div class="col-span-2 text-xs text-slate-500">観測角（Aを0°→右回りで測点）
-        <div class="mt-1 flex items-center gap-1.5">
-          <input id="ptAngD" type="number" inputmode="numeric" placeholder="度" class="field w-full rounded-md border border-slate-200 px-2 py-2 text-sm text-center"><span class="text-slate-400">°</span>
-          <input id="ptAngM" type="number" inputmode="numeric" placeholder="分" class="field w-full rounded-md border border-slate-200 px-2 py-2 text-sm text-center"><span class="text-slate-400">′</span>
-          <input id="ptAngS" type="number" inputmode="decimal" placeholder="秒" class="field w-full rounded-md border border-slate-200 px-2 py-2 text-sm text-center"><span class="text-slate-400">″</span>
+        <div class="field">
+          <label for="pre-value">測定値 (mg/L)</label>
+          <input type="number" id="pre-value" inputmode="decimal" step="0.01" min="0" placeholder="0.00">
         </div>
       </div>
-      <label class="text-xs text-slate-500">既知X（北・任意）<input id="ptKx" type="number" inputmode="decimal" step="any" placeholder="点検時のみ" class="field mt-1 w-full rounded-md border border-slate-200 px-3 py-2 text-sm"></label>
-      <label class="text-xs text-slate-500">既知Y（東・任意）<input id="ptKy" type="number" inputmode="decimal" step="any" placeholder="点検時のみ" class="field mt-1 w-full rounded-md border border-slate-200 px-3 py-2 text-sm"></label>
-      <button id="btnAdd" class="col-span-2 rounded-lg bg-rose-600 hover:bg-rose-700 text-white font-semibold py-2.5 text-sm active:scale-[.99] transition">② 測点を計算してリストに追加</button>
-    </div>
-  </section>
-
-  <div id="err" class="hidden mt-4 rounded-lg border border-red-300 bg-red-50 text-red-800 px-4 py-3 text-sm"></div>
-
-  <!-- リスト -->
-  <div id="listCard" class="hidden mt-6 bg-white rounded-xl border border-slate-200 p-4 reveal">
-    <div class="flex items-center justify-between mb-3">
-      <h3 class="font-semibold text-slate-900">測定リスト（<span id="cnt">0</span> 点）</h3>
-      <button id="btnClearList" class="text-xs px-2.5 py-1 rounded border border-rose-200 text-rose-600 hover:bg-rose-50">全消去</button>
-    </div>
-    <div class="overflow-x-auto">
-      <table class="w-full text-sm">
-        <thead><tr class="text-left text-slate-400 border-b border-slate-200">
-          <th class="py-2 pr-2 font-medium">点名</th><th class="py-2 px-2 font-medium text-right">X(北)</th><th class="py-2 px-2 font-medium text-right">Y(東)</th><th class="py-2 px-2 font-medium text-right">距離</th><th class="py-2 px-2 font-medium text-right">方向角</th><th class="py-2 px-2 font-medium text-right">残差</th><th class="py-2 pl-2"></th>
-        </tr></thead>
-        <tbody id="listBody" class="mono"></tbody>
-      </table>
-    </div>
-  </div>
-
-  <!-- 書き出し -->
-  <div id="exportCard" class="hidden mt-4 bg-white rounded-xl border border-slate-200 p-4 reveal">
-    <h3 class="font-semibold text-slate-900 mb-3">書き出し</h3>
-    <div class="space-y-3 mb-3">
-      <div class="text-xs text-slate-500">座標の向き
-        <div class="mt-1 flex flex-wrap gap-2">
-          <label class="flex items-center gap-1.5 rounded-md border border-slate-200 px-3 py-2 cursor-pointer has-[:checked]:border-teal-600 has-[:checked]:bg-teal-50"><input type="radio" name="ori" value="swap" checked class="accent-teal-600"><span class="text-sm">東=X・北=Y（北が上）</span></label>
-          <label class="flex items-center gap-1.5 rounded-md border border-slate-200 px-3 py-2 cursor-pointer has-[:checked]:border-teal-600 has-[:checked]:bg-teal-50"><input type="radio" name="ori" value="raw" class="accent-teal-600"><span class="text-sm">測量座標のまま</span></label>
+      <div class="field">
+        <label for="pre-checker">確認者</label>
+        <select id="pre-checker" class="checker-select"><option value="">-- 選択してください --</option></select>
+      </div>
+      <div class="field">
+        <label>判定</label>
+        <div class="seg judge">
+          <label><input type="radio" name="pre-judge" value="OK"><span>OK</span></label>
+          <label><input type="radio" name="pre-judge" value="NG"><span>NG</span></label>
         </div>
       </div>
-      <div class="flex flex-wrap items-end gap-x-4 gap-y-3">
-        <label class="text-xs text-slate-500">点記号(PDMODE)
-          <select id="pdStyle" class="field mt-1 w-24 rounded-md border border-slate-200 px-2 py-2 text-sm"><option value="35">○＋×</option><option value="3">×</option><option value="34">○</option><option value="2">＋</option><option value="0">点</option></select>
-        </label>
-        <div class="text-xs text-slate-500">点サイズ
-          <div class="mt-1 flex items-center gap-1.5">
-            <input id="mkR" type="number" inputmode="decimal" step="any" value="3" class="field w-16 rounded-md border border-slate-200 px-2 py-2 text-sm text-center">
-            <select id="psMode" class="field rounded-md border border-slate-200 px-2 py-2 text-sm"><option value="screen">画面比%</option><option value="real">実寸m</option></select>
+    </div>
+
+    <!-- 運転後 -->
+    <div class="alc">
+      <div class="alc-title">🏁 運転後チェック <span class="badge">必須</span></div>
+      <div class="row2">
+        <div class="field">
+          <label for="post-time">確認時刻</label>
+          <div class="inline-now">
+            <input type="time" id="post-time">
+            <button type="button" class="btn-now" data-now="post-time">今</button>
           </div>
         </div>
-        <label class="text-xs text-slate-500">文字高さ(m)<input id="txH" type="number" inputmode="decimal" step="any" value="0.5" class="field mt-1 w-20 rounded-md border border-slate-200 px-3 py-2 text-sm"></label>
-      </div>
-      <div class="grid sm:grid-cols-3 gap-3 bg-slate-50 rounded-lg p-3">
-        <div class="text-xs text-slate-500">点 画層
-          <div class="mt-1 flex gap-1.5"><input id="layPtName" type="text" value="SURVEY_PT" class="field w-full rounded-md border border-slate-200 px-2 py-2 text-sm"><select id="layPtColor" class="field rounded-md border border-slate-200 px-1 py-2 text-sm"><option value="1">赤</option><option value="2">黄</option><option value="3" selected>緑</option><option value="4">水</option><option value="5">青</option><option value="6">紫</option><option value="7">白</option></select></div>
-        </div>
-        <div class="text-xs text-slate-500">注記 画層
-          <div class="mt-1 flex gap-1.5"><input id="layTxtName" type="text" value="SURVEY_TXT" class="field w-full rounded-md border border-slate-200 px-2 py-2 text-sm"><select id="layTxtColor" class="field rounded-md border border-slate-200 px-1 py-2 text-sm"><option value="1">赤</option><option value="2">黄</option><option value="3">緑</option><option value="4">水</option><option value="5">青</option><option value="6">紫</option><option value="7" selected>白</option></select></div>
-        </div>
-        <div class="text-xs text-slate-500">基準点 画層
-          <div class="mt-1 flex gap-1.5"><input id="layCtrlName" type="text" value="CONTROL" class="field w-full rounded-md border border-slate-200 px-2 py-2 text-sm"><select id="layCtrlColor" class="field rounded-md border border-slate-200 px-1 py-2 text-sm"><option value="1" selected>赤</option><option value="2">黄</option><option value="3">緑</option><option value="4">水</option><option value="5">青</option><option value="6">紫</option><option value="7">白</option></select></div>
+        <div class="field">
+          <label for="post-value">測定値 (mg/L)</label>
+          <input type="number" id="post-value" inputmode="decimal" step="0.01" min="0" placeholder="0.00">
         </div>
       </div>
-      <div class="flex flex-wrap items-center gap-x-4 gap-y-2 text-sm text-slate-600">
-        <label class="flex items-center gap-1.5"><input id="mkLabel" type="checkbox" checked class="accent-teal-600"> 点名を挿入</label>
-        <label class="flex items-center gap-1.5"><input id="lblNum" type="checkbox" class="accent-teal-600"> ラベルを通し番号に</label>
-        <label class="flex items-center gap-1.5"><input id="inclCtrl" type="checkbox" checked class="accent-teal-600"> 機械点P・既知点A/Bも出力</label>
-        <label class="flex items-center gap-1.5"><input id="incSCR" type="checkbox" class="accent-teal-600"> 共有に.scrも含める</label>
-        <label class="flex items-center gap-1.5 text-xs text-slate-500">基準点記号(m)<input id="ctrlR" type="number" inputmode="decimal" step="any" value="0.5" class="field w-16 rounded-md border border-slate-200 px-2 py-1.5 text-sm text-center"></label>
+      <div class="field">
+        <label for="post-checker">確認者</label>
+        <select id="post-checker" class="checker-select"><option value="">-- 選択してください --</option></select>
+      </div>
+      <div class="field">
+        <label>判定</label>
+        <div class="seg judge">
+          <label><input type="radio" name="post-judge" value="OK"><span>OK</span></label>
+          <label><input type="radio" name="post-judge" value="NG"><span>NG</span></label>
+        </div>
       </div>
     </div>
-    <div class="flex flex-wrap gap-2">
-      <button id="exShare" class="px-3 py-2 rounded-lg bg-teal-700 hover:bg-teal-800 text-white text-sm font-semibold">まとめて共有（Excel＋DXF）</button>
-      <button id="exXLSX" class="px-3 py-2 rounded-lg bg-emerald-600 hover:bg-emerald-700 text-white text-sm font-semibold">Excel (.xlsx)</button>
-      <button id="exCSV" class="px-3 py-2 rounded-lg bg-emerald-600 hover:bg-emerald-700 text-white text-sm font-semibold">CSV</button>
-      <button id="exSCR" class="px-3 py-2 rounded-lg bg-slate-700 hover:bg-slate-800 text-white text-sm font-semibold">AutoCAD (.scr)</button>
-      <button id="exDXF" class="px-3 py-2 rounded-lg bg-slate-700 hover:bg-slate-800 text-white text-sm font-semibold">DXF (.dxf)</button>
-    </div>
-    <div id="expArea" class="hidden mt-3">
-      <div class="flex items-center justify-between mb-1"><span id="expLabel" class="text-xs text-slate-500"></span>
-        <div class="flex gap-2"><button id="expCopy" class="text-xs px-2.5 py-1 rounded border border-slate-200 hover:bg-slate-50">コピー</button><button id="expDownload" class="text-xs px-2.5 py-1 rounded bg-teal-700 text-white">ダウンロード</button></div>
+
+    <div id="ng-alert" class="ng-alert">⚠ NG判定が選択されています。運転は禁止です。直ちに安全運転管理者へ連絡してください。</div>
+  </div>
+
+  <div class="card">
+    <h2>走行情報</h2>
+    <div class="row2">
+      <div class="field">
+        <label for="f-meter-start">開始メーター (km)</label>
+        <input type="number" id="f-meter-start" inputmode="numeric" min="0" placeholder="例：12345">
       </div>
-      <textarea id="expText" readonly class="w-full h-40 rounded-md border border-slate-200 p-2 text-xs bg-slate-50"></textarea>
-      <p class="text-[11px] text-slate-400 mt-1">スマホでDLしづらい時はコピーしてPCで .scr/.csv/.dxf 保存。SCRはAutoCADの「スクリプトの実行」で読み込みます。</p>
+      <div class="field">
+        <label for="f-meter-end">終了メーター (km)</label>
+        <input type="number" id="f-meter-end" inputmode="numeric" min="0" placeholder="例：12400">
+      </div>
+    </div>
+    <div class="dist-view">走行距離：<span id="f-dist">--</span> km</div>
+  </div>
+
+  <div class="card">
+    <h2>各種選択</h2>
+    <div class="field">
+      <label>ETC使用</label>
+      <div class="seg">
+        <label><input type="radio" name="f-etc" value="あり"><span>あり</span></label>
+        <label><input type="radio" name="f-etc" value="なし" checked><span>なし</span></label>
+      </div>
+    </div>
+    <div class="field">
+      <label>高速道路運転</label>
+      <div class="seg">
+        <label><input type="radio" name="f-highway" value="あり"><span>あり</span></label>
+        <label><input type="radio" name="f-highway" value="なし" checked><span>なし</span></label>
+      </div>
+    </div>
+    <div class="field">
+      <label>有料駐車場使用</label>
+      <div class="seg">
+        <label><input type="radio" name="f-parking" value="あり"><span>あり</span></label>
+        <label><input type="radio" name="f-parking" value="なし" checked><span>なし</span></label>
+      </div>
     </div>
   </div>
 
-  <!-- プロット -->
-  <div id="plotCard" class="hidden mt-4 bg-white rounded-xl border border-slate-200 p-4 reveal">
-    <h3 class="font-semibold text-slate-900 mb-2">プロット <span class="text-xs text-slate-400 font-normal">（上=北）</span></h3>
-    <svg id="diagram" viewBox="0 0 400 300" class="w-full h-auto rounded-lg bg-slate-50 border border-slate-100"></svg>
-    <div class="flex flex-wrap gap-x-4 gap-y-1 mt-2 text-xs text-slate-500">
-      <span class="inline-flex items-center gap-1"><span class="w-2.5 h-2.5 rounded-full bg-teal-600 inline-block"></span>既知点A/B</span>
-      <span class="inline-flex items-center gap-1"><span class="w-2.5 h-2.5 rounded-full bg-amber-500 inline-block"></span>機械点P</span>
-      <span class="inline-flex items-center gap-1"><span class="w-2.5 h-2.5 rounded-full bg-rose-500 inline-block"></span>測点</span>
+  <div class="card">
+    <h2>運転指示事項</h2>
+    <p class="hint" style="margin:0 0 10px">本日の運転で該当する指示事項を選択してください（複数選択可）。</p>
+    <div class="instr-tools">
+      <span id="instr-count">0件 選択中</span>
+      <button type="button" class="mini-btn" id="btn-instr-clear">全解除</button>
+    </div>
+    <div id="instr-list"></div>
+    <div class="field" style="margin-top:12px;margin-bottom:0">
+      <label for="f-instr-note">管理者からの個別指示（自由記述）</label>
+      <textarea id="f-instr-note" placeholder="その他状況により、管理者は適宜指示を行うこと"></textarea>
     </div>
   </div>
 
-  <!-- 許容差 -->
-  <section class="mt-4 bg-white rounded-xl border border-slate-200 px-4 py-3">
-    <div class="flex flex-wrap items-end gap-4">
-      <h3 class="font-semibold text-slate-900 mr-2">点検の許容差</h3>
-      <label class="text-xs text-slate-500">位置許容差（±mm）<input id="tolD" type="number" inputmode="decimal" step="any" value="10" class="field mt-1 w-28 rounded-md border border-slate-200 px-3 py-2 text-sm"></label>
-      <label class="text-xs text-slate-500">∠APB許容差（±秒″）<input id="tolA" type="number" inputmode="decimal" step="any" value="60" class="field mt-1 w-28 rounded-md border border-slate-200 px-3 py-2 text-sm"></label>
-      <p class="text-[11px] text-slate-400 self-center">※社内基準に合わせて変更してください（規定値ではありません）。</p>
+  <div class="card">
+    <h2>備考</h2>
+    <div class="field" style="margin-bottom:0">
+      <label for="f-memo">備考</label>
+      <textarea id="f-memo" placeholder="給油・洗車・異常の有無など"></textarea>
     </div>
-  </section>
+  </div>
 
-  <footer class="mt-8 text-center text-xs text-slate-400">標定は2距離の交点。測点は P から「距離＋右回り角」で座標を算出します。</footer>
-</div>
+  <button class="btn btn-primary" id="btn-save">💾 一時保存（アプリ内保存）</button>
+</section>
+
+<!-- ============================================================
+     タブ2：マスタ設定
+============================================================ -->
+<section id="tab-master" class="tab">
+
+  <div class="card">
+    <h2>社員名簿の読み込み</h2>
+    <div class="file-drop">
+      Excelファイル（.xlsx）を選択すると、<br>「運転者名」「確認者」の選択肢に反映されます。
+      <label class="btn btn-navy btn-sm" style="margin-top:12px">
+        📄 社員名簿Excelを選択
+        <input type="file" id="file-emp" accept=".xlsx,.xls,.csv">
+      </label>
+      <div class="master-status" id="emp-status"></div>
+    </div>
+    <p class="hint">読み込み条件：先頭シートに <code>氏名</code>（または<code>名前</code>）という列名があること。見つからない場合は2列目を氏名として読み込みます。</p>
+  </div>
+
+  <div class="card">
+    <h2>社有車一覧の読み込み</h2>
+    <div class="file-drop">
+      Excelファイル（.xlsx）を選択すると、<br>「使用車両」の選択肢に反映されます。
+      <label class="btn btn-navy btn-sm" style="margin-top:12px">
+        🚙 社有車一覧Excelを選択
+        <input type="file" id="file-veh" accept=".xlsx,.xls,.csv">
+      </label>
+      <div class="master-status" id="veh-status"></div>
+    </div>
+    <p class="hint">読み込み条件：先頭シートに <code>車両番号</code>（または<code>ナンバー</code>）と <code>車名</code>（または<code>車種</code>）の列名があること。</p>
+  </div>
+
+  <div class="card">
+    <h2>メール初期設定</h2>
+    <div class="field">
+      <label for="m-to">提出先メールアドレス（TO）</label>
+      <input type="email" id="m-to" placeholder="例：kanri@example.co.jp" inputmode="email" autocapitalize="off">
+    </div>
+    <div class="field">
+      <label for="m-cc">CC（複数はカンマ区切り）</label>
+      <input type="text" id="m-cc" placeholder="例：jimu@example.co.jp" inputmode="email" autocapitalize="off">
+    </div>
+    <div class="field">
+      <label for="m-subject">件名テンプレート</label>
+      <input type="text" id="m-subject" placeholder="【運転日報】{日付} {氏名}">
+      <p class="hint"><code>{日付}</code> と <code>{氏名}</code> は送信時に自動で置き換わります。</p>
+    </div>
+    <button class="btn btn-navy" id="btn-save-mail">✉ メール設定を保存</button>
+  </div>
+
+  <div class="card">
+    <h2>データ管理</h2>
+    <button class="btn btn-outline btn-sm" id="btn-clear-master">マスタ（名簿・車両）を消去</button>
+    <p class="hint">名簿・車両・メール設定・日報履歴は、すべて<strong>この端末（ブラウザ）内</strong>にのみ保存されます。サーバーには一切送信されません。</p>
+  </div>
+</section>
+
+<!-- ============================================================
+     タブ3：履歴・出力
+============================================================ -->
+<section id="tab-history" class="tab">
+  <div class="card">
+    <h2>保存済みの日報</h2>
+    <div class="hist-toolbar">
+      <label><input type="checkbox" id="chk-all" style="width:22px;height:22px;accent-color:var(--orange)">すべて選択</label>
+      <span style="flex:1"></span>
+      <span id="sel-count" style="font-size:.82rem;color:var(--muted);font-weight:700">0件 選択中</span>
+    </div>
+    <div id="hist-list"></div>
+  </div>
+
+  <button class="btn btn-navy" id="btn-print">🖨 選択した日報をPDF化（印刷）</button>
+  <button class="btn btn-primary" id="btn-mail">✉ 選択した日報をメール送信</button>
+  <p class="hint" style="padding:0 4px">
+    ● PDF化：印刷画面が開きます。iPhoneでは共有メニューから「PDFとして保存」できます。<br>
+    ● メール送信：スマホの標準メールアプリが起動し、宛先・件名・本文（日報テキスト）が自動セットされます。PDFを添付したい場合は、先にPDF化で保存したファイルをメール画面で添付してください。
+  </p>
+</section>
+
+</main>
+
+<!-- ===== 下部タブバー ===== -->
+<nav>
+  <button class="active" data-tab="tab-input"><span class="nicon">📝</span>日報入力</button>
+  <button data-tab="tab-master"><span class="nicon">⚙️</span>マスタ設定</button>
+  <button data-tab="tab-history"><span class="nicon">📚</span>履歴・出力</button>
+</nav>
+
+<div id="toast"></div>
+
+<!-- ===== 印刷用レイアウト（PDF出力） ===== -->
+<div id="printArea"></div>
 
 <script>
-const $=id=>document.getElementById(id);
-const num=id=>{const v=$(id).value.trim();return v===''?NaN:Number(v);};
-const txt=id=>$(id).value.trim();
-const normDeg=d=>{d=d%360;return d<0?d+360:d;};
-const sdiff=(a,b)=>{let d=(a-b)%360;if(d>180)d-=360;if(d<-180)d+=360;return d;};
-const azimuth=(f,t)=>normDeg(Math.atan2(t.y-f.y,t.x-f.x)*180/Math.PI);
-const fix3=v=>v.toFixed(3);
-function dmsDeg(a,b,c){const d=$(a).value.trim(),m=$(b).value.trim(),s=$(c).value.trim();if(d===''&&m===''&&s==='')return NaN;const D=d===''?0:+d,M=m===''?0:+m,S=s===''?0:+s;if([D,M,S].some(Number.isNaN))return NaN;return D+M/60+S/3600;}
-function toDMS(deg){deg=normDeg(deg);let d=Math.floor(deg),mf=(deg-d)*60,m=Math.floor(mf),s=(mf-m)*60;s=Math.round(s*100)/100;if(s>=60){s-=60;m++;}if(m>=60){m-=60;d++;}if(d>=360)d-=360;return `${d}° ${String(m).padStart(2,'0')}' ${s.toFixed(2)}"`;}
-function showError(m){$('err').textContent=m;$('err').classList.remove('hidden');}
-function clearError(){$('err').classList.add('hidden');}
-function flash(b,t){const o=b.textContent;b.textContent=t;setTimeout(()=>b.textContent=o,1200);}
-const esc=s=>String(s).replace(/[&<>]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;'}[c]));
+"use strict";
+/* ============================================================
+   保存キー（localStorage）
+============================================================ */
+const LS_MASTER  = "nippo_master_v1";   // {employees:[], vehicles:[]}
+const LS_MAIL    = "nippo_mail_v1";     // {to, cc, subject}
+const LS_RECORDS = "nippo_records_v1";  // 日報配列
 
-let station=null, list=[];
+const $  = (s) => document.querySelector(s);
+const $$ = (s) => document.querySelectorAll(s);
 
-function resectSolve(A,B,dA,dB){
-  const dx=B.x-A.x,dy=B.y-A.y,AB=Math.hypot(dx,dy);
-  if(AB<1e-9) return{error:'計算できません。既知点A・Bが同一座標です。'};
-  if(dA<=0||dB<=0) return{error:'計算できません。実測距離は正の値で入力してください。'};
-  if(dA+dB<AB-1e-7||Math.abs(dA-dB)>AB+1e-7) return{error:'計算できません。入力距離では三角形が成立しません。値を確認してください。'};
-  const a=(dA*dA-dB*dB+AB*AB)/(2*AB);let h2=dA*dA-a*a;if(h2<-1e-6)return{error:'計算できません。値を確認してください。'};if(h2<0)h2=0;
-  const h=Math.sqrt(h2),ux=dx/AB,uy=dy/AB,mx=A.x+a*ux,my=A.y+a*uy,nx=-uy,ny=ux;
-  return{AB,left:{x:mx-h*nx,y:my-h*ny},right:{x:mx+h*nx,y:my+h*ny}};
+let master  = load(LS_MASTER,  {employees: [], vehicles: []});
+let mailCfg = load(LS_MAIL,    {to: "", cc: "", subject: "【運転日報】{日付} {氏名}"});
+let records = load(LS_RECORDS, []);
+let editingId = null; // 履歴からの再編集中ID
+
+function load(key, def){
+  try{
+    const v = JSON.parse(localStorage.getItem(key));
+    return v === null || v === undefined ? def : v;
+  }catch(e){ return def; }
 }
-function buildStation(){
-  const A={x:num('xa'),y:num('ya')}, B={x:num('xb'),y:num('yb')}, dA=num('dA'), dB=num('dB');
-  if([A.x,A.y,B.x,B.y,dA,dB].some(Number.isNaN)) return{error:'既知点A・Bの座標と実測距離をすべて入力してください。'};
-  const sol=resectSolve(A,B,dA,dB); if(sol.error) return sol;
-  const omega=dmsDeg('omegaD','omegaM','omegaS');
-  const thetaL=normDeg(azimuth(sol.left,B)-azimuth(sol.left,A));
-  const thetaR=normDeg(azimuth(sol.right,B)-azimuth(sol.right,A));
-  let side,how;
-  if(!Number.isNaN(omega)){ side=Math.abs(sdiff(omega,thetaL))<=Math.abs(sdiff(omega,thetaR))?'left':'right'; how='∠APB（右回り実測角）から自動判定'; }
-  else { side='right'; how=null; }
-  const P=side==='left'?sol.left:sol.right;
-  return {A,B,dA,dB,omega,side,how,P,AB:sol.AB,azPA:azimuth(P,A),thetaSel:side==='left'?thetaL:thetaR};
+function save(key, v){ localStorage.setItem(key, JSON.stringify(v)); }
+
+function toast(msg){
+  const t = $("#toast");
+  t.textContent = msg;
+  t.classList.add("show");
+  clearTimeout(t._tm);
+  t._tm = setTimeout(() => t.classList.remove("show"), 2600);
 }
-function standize(silent){
-  const st=buildStation();
-  if(st.error){ if(!silent) showError(st.error); return false; }
-  clearError(); station=st; renderStation(); renderList(); drawAll(); return true;
-}
-function renderStation(){
-  if(!station) return;
-  $('stationCard').classList.remove('hidden');
-  $('rXp').textContent=fix3(station.P.x); $('rYp').textContent=fix3(station.P.y);
-  $('copyP').textContent=`機械点P  X=${fix3(station.P.x)}  Y=${fix3(station.P.y)}`;
-  $('rAzA').textContent=toDMS(station.azPA);
-  const sr=$('sideRec');
-  if(station.how){ sr.className='mt-3 text-sm rounded-md px-3 py-2 bg-emerald-50 border border-emerald-200 text-emerald-800';
-    sr.textContent=`機械点は線A→Bの「${station.side==='left'?'左側':'右側'}」と判定（${station.how}）。`; }
-  else { sr.className='mt-3 text-sm rounded-md px-3 py-2 bg-amber-50 border border-amber-300 text-amber-800';
-    sr.textContent='∠APB が未入力のため暫定で右側を採用。'; }
-  if(!Number.isNaN(station.omega)){
-    const r=sdiff(station.omega,station.thetaSel)*3600, tol=Number.isNaN(num('tolA'))?60:num('tolA'), ok=Math.abs(r)<=tol+1e-6;
-    $('rChkAPB').innerHTML=`${toDMS(station.omega)} / ${toDMS(station.thetaSel)} <span class="${ok?'text-emerald-600':'text-rose-600'} font-bold">${r>=0?'+':''}${r.toFixed(0)}″ ${ok?'OK':'NG'}</span>`;
-  } else $('rChkAPB').textContent='–';
-}
-function addPoint(){
-  if(!station && !standize()) return;
-  const dist=num('ptDist'), ang=dmsDeg('ptAngD','ptAngM','ptAngS');
-  if(Number.isNaN(dist)||Number.isNaN(ang)) return showError('測点の「距離」と「観測角」を入力してください。');
-  if(dist<=0) return showError('距離は正の値で入力してください。');
-  clearError();
-  const name=txt('ptName')||String(list.length+1);
-  const az=normDeg(station.azPA+ang), rad=az*Math.PI/180;
-  const x=station.P.x+dist*Math.cos(rad), y=station.P.y+dist*Math.sin(rad);
-  const kx=num('ptKx'), ky=num('ptKy'), hasK=!Number.isNaN(kx)&&!Number.isNaN(ky);
-  let resid=null, ok=null;
-  if(hasK){ resid=Math.hypot(kx-x,ky-y); ok=resid*1000<=(Number.isNaN(num('tolD'))?10:num('tolD'))+1e-6; }
-  list.push({name,x,y,dist,az,hasK,resid,ok});
-  saveList(); renderList(); drawAll();
-  ['ptName','ptDist','ptAngD','ptAngM','ptAngS','ptKx','ptKy'].forEach(id=>$(id).value='');
-  $('ptName').focus();
-}
-function renderList(){
-  const has=list.length>0;
-  $('listCard').classList.toggle('hidden',!has);
-  $('exportCard').classList.toggle('hidden',!has);
-  $('plotCard').classList.toggle('hidden',!(has||station));
-  $('cnt').textContent=list.length;
-  const tb=$('listBody'); tb.innerHTML='';
-  list.forEach((p,i)=>{
-    const res=p.hasK?`${(p.resid*1000).toFixed(1)}mm <span class="${p.ok?'text-emerald-600':'text-rose-600'} font-bold">${p.ok?'OK':'NG'}</span>`:'<span class="text-slate-300">–</span>';
-    const tr=document.createElement('tr'); tr.className='border-b border-slate-100';
-    tr.innerHTML=`<td class="py-2 pr-2 text-slate-700">${esc(p.name)}</td><td class="py-2 px-2 text-right">${p.x.toFixed(3)}</td><td class="py-2 px-2 text-right">${p.y.toFixed(3)}</td><td class="py-2 px-2 text-right">${p.dist.toFixed(3)}</td><td class="py-2 px-2 text-right">${toDMS(p.az)}</td><td class="py-2 px-2 text-right">${res}</td><td class="py-2 pl-2 text-center"><button data-i="${i}" class="delpt text-rose-500 hover:text-rose-700">×</button></td>`;
-    tb.appendChild(tr);
+
+/* ============================================================
+   タブ切り替え
+============================================================ */
+$$("nav button").forEach(btn => {
+  btn.addEventListener("click", () => {
+    $$("nav button").forEach(b => b.classList.remove("active"));
+    btn.classList.add("active");
+    $$("section.tab").forEach(s => s.classList.remove("active"));
+    $("#" + btn.dataset.tab).classList.add("active");
+    if(btn.dataset.tab === "tab-history") renderHistory();
+    window.scrollTo(0, 0);
   });
-  tb.querySelectorAll('.delpt').forEach(b=>b.onclick=()=>{list.splice(+b.dataset.i,1);saveList();renderList();drawAll();});
+});
+
+/* ============================================================
+   「今」ボタン（現在時刻セット）
+============================================================ */
+$$(".btn-now").forEach(b => {
+  b.addEventListener("click", () => {
+    const d = new Date();
+    $("#" + b.dataset.now).value =
+      String(d.getHours()).padStart(2,"0") + ":" + String(d.getMinutes()).padStart(2,"0");
+  });
+});
+
+/* ============================================================
+   運転指示事項（20項目）
+============================================================ */
+const INSTRUCTIONS = [
+  "狭い道・住宅地は、行違いやお年寄り子供に注意",
+  "雨天等路面湿潤時、スリップ注意",
+  "「思いやり」「譲り合い」の励行",
+  "優先交通権の確認 横断歩道・歩行者優先",
+  "踏切注意 発進時の前後左右の確認",
+  "交差点、信号確認 早め早めの方向指示器",
+  "カーブ・交差点 見通し注意",
+  "車間距離の保持 急ブレーキ・急発進の禁止",
+  "運転マナー・交通ルールの遵守",
+  "疲労・過労運転禁止（キツイ時は申告）",
+  "居眠り運転防止、仮眠をとれ",
+  "スマホ使用等「ながら」運転の禁止",
+  "シートベルト・必ず着用",
+  "積載状況を目視・触手で確認",
+  "無理な追い越し禁止！状況を十分に確認",
+  "危険予知・事故予測の励行",
+  "夕暮れは早めのライトで事故防止",
+  "脇見運転禁止（よそ見しない）",
+  "周囲の交通に配慮、速度超過厳禁！！",
+  "「だろう」運転禁止「かもしれない」運転の励行"
+];
+function renderInstructions(){
+  $("#instr-list").innerHTML = INSTRUCTIONS.map((t, i) => `
+    <label class="instr-row">
+      <input type="checkbox" class="instr-chk" value="${escHtml(t)}">
+      <span class="no">${i + 1}</span><span class="txt">${escHtml(t)}</span>
+    </label>`).join("");
+  $$(".instr-chk").forEach(c => c.addEventListener("change", () => {
+    c.closest(".instr-row").classList.toggle("on", c.checked);
+    updateInstrCount();
+  }));
 }
-function drawAll(){
-  const svg=$('diagram'),W=400,H=300,pad=38;
-  const pts=[]; if(station){pts.push(station.A,station.B,station.P);} list.forEach(p=>pts.push(p));
-  if(!pts.length){svg.innerHTML='';return;}
-  let minX=Infinity,maxX=-Infinity,minY=Infinity,maxY=-Infinity;
-  pts.forEach(p=>{minX=Math.min(minX,p.x);maxX=Math.max(maxX,p.x);minY=Math.min(minY,p.y);maxY=Math.max(maxY,p.y);});
-  const spanX=maxX-minX||1,spanY=maxY-minY||1,scale=Math.min((W-2*pad)/spanY,(H-2*pad)/spanX);
-  const cY=(minY+maxY)/2,cX=(minX+maxX)/2,sx=p=>W/2+(p.y-cY)*scale,sy=p=>H/2-(p.x-cX)*scale;
-  const dot=(p,c,r=5)=>`<circle cx="${sx(p).toFixed(1)}" cy="${sy(p).toFixed(1)}" r="${r}" fill="${c}"/>`;
-  const line=(p,q,c,w,d='')=>`<line x1="${sx(p).toFixed(1)}" y1="${sy(p).toFixed(1)}" x2="${sx(q).toFixed(1)}" y2="${sy(q).toFixed(1)}" stroke="${c}" stroke-width="${w}" ${d}/>`;
-  const lab=(p,t,c)=>`<text x="${(sx(p)+7).toFixed(1)}" y="${(sy(p)-7).toFixed(1)}" font-size="10" fill="${c}" font-family="ui-monospace,monospace">${esc(t)}</text>`;
-  let s=`<g opacity="0.5"><line x1="20" y1="40" x2="20" y2="14" stroke="#64748b" stroke-width="1.5"/><path d="M20 10 l-4 7 h8 z" fill="#64748b"/><text x="14" y="52" font-size="10" fill="#64748b">N</text></g>`;
-  if(station){
-    s+=line(station.P,station.A,'#0d9488',1.3,'stroke-dasharray="4 3"')+line(station.P,station.B,'#0d9488',1.3,'stroke-dasharray="4 3"')+line(station.A,station.B,'#94a3b8',1);
-    list.forEach(p=>s+=line(station.P,p,'#fecdd3',1));
-    s+=dot(station.A,'#0d9488')+dot(station.B,'#0d9488')+lab(station.A,txt('nameA')||'A','#0f766e')+lab(station.B,txt('nameB')||'B','#0f766e');
-  }
-  list.forEach(p=>{s+=dot(p,'#e11d48',4)+lab(p,p.name,'#be123c');});
-  if(station){s+=dot(station.P,'#f59e0b',6)+lab(station.P,'P','#b45309');}
-  svg.innerHTML=s;
+function updateInstrCount(){
+  $("#instr-count").textContent = `${$$(".instr-chk:checked").length}件 選択中`;
+}
+function clearInstructions(){
+  $$(".instr-chk").forEach(c => {
+    c.checked = false;
+    c.closest(".instr-row").classList.remove("on");
+  });
+  updateInstrCount();
 }
 
-/* ---- 書き出し ---- */
-const cad=p=>{const swap=document.querySelector('input[name="ori"]:checked').value==='swap';return swap?{x:p.y,y:p.x}:{x:p.x,y:p.y};};
-function getLayers(){
-  const cl=(id,def)=>(($(id).value.trim())||def).replace(/[<>\/\\":;?*|,=`]/g,'_');
-  return {pt:{name:cl('layPtName','SURVEY_PT'),color:$('layPtColor').value},
-          txt:{name:cl('layTxtName','SURVEY_TXT'),color:$('layTxtColor').value},
-          ctrl:{name:cl('layCtrlName','CONTROL'),color:$('layCtrlColor').value}};
-}
-function exOpts(){
-  const mode=$('psMode').value, sz=Number($('mkR').value)||(mode==='screen'?3:0.5);
-  return {mode,sz,pd:$('pdStyle').value,H:Number($('txH').value)||0.5,lbl:$('mkLabel').checked,useNum:$('lblNum').checked,
-    inclC:$('inclCtrl').checked&&!!station,cR:Number($('ctrlR').value)||0.5,
-    psize:(mode==='screen'?-Math.abs(sz):Math.abs(sz)),off:Math.max(Number($('txH').value)||0.5,0.3),L:getLayers()};
-}
-function genCSV(){
-  const head=['点名','X_北(m)','Y_東(m)','水平距離(m)','方向角(度)','方向角DMS','残差(mm)','判定','図化_横(東)','図化_縦(北)'];
-  const q=s=>('"'+String(s).replace(/"/g,'""')+'"');
-  const lines=[head.join(',')];
-  list.forEach(p=>{lines.push([q(p.name),p.x.toFixed(3),p.y.toFixed(3),p.dist.toFixed(3),p.az.toFixed(6),q(toDMS(p.az)),p.hasK?(p.resid*1000).toFixed(1):'',p.hasK?(p.ok?'OK':'NG'):'',p.y.toFixed(3),p.x.toFixed(3)].join(','));});
-  return lines.join('\r\n');
-}
-function genSCR(){
-  const o=exOpts(),H=o.H;
-  let s=';; 放射観測 測点  '+new Date().toLocaleString('ja-JP')+'\n';
-  s+=`_-LAYER\n_M\n${o.L.pt.name}\n_C\n${o.L.pt.color}\n${o.L.pt.name}\n_M\n${o.L.txt.name}\n_C\n${o.L.txt.color}\n${o.L.txt.name}\n`;
-  if(o.inclC) s+=`_M\n${o.L.ctrl.name}\n_C\n${o.L.ctrl.color}\n${o.L.ctrl.name}\n`;
-  s+=`\n`;
-  s+=`PDMODE\n${o.pd}\nPDSIZE\n${o.psize}\n`;
-  s+=`_-LAYER\n_S\n${o.L.pt.name}\n\n`;
-  list.forEach(p=>{const c=cad(p);s+=`_POINT\n${c.x.toFixed(3)},${c.y.toFixed(3)}\n`;});
-  if(o.inclC){
-    s+=`_-LAYER\n_S\n${o.L.ctrl.name}\n\n`;
-    [station.A,station.B].forEach(p=>{const c=cad(p);s+=`_CIRCLE\n${c.x.toFixed(3)},${c.y.toFixed(3)}\n${o.cR}\n`;});
-    const cp=cad(station.P);s+=`_CIRCLE\n${cp.x.toFixed(3)},${cp.y.toFixed(3)}\n${o.cR}\n_CIRCLE\n${cp.x.toFixed(3)},${cp.y.toFixed(3)}\n${(o.cR/2).toFixed(3)}\n`;
+/* ============================================================
+   走行距離の自動計算
+============================================================ */
+function calcDist(){
+  const s = parseFloat($("#f-meter-start").value);
+  const e = parseFloat($("#f-meter-end").value);
+  if(!isNaN(s) && !isNaN(e) && e >= s){
+    $("#f-dist").textContent = (Math.round((e - s) * 10) / 10).toLocaleString();
+  }else{
+    $("#f-dist").textContent = "--";
   }
-  if(o.lbl){
-    s+=`_-LAYER\n_S\n${o.L.txt.name}\n\n`;
-    list.forEach((p,i)=>{const c=cad(p),t=o.useNum?String(i+1):p.name;s+=`_TEXT\n${(c.x+o.off).toFixed(3)},${(c.y-H/2).toFixed(3)}\n${H}\n0\n${t}\n\n`;});
-    if(o.inclC){[[station.A,txt('nameA')||'A'],[station.B,txt('nameB')||'B'],[station.P,'P']].forEach(([p,t])=>{const c=cad(p);s+=`_TEXT\n${(c.x+o.off).toFixed(3)},${(c.y-H/2).toFixed(3)}\n${H}\n0\n${t}\n\n`;});}
-  }
-  s+='_REGEN\n_ZOOM\n_E\n';
-  return s;
 }
-function genDXF(){
-  // AutoCAD LT 2025で安定して開けるR12(AC1009)最小構成。
-  // ※STYLEテーブル/フォント定義/新形式ヘッダはLTのクラッシュ要因になるため入れない。
-  const o=exOpts(),H=o.H;
-  const layRec=l=>`0\nLAYER\n2\n${l.name}\n70\n0\n62\n${l.color}\n6\nCONTINUOUS\n`;
-  const layers=[o.L.pt,o.L.txt]; if(o.inclC) layers.push(o.L.ctrl);
-  const head=`0\nSECTION\n2\nHEADER\n9\n$ACADVER\n1\nAC1009\n9\n$PDMODE\n70\n${o.pd}\n9\n$PDSIZE\n40\n${o.psize.toFixed(3)}\n0\nENDSEC\n`;
-  const layTable=`0\nTABLE\n2\nLAYER\n70\n${layers.length}\n${layers.map(layRec).join('')}0\nENDTAB\n`;
-  const tables=`0\nSECTION\n2\nTABLES\n${layTable}0\nENDSEC\n`;
-  const txtEnt=(c,t)=>`0\nTEXT\n8\n${o.L.txt.name}\n10\n${(c.x+o.off).toFixed(4)}\n20\n${(c.y-H/2).toFixed(4)}\n30\n0.0\n40\n${H}\n1\n${t}\n`;
-  const circ=(c,r)=>`0\nCIRCLE\n8\n${o.L.ctrl.name}\n10\n${c.x.toFixed(4)}\n20\n${c.y.toFixed(4)}\n30\n0.0\n40\n${r}\n`;
-  let e='';
-  list.forEach((p,i)=>{const c=cad(p);e+=`0\nPOINT\n8\n${o.L.pt.name}\n10\n${c.x.toFixed(4)}\n20\n${c.y.toFixed(4)}\n30\n0.0\n`;if(o.lbl)e+=txtEnt(c,o.useNum?String(i+1):p.name);});
-  if(o.inclC){
-    [[station.A,txt('nameA')||'A'],[station.B,txt('nameB')||'B']].forEach(([p,t])=>{const c=cad(p);e+=circ(c,o.cR);if(o.lbl)e+=txtEnt(c,t);});
-    const cp=cad(station.P);e+=circ(cp,o.cR)+circ(cp,o.cR/2);if(o.lbl)e+=txtEnt(cp,'P');
-  }
-  return `${head}${tables}0\nSECTION\n2\nENTITIES\n${e}0\nENDSEC\n0\nEOF\n`;
+$("#f-meter-start").addEventListener("input", calcDist);
+$("#f-meter-end").addEventListener("input", calcDist);
+
+/* ============================================================
+   NG判定アラート表示
+============================================================ */
+function updateNgAlert(){
+  const pre  = document.querySelector('input[name="pre-judge"]:checked');
+  const post = document.querySelector('input[name="post-judge"]:checked');
+  const ng = (pre && pre.value === "NG") || (post && post.value === "NG");
+  $("#ng-alert").classList.toggle("show", ng);
 }
-function genXLSXBlob(){
-  const aoa=[['点名','X_北(m)','Y_東(m)','水平距離(m)','方向角(度)','方向角DMS','残差(mm)','判定']];
-  list.forEach(p=>aoa.push([p.name,+p.x.toFixed(3),+p.y.toFixed(3),+p.dist.toFixed(3),+p.az.toFixed(6),toDMS(p.az),p.hasK?+(p.resid*1000).toFixed(1):'',p.hasK?(p.ok?'OK':'NG'):'']));
-  const ws=XLSX.utils.aoa_to_sheet(aoa);ws['!cols']=[{wch:8},{wch:12},{wch:12},{wch:12},{wch:12},{wch:14},{wch:9},{wch:6}];
-  const wb=XLSX.utils.book_new();XLSX.utils.book_append_sheet(wb,ws,'測点');
-  return new Blob([XLSX.write(wb,{type:'array',bookType:'xlsx'})],{type:'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'});
+$$('input[name="pre-judge"], input[name="post-judge"]').forEach(r =>
+  r.addEventListener("change", updateNgAlert));
+
+/* ============================================================
+   マスタ（社員・車両）→ セレクトへ反映
+============================================================ */
+function renderSelects(){
+  const empOpts = ['<option value="">-- 選択してください --</option>']
+    .concat(master.employees.map(n => `<option value="${escHtml(n)}">${escHtml(n)}</option>`))
+    .join("");
+  const keep = sel => { const v = sel.value; sel.innerHTML = empOpts; sel.value = v; };
+  keep($("#f-driver"));
+  $$(".checker-select").forEach(keep);
+
+  const vehSel = $("#f-vehicle");
+  const vv = vehSel.value;
+  vehSel.innerHTML = ['<option value="">-- 選択してください --</option>']
+    .concat(master.vehicles.map(v => {
+      const label = v.name ? `${v.no}（${v.name}）` : v.no;
+      return `<option value="${escHtml(label)}">${escHtml(label)}</option>`;
+    })).join("");
+  vehSel.value = vv;
+
+  $("#emp-status").innerHTML = master.employees.length
+    ? `✅ 社員 ${master.employees.length}名 読み込み済み` : "";
+  $("#veh-status").innerHTML = master.vehicles.length
+    ? `✅ 車両 ${master.vehicles.length}台 読み込み済み` : "";
 }
-function downloadBlob(blob,filename){try{const url=URL.createObjectURL(blob);const a=document.createElement('a');a.href=url;a.download=filename;document.body.appendChild(a);a.click();a.remove();setTimeout(()=>URL.revokeObjectURL(url),1500);}catch(e){alert('ダウンロードできない環境です。');}}
-function downloadText(text,filename,mime){const bom=filename.endsWith('.csv')?'\uFEFF':'';downloadBlob(new Blob([bom+text],{type:mime}),filename);}
-function showExport(text,label,filename,mime){
-  $('expText').value=text;$('expLabel').textContent=label;$('expArea').classList.remove('hidden');
-  $('expDownload').onclick=()=>downloadText(text,filename,mime);
-  $('expCopy').onclick=async()=>{try{await navigator.clipboard.writeText(text);flash($('expCopy'),'コピーしました');}catch{$('expText').focus();$('expText').select();}};
+function escHtml(s){
+  return String(s).replace(/[&<>"']/g, c =>
+    ({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
 }
 
-/* ---- 永続化（端末内に保存：ホスティング先でも有効） ---- */
-const STKEY='hosen_survey_points_v1';
-function saveList(){ try{ localStorage.setItem(STKEY,JSON.stringify(list)); }catch(e){} }
-function loadList(){ try{ const v=localStorage.getItem(STKEY); if(v){ list=JSON.parse(v)||[]; renderList(); drawAll(); } }catch(e){} }
+/* ============================================================
+   Excel読み込み（SheetJS）
+============================================================ */
+function readExcel(file, cb){
+  const reader = new FileReader();
+  reader.onload = (e) => {
+    try{
+      const wb = XLSX.read(new Uint8Array(e.target.result), {type: "array"});
+      const ws = wb.Sheets[wb.SheetNames[0]];
+      const rows = XLSX.utils.sheet_to_json(ws, {defval: ""}); // 1行目をヘッダーとして解釈
+      cb(rows, null);
+    }catch(err){ cb(null, err); }
+  };
+  reader.onerror = () => cb(null, new Error("読み込み失敗"));
+  reader.readAsArrayBuffer(file);
+}
+// 列名のゆらぎ吸収：候補のいずれかを含むキーを探す
+function findKey(row, candidates){
+  const keys = Object.keys(row);
+  for(const c of candidates){
+    const hit = keys.find(k => String(k).replace(/\s/g,"").includes(c));
+    if(hit) return hit;
+  }
+  return null;
+}
 
-/* ---- events ---- */
-$('btnHelp').onclick=()=>$('helpPanel').classList.toggle('hidden');
-$('helpClose').onclick=()=>$('helpPanel').classList.add('hidden');
-$('btnStand').onclick=()=>standize();
-$('btnAdd').onclick=addPoint;
-$('btnClearList').onclick=()=>{ if(!list.length)return; list=[]; saveList(); renderList(); drawAll(); };
-$('exCSV').onclick=()=>{ if(!list.length)return showError('リストが空です。'); showExport(genCSV(),'Excel用 CSV（UTF-8）','survey_points.csv','text/csv'); };
-$('exSCR').onclick=()=>{ if(!list.length)return showError('リストが空です。'); showExport(genSCR(),'AutoCAD スクリプト','survey_points.scr','text/plain'); };
-$('exDXF').onclick=()=>{ if(!list.length)return showError('リストが空です。'); showExport(genDXF(),'DXF','survey_points.dxf','application/dxf'); };
-$('exXLSX').onclick=()=>{ if(!list.length)return showError('リストが空です。'); if(typeof XLSX==='undefined')return showError('Excel生成ライブラリを読み込めません。CSVをご利用ください。'); downloadBlob(genXLSXBlob(),'survey_points.xlsx'); };
-$('exShare').onclick=async()=>{
-  if(!list.length)return showError('リストが空です。');
-  if(typeof XLSX==='undefined')return showError('Excel生成ライブラリを読み込めません。CSVをご利用ください。');
-  const files=[ new File([genXLSXBlob()],'survey_points.xlsx',{type:'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'}),
-                new File([genDXF()],'survey_points.dxf',{type:'application/dxf'}) ];
-  if($('incSCR')&&$('incSCR').checked) files.push(new File([genSCR()],'survey_points.scr',{type:'text/plain'}));
-  if(navigator.canShare&&navigator.canShare({files})){ try{await navigator.share({files,title:'測量結果',text:'放射観測 測点データ（Excel＋DXF）'});}catch(e){} }
-  else { files.forEach(f=>downloadBlob(f,f.name)); alert('共有に未対応の環境のため、ファイルを個別にダウンロードしました。メールに添付してください。'); }
-};
-document.querySelectorAll('.copybtn').forEach(b=>b.onclick=async()=>{try{await navigator.clipboard.writeText($(b.dataset.copy).textContent);flash(b,'コピーしました');}catch{}});
-$('btnClearIn').onclick=()=>{['nameA','xa','ya','dA','nameB','xb','yb','dB','omegaD','omegaM','omegaS','ptName','ptDist','ptAngD','ptAngM','ptAngS','ptKx','ptKy'].forEach(id=>$(id).value='');clearError();};
-$('btnSample').onclick=()=>{
-  const set=(id,v)=>$(id).value=v;
-  set('nameA','A1');set('xa','100.000');set('ya','100.000');set('dA','70.711');
-  set('nameB','A2');set('xb','100.000');set('yb','200.000');set('dB','70.711');
-  set('omegaD','90');set('omegaM','0');set('omegaS','0');
-  standize(); list=[];
-  const shot=(name,d,dd,mm,ss,kx,ky)=>{set('ptName',name);set('ptDist',d);set('ptAngD',dd);set('ptAngM',mm);set('ptAngS',ss);set('ptKx',kx??'');set('ptKy',ky??'');addPoint();};
-  shot('1','67.082','108','26','06','80.000','210.000');
-  shot('2','55.000','60','0','0');
-  shot('3','42.000','150','0','0');
-};
-loadList();
+// 社員名簿
+$("#file-emp").addEventListener("change", (ev) => {
+  const file = ev.target.files[0];
+  if(!file) return;
+  readExcel(file, (rows, err) => {
+    if(err || !rows || !rows.length){ toast("⚠ 読み込めませんでした。ファイル形式をご確認ください"); return; }
+    const key = findKey(rows[0], ["氏名", "名前"]) || Object.keys(rows[0])[1] || Object.keys(rows[0])[0];
+    const names = rows.map(r => String(r[key]).trim()).filter(n => n && n !== "undefined");
+    if(!names.length){ toast("⚠ 氏名の列が見つかりませんでした"); return; }
+    master.employees = [...new Set(names)];
+    save(LS_MASTER, master);
+    renderSelects();
+    toast(`✅ 社員名簿 ${master.employees.length}名を読み込みました`);
+  });
+  ev.target.value = "";
+});
+
+// 社有車一覧
+$("#file-veh").addEventListener("change", (ev) => {
+  const file = ev.target.files[0];
+  if(!file) return;
+  readExcel(file, (rows, err) => {
+    if(err || !rows || !rows.length){ toast("⚠ 読み込めませんでした。ファイル形式をご確認ください"); return; }
+    const noKey   = findKey(rows[0], ["車両番号", "ナンバー", "登録番号"]) || Object.keys(rows[0])[0];
+    const nameKey = findKey(rows[0], ["車名", "車種"]);
+    const vehicles = rows.map(r => ({
+      no:   String(r[noKey]).trim(),
+      name: nameKey ? String(r[nameKey]).trim() : ""
+    })).filter(v => v.no && v.no !== "undefined");
+    if(!vehicles.length){ toast("⚠ 車両番号の列が見つかりませんでした"); return; }
+    master.vehicles = vehicles;
+    save(LS_MASTER, master);
+    renderSelects();
+    toast(`✅ 車両一覧 ${master.vehicles.length}台を読み込みました`);
+  });
+  ev.target.value = "";
+});
+
+$("#btn-clear-master").addEventListener("click", () => {
+  if(!confirm("社員名簿と車両一覧を消去します。よろしいですか？\n（日報の履歴は消えません）")) return;
+  master = {employees: [], vehicles: []};
+  save(LS_MASTER, master);
+  renderSelects();
+  toast("マスタを消去しました");
+});
+
+/* ============================================================
+   メール設定
+============================================================ */
+function renderMailCfg(){
+  $("#m-to").value = mailCfg.to || "";
+  $("#m-cc").value = mailCfg.cc || "";
+  $("#m-subject").value = mailCfg.subject || "";
+}
+$("#btn-save-mail").addEventListener("click", () => {
+  mailCfg = {
+    to: $("#m-to").value.trim(),
+    cc: $("#m-cc").value.trim(),
+    subject: $("#m-subject").value.trim() || "【運転日報】{日付} {氏名}"
+  };
+  save(LS_MAIL, mailCfg);
+  toast("✅ メール設定を保存しました");
+});
+
+/* ============================================================
+   日報の保存（バリデーション付き）
+============================================================ */
+function getJudge(name){
+  const el = document.querySelector(`input[name="${name}"]:checked`);
+  return el ? el.value : "";
+}
+function collectForm(){
+  return {
+    id: editingId || ("r" + Date.now()),
+    date: $("#f-date").value,
+    driver: $("#f-driver").value,
+    vehicle: $("#f-vehicle").value,
+    dest: $("#f-dest").value.trim(),
+    timeStart: $("#f-time-start").value,
+    timeEnd: $("#f-time-end").value,
+    alcPre:  {time: $("#pre-time").value,  value: $("#pre-value").value,  checker: $("#pre-checker").value,  judge: getJudge("pre-judge")},
+    alcPost: {time: $("#post-time").value, value: $("#post-value").value, checker: $("#post-checker").value, judge: getJudge("post-judge")},
+    meterStart: $("#f-meter-start").value,
+    meterEnd: $("#f-meter-end").value,
+    distance: $("#f-dist").textContent === "--" ? "" : $("#f-dist").textContent,
+    etc: getJudge("f-etc"),
+    highway: getJudge("f-highway"),
+    parking: getJudge("f-parking"),
+    instructions: [...$$(".instr-chk:checked")].map(c => c.value),
+    instrNote: $("#f-instr-note").value.trim(),
+    memo: $("#f-memo").value.trim(),
+    savedAt: new Date().toLocaleString("ja-JP")
+  };
+}
+$("#btn-save").addEventListener("click", () => {
+  const r = collectForm();
+
+  // --- 必須チェック ---
+  if(!r.date){ toast("⚠ 日付を入力してください"); return; }
+  if(!r.driver){ toast("⚠ 運転者名を選択してください（マスタ設定タブで名簿を読み込めます）"); return; }
+
+  // --- アルコールチェック（最重要）---
+  const preOk = r.alcPre.time && r.alcPre.value !== "" && r.alcPre.judge;
+  if(!preOk){
+    alert("⚠ 運転前のアルコールチェック（時刻・数値・判定）が未入力です。\n必ず入力してください。");
+    return;
+  }
+  const postOk = r.alcPost.time && r.alcPost.value !== "" && r.alcPost.judge;
+  if(!postOk){
+    if(!confirm("⚠ 運転後のアルコールチェックが未入力です。\n（運転前のみの途中保存として保存しますか？）")) return;
+  }
+  if(r.alcPre.judge === "NG" || r.alcPost.judge === "NG"){
+    if(!confirm("⚠ NG判定が含まれています。運転は禁止です。\nNG記録として保存しますか？")) return;
+  }
+
+  // --- 保存 ---
+  if(editingId){
+    const idx = records.findIndex(x => x.id === editingId);
+    if(idx >= 0) records[idx] = r; else records.push(r);
+    editingId = null;
+    $("#btn-save").innerHTML = "💾 一時保存（アプリ内保存）";
+    toast("✅ 日報を上書き保存しました");
+  }else{
+    records.push(r);
+    toast("✅ 日報を保存しました（履歴・出力タブで確認できます）");
+  }
+  save(LS_RECORDS, records);
+  clearForm();
+});
+
+function clearForm(){
+  ["f-dest","f-time-start","f-time-end","pre-time","pre-value","post-time","post-value",
+   "f-meter-start","f-meter-end","f-instr-note","f-memo"].forEach(id => $("#" + id).value = "");
+  clearInstructions();
+  $("#f-driver").value = ""; $("#f-vehicle").value = "";
+  $("#pre-checker").value = ""; $("#post-checker").value = "";
+  ["pre-judge","post-judge"].forEach(n =>
+    $$(`input[name="${n}"]`).forEach(r => r.checked = false));
+  ["f-etc","f-highway","f-parking"].forEach(n => {
+    $$(`input[name="${n}"]`).forEach(r => r.checked = (r.value === "なし"));
+  });
+  setToday();
+  calcDist();
+  updateNgAlert();
+}
+function setToday(){
+  const d = new Date();
+  $("#f-date").value = d.getFullYear() + "-" +
+    String(d.getMonth()+1).padStart(2,"0") + "-" + String(d.getDate()).padStart(2,"0");
+}
+
+/* ============================================================
+   履歴タブ
+============================================================ */
+function alcSummary(r){
+  const j = [r.alcPre.judge || "未", r.alcPost.judge || "未"];
+  const cls = (j.includes("NG")) ? "ng" : (j.includes("未") ? "ng" : "ok");
+  return `<span class="hist-alc ${cls}">酒気帯び確認：前 ${j[0]} ／ 後 ${j[1]}</span>`;
+}
+function renderHistory(){
+  const list = $("#hist-list");
+  if(!records.length){
+    list.innerHTML = `<div class="empty"><span class="nicon">🗂</span>保存された日報はまだありません。<br>「日報入力」タブから記録を追加してください。</div>`;
+    $("#chk-all").checked = false;
+    updateSelCount();
+    return;
+  }
+  const sorted = [...records].sort((a,b) => (b.date || "").localeCompare(a.date || ""));
+  list.innerHTML = sorted.map(r => `
+    <div class="hist-item" data-id="${r.id}">
+      <input type="checkbox" class="hist-chk" data-id="${r.id}">
+      <div class="hist-body">
+        <div class="hist-date">${fmtDate(r.date)}　${escHtml(r.driver)}</div>
+        <div class="hist-meta">
+          ${r.vehicle ? "🚙 " + escHtml(r.vehicle) + "　" : ""}${r.dest ? "📍 " + escHtml(r.dest) : ""}<br>
+          ${r.timeStart || "--:--"}〜${r.timeEnd || "--:--"}　走行 ${r.distance || "--"} km　📋 指示 ${(r.instructions || []).length}件
+        </div>
+        ${alcSummary(r)}
+      </div>
+      <div class="hist-actions">
+        <button class="mini-btn edit" data-id="${r.id}">編集</button>
+        <button class="mini-btn del" data-id="${r.id}">削除</button>
+      </div>
+    </div>`).join("");
+
+  $$(".hist-chk").forEach(c => c.addEventListener("change", () => {
+    c.closest(".hist-item").classList.toggle("checked", c.checked);
+    updateSelCount();
+  }));
+  $$(".mini-btn.del").forEach(b => b.addEventListener("click", () => {
+    const rec = records.find(x => x.id === b.dataset.id);
+    if(!confirm(`${fmtDate(rec.date)} ${rec.driver} の日報を削除します。よろしいですか？`)) return;
+    records = records.filter(x => x.id !== b.dataset.id);
+    save(LS_RECORDS, records);
+    renderHistory();
+    toast("削除しました");
+  }));
+  $$(".mini-btn.edit").forEach(b => b.addEventListener("click", () => loadToForm(b.dataset.id)));
+  updateSelCount();
+}
+function fmtDate(d){
+  if(!d) return "(日付なし)";
+  const [y,m,dd] = d.split("-");
+  const w = ["日","月","火","水","木","金","土"][new Date(d + "T00:00:00").getDay()];
+  return `${y}/${m}/${dd}(${w})`;
+}
+$("#chk-all").addEventListener("change", () => {
+  const on = $("#chk-all").checked;
+  $$(".hist-chk").forEach(c => {
+    c.checked = on;
+    c.closest(".hist-item").classList.toggle("checked", on);
+  });
+  updateSelCount();
+});
+function updateSelCount(){
+  $("#sel-count").textContent = `${$$(".hist-chk:checked").length}件 選択中`;
+}
+function selectedRecords(){
+  const ids = [...$$(".hist-chk:checked")].map(c => c.dataset.id);
+  return records.filter(r => ids.includes(r.id))
+                .sort((a,b) => (a.date || "").localeCompare(b.date || ""));
+}
+
+// 履歴 → 入力フォームへ読み戻し（編集）
+function loadToForm(id){
+  const r = records.find(x => x.id === id);
+  if(!r) return;
+  editingId = id;
+  $("#f-date").value = r.date; $("#f-driver").value = r.driver; $("#f-vehicle").value = r.vehicle;
+  $("#f-dest").value = r.dest; $("#f-time-start").value = r.timeStart; $("#f-time-end").value = r.timeEnd;
+  $("#pre-time").value = r.alcPre.time; $("#pre-value").value = r.alcPre.value; $("#pre-checker").value = r.alcPre.checker;
+  $("#post-time").value = r.alcPost.time; $("#post-value").value = r.alcPost.value; $("#post-checker").value = r.alcPost.checker;
+  $("#f-meter-start").value = r.meterStart; $("#f-meter-end").value = r.meterEnd;
+  $("#f-instr-note").value = r.instrNote || "";
+  $("#f-memo").value = r.memo;
+  const instrSet = new Set(r.instructions || []);
+  $$(".instr-chk").forEach(c => {
+    c.checked = instrSet.has(c.value);
+    c.closest(".instr-row").classList.toggle("on", c.checked);
+  });
+  updateInstrCount();
+  setRadio("pre-judge", r.alcPre.judge); setRadio("post-judge", r.alcPost.judge);
+  setRadio("f-etc", r.etc || "なし"); setRadio("f-highway", r.highway || "なし"); setRadio("f-parking", r.parking || "なし");
+  calcDist(); updateNgAlert();
+  $("#btn-save").innerHTML = "💾 上書き保存（編集中）";
+  $$("nav button")[0].click();
+  toast("編集モード：修正後に保存してください");
+}
+function setRadio(name, val){
+  $$(`input[name="${name}"]`).forEach(r => r.checked = (r.value === val));
+}
+
+/* ============================================================
+   PDF化（印刷レイアウト）
+============================================================ */
+function judgeHtml(j){
+  if(j === "OK") return '<span class="p-judge-ok">OK</span>';
+  if(j === "NG") return '<span class="p-judge-ng">NG（運転不可）</span>';
+  return "未実施";
+}
+function buildPrintPage(r){
+  return `
+  <div class="p-page">
+    <div class="p-title">運転日報・アルコールチェック記録</div>
+    <div class="p-sub">出力日時：${new Date().toLocaleString("ja-JP")}</div>
+
+    <div class="p-sec">基本情報</div>
+    <table class="p-tbl">
+      <tr><th>日付</th><td>${fmtDate(r.date)}</td></tr>
+      <tr><th>運転者名</th><td>${escHtml(r.driver)}</td></tr>
+      <tr><th>使用車両</th><td>${escHtml(r.vehicle) || "―"}</td></tr>
+      <tr><th>目的地</th><td>${escHtml(r.dest) || "―"}</td></tr>
+      <tr><th>使用時間</th><td>${r.timeStart || "--:--"} 〜 ${r.timeEnd || "--:--"}</td></tr>
+    </table>
+
+    <div class="p-sec">アルコールチェック</div>
+    <table class="p-tbl">
+      <tr><th></th><th style="width:35%">運転前</th><th style="width:35%">運転後</th></tr>
+      <tr><th>確認時刻</th><td>${r.alcPre.time || "―"}</td><td>${r.alcPost.time || "―"}</td></tr>
+      <tr><th>測定値 (mg/L)</th><td>${r.alcPre.value !== "" ? r.alcPre.value : "―"}</td><td>${r.alcPost.value !== "" ? r.alcPost.value : "―"}</td></tr>
+      <tr><th>確認者</th><td>${escHtml(r.alcPre.checker) || "―"}</td><td>${escHtml(r.alcPost.checker) || "―"}</td></tr>
+      <tr><th>判定</th><td>${judgeHtml(r.alcPre.judge)}</td><td>${judgeHtml(r.alcPost.judge)}</td></tr>
+    </table>
+
+    <div class="p-sec">走行情報</div>
+    <table class="p-tbl">
+      <tr><th>開始メーター</th><td>${r.meterStart || "―"} km</td></tr>
+      <tr><th>終了メーター</th><td>${r.meterEnd || "―"} km</td></tr>
+      <tr><th>走行距離</th><td>${r.distance || "―"} km</td></tr>
+      <tr><th>ETC使用</th><td>${r.etc || "―"}</td></tr>
+      <tr><th>高速道路運転</th><td>${r.highway || "―"}</td></tr>
+      <tr><th>有料駐車場使用</th><td>${r.parking || "―"}</td></tr>
+    </table>
+
+    <div class="p-sec">運転指示事項</div>
+    <table class="p-tbl"><tr><td>${
+      (r.instructions && r.instructions.length)
+        ? r.instructions.map(t => "☑ " + escHtml(t)).join("<br>")
+        : "（選択なし）"
+    }${r.instrNote ? "<br><br>【個別指示】" + escHtml(r.instrNote) : ""}</td></tr></table>
+
+    <div class="p-sec">備考</div>
+    <table class="p-tbl"><tr><td style="min-height:14mm">${escHtml(r.memo) || "　"}</td></tr></table>
+
+    <div class="p-sign"><div>安全運転<br>管理者</div><div>所属長</div><div>運転者</div></div>
+  </div>`;
+}
+$("#btn-print").addEventListener("click", () => {
+  const sel = selectedRecords();
+  if(!sel.length){ toast("⚠ PDF化する日報を選択してください"); return; }
+  $("#printArea").innerHTML = sel.map(buildPrintPage).join("");
+  setTimeout(() => window.print(), 100);
+});
+
+/* ============================================================
+   メール送信（mailto）
+============================================================ */
+function recordText(r){
+  return [
+    `━━━━━━━━━━━━━━━━━━`,
+    `■ 運転日報 ${fmtDate(r.date)}`,
+    `━━━━━━━━━━━━━━━━━━`,
+    `運転者　　：${r.driver}`,
+    `使用車両　：${r.vehicle || "―"}`,
+    `目的地　　：${r.dest || "―"}`,
+    `使用時間　：${r.timeStart || "--:--"}〜${r.timeEnd || "--:--"}`,
+    ``,
+    `【アルコールチェック】`,
+    `▼運転前　時刻:${r.alcPre.time || "―"} 数値:${r.alcPre.value !== "" ? r.alcPre.value : "―"}mg/L 確認者:${r.alcPre.checker || "―"} 判定:${r.alcPre.judge || "未"}`,
+    `▼運転後　時刻:${r.alcPost.time || "―"} 数値:${r.alcPost.value !== "" ? r.alcPost.value : "―"}mg/L 確認者:${r.alcPost.checker || "―"} 判定:${r.alcPost.judge || "未"}`,
+    ``,
+    `【走行情報】`,
+    `メーター　：${r.meterStart || "―"} → ${r.meterEnd || "―"} km（走行 ${r.distance || "―"} km）`,
+    `ETC:${r.etc || "―"} ／ 高速:${r.highway || "―"} ／ 有料P:${r.parking || "―"}`,
+    ``,
+    `【運転指示事項】`,
+    (r.instructions && r.instructions.length)
+      ? r.instructions.map(t => `☑ ${t}`).join("\n")
+      : `（選択なし）`,
+    r.instrNote ? `個別指示　：${r.instrNote}` : ``,
+    r.memo ? `備考　　　：${r.memo}` : ``,
+  ].filter(l => l !== ``  || true).join("\n");
+}
+$("#btn-mail").addEventListener("click", () => {
+  const sel = selectedRecords();
+  if(!sel.length){ toast("⚠ 送信する日報を選択してください"); return; }
+  if(!mailCfg.to){
+    toast("⚠ 提出先メールアドレスが未設定です（マスタ設定タブ）");
+    return;
+  }
+  const first = sel[0];
+  const dateLabel = sel.length === 1 ? fmtDate(first.date)
+                  : `${fmtDate(first.date)}〜${fmtDate(sel[sel.length-1].date)}`;
+  const nameLabel = [...new Set(sel.map(r => r.driver))].join("・");
+  const subject = (mailCfg.subject || "【運転日報】{日付} {氏名}")
+    .replaceAll("{日付}", dateLabel).replaceAll("{氏名}", nameLabel);
+  const body = sel.map(recordText).join("\n\n") +
+    "\n\n--\n本メールは運転日報アプリから送信されています。";
+
+  let url = "mailto:" + encodeURIComponent(mailCfg.to) +
+    "?subject=" + encodeURIComponent(subject) +
+    "&body=" + encodeURIComponent(body);
+  if(mailCfg.cc) url += "&cc=" + encodeURIComponent(mailCfg.cc);
+  location.href = url;
+});
+
+/* ============================================================
+   初期化
+============================================================ */
+$("#btn-instr-clear").addEventListener("click", clearInstructions);
+renderInstructions();
+renderSelects();
+renderMailCfg();
+setToday();
 </script>
 </body>
 </html>
