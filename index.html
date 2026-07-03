@@ -274,7 +274,7 @@ select{
   <svg viewBox="0 0 64 64" aria-hidden="true"><rect width="64" height="64" rx="14" fill="#2C3E63"/><rect x="13" y="46" width="5" height="11" rx="1.5" fill="#6B7488"/><rect x="24" y="46" width="5" height="11" rx="1.5" fill="#6B7488"/><rect x="35" y="46" width="5" height="11" rx="1.5" fill="#6B7488"/><rect x="46" y="46" width="5" height="11" rx="1.5" fill="#6B7488"/><rect x="6" y="48" width="52" height="4" rx="2" fill="#AEB6C6"/><path d="M14 40 q0 -12 10 -13 l14 -1 q10 0 14 8 l3 6 q1 2 -1 2 l-38 0 q-2 0 -2 -2 z" fill="#FF6B35"/><path d="M27 29 l10 -0.8 q6 0 9 5.8 l-19 0 z" fill="#BFE7FF"/><circle cx="22" cy="43" r="6" fill="#2B3245"/><circle cx="22" cy="43" r="2.6" fill="#FFD35C"/><circle cx="44" cy="43" r="6" fill="#2B3245"/><circle cx="44" cy="43" r="2.6" fill="#FFD35C"/><circle cx="51.5" cy="36.5" r="1.8" fill="#FFF3B0"/><path d="M31 36 q3 2.4 6 0" stroke="#fff" stroke-width="1.6" fill="none" stroke-linecap="round"/></svg>
   <div>
     <h1>運転日報・アルコールチェック</h1>
-    <div class="sub">社有車 運転記録アプリ</div>
+    <div class="sub">社有車 運転記録アプリ｜v3</div>
   </div>
 </header>
 
@@ -1121,6 +1121,24 @@ function pdfFileName(sel){
   const span = (d1 === d2) ? d1 : `${d1}〜${d2}`;
   return `運転日報報告(${names})(${span}).pdf`;
 }
+// 描画結果が真っ白（白紙）かどうかを判定する
+function canvasLooksBlank(canvas){
+  if(!canvas.width || !canvas.height) return true;
+  const ctx = canvas.getContext("2d");
+  const h = Math.min(canvas.height, 500); // 上部にはタイトル・罫線が必ずある
+  const data = ctx.getImageData(0, 0, canvas.width, h).data;
+  for(let i = 0; i < data.length; i += 40){
+    if(data[i] < 240 || data[i + 1] < 240 || data[i + 2] < 240) return false;
+  }
+  return true;
+}
+async function capturePage(el, scale){
+  return await html2canvas(el, {
+    scale: scale, backgroundColor: "#ffffff", logging: false,
+    useCORS: true, allowTaint: true,
+    scrollX: 0, scrollY: 0, windowWidth: 900
+  });
+}
 async function generatePdfBlob(sel){
   const area = $("#pdfArea");
   const busy = $("#pdfBusy");
@@ -1128,7 +1146,7 @@ async function generatePdfBlob(sel){
   busy.style.display = "flex";
   area.style.display = "block";
   window.scrollTo(0, 0);
-  await new Promise(r => setTimeout(r, 200)); // レイアウト確定を待つ
+  await new Promise(r => setTimeout(r, 250)); // レイアウト確定を待つ
   try{
     const { jsPDF } = window.jspdf;
     const pdf = new jsPDF({ unit: "mm", format: "a4", orientation: "portrait" });
@@ -1136,10 +1154,14 @@ async function generatePdfBlob(sel){
     const pageW = 210, pageH = 297, mg = 8;
     for(let i = 0; i < pages.length; i++){
       // 1ページずつ描画（iPhoneのキャンバスサイズ上限を回避）
-      const canvas = await html2canvas(pages[i], {
-        scale: 2, backgroundColor: "#ffffff", logging: false,
-        scrollX: 0, scrollY: 0
-      });
+      let canvas = await capturePage(pages[i], 2);
+      if(canvasLooksBlank(canvas)){
+        // 白紙なら低倍率で再試行
+        canvas = await capturePage(pages[i], 1);
+      }
+      if(canvasLooksBlank(canvas)){
+        throw new Error("BLANK_RENDER");
+      }
       const img = canvas.toDataURL("image/jpeg", 0.92);
       let w = pageW - mg * 2;
       let h = canvas.height * w / canvas.width;
@@ -1201,7 +1223,11 @@ $("#btn-pdf-share").addEventListener("click", async () => {
     setTimeout(() => URL.revokeObjectURL(a.href), 30000);
     toast("✅ PDFを保存しました（共有が使えないためダウンロードしました）");
   }catch(err){
-    toast("⚠ PDFの作成に失敗しました。通信環境をご確認のうえ再度お試しください");
+    if(err && err.message === "BLANK_RENDER"){
+      toast("⚠ この機種ではPDF描画ができませんでした。「印刷プレビュー」からPDF化してください");
+    }else{
+      toast("⚠ PDFの作成に失敗しました。通信環境をご確認のうえ再度お試しください");
+    }
   }finally{
     btn.disabled = false;
   }
