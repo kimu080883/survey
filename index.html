@@ -11,6 +11,8 @@
 <link rel="icon" href='data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64"><rect width="64" height="64" rx="14" fill="%231B2A4A"/><rect x="13" y="46" width="5" height="11" rx="1.5" fill="%236B7488"/><rect x="24" y="46" width="5" height="11" rx="1.5" fill="%236B7488"/><rect x="35" y="46" width="5" height="11" rx="1.5" fill="%236B7488"/><rect x="46" y="46" width="5" height="11" rx="1.5" fill="%236B7488"/><rect x="6" y="48" width="52" height="4" rx="2" fill="%23AEB6C6"/><path d="M14 40 q0 -12 10 -13 l14 -1 q10 0 14 8 l3 6 q1 2 -1 2 l-38 0 q-2 0 -2 -2 z" fill="%23FF6B35"/><path d="M27 29 l10 -0.8 q6 0 9 5.8 l-19 0 z" fill="%23BFE7FF"/><circle cx="22" cy="43" r="6" fill="%232B3245"/><circle cx="22" cy="43" r="2.6" fill="%23FFD35C"/><circle cx="44" cy="43" r="6" fill="%232B3245"/><circle cx="44" cy="43" r="2.6" fill="%23FFD35C"/><circle cx="51.5" cy="36.5" r="1.8" fill="%23FFF3B0"/><path d="M31 36 q3 2.4 6 0" stroke="%23fff" stroke-width="1.6" fill="none" stroke-linecap="round"/></svg>'>
 <!-- ▼ SheetJS（Excel読み込みライブラリ）をCDNから読み込み -->
 <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+<!-- ▼ html2pdf（PDF生成ライブラリ）をCDNから読み込み -->
+<script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
 <style>
 :root{
   --navy:#1B2A4A;      /* レールの鋼色（メイン） */
@@ -215,6 +217,21 @@ select{
   max-width:90vw;text-align:center;
 }
 #toast.show{opacity:1;transform:translateX(-50%) translateY(0)}
+
+/* ===== PDF生成用（画面外レンダリング） ===== */
+#pdfArea{position:fixed;left:-10000px;top:0;width:733px;background:#fff;color:#000;
+  font-family:"Hiragino Sans","Hiragino Kaku Gothic ProN","Yu Gothic",Meiryo,sans-serif;}
+#pdfArea .p-page{page-break-after:always;padding:14px 8px 24px;font-size:13px;line-height:1.55}
+#pdfArea .p-title{text-align:center;font-size:20px;font-weight:800;letter-spacing:.3em;margin-bottom:4px}
+#pdfArea .p-sub{text-align:center;font-size:11px;margin-bottom:16px}
+#pdfArea table.p-tbl{width:100%;border-collapse:collapse;margin-bottom:12px}
+#pdfArea .p-tbl th,#pdfArea .p-tbl td{border:1px solid #000;padding:6px 7px;font-size:13px;text-align:left;vertical-align:middle}
+#pdfArea .p-tbl th{background:#EDEDED;width:30%;font-weight:700}
+#pdfArea .p-sec{font-weight:800;margin:12px 0 5px;font-size:14px;border-left:4px solid #000;padding-left:7px}
+#pdfArea .p-judge-ok{font-weight:800}
+#pdfArea .p-judge-ng{font-weight:800;text-decoration:underline}
+#pdfArea .p-sign{display:flex;justify-content:flex-end;gap:14px;margin-top:16px}
+#pdfArea .p-sign div{border:1px solid #000;width:84px;height:84px;font-size:10px;text-align:center;padding-top:4px}
 
 /* ===== 印刷（PDF）レイアウト ===== */
 #printArea{display:none}
@@ -493,11 +510,13 @@ select{
     <div id="hist-list"></div>
   </div>
 
-  <button class="btn btn-navy" id="btn-print">🖨 選択した日報をPDF化（印刷）</button>
-  <button class="btn btn-primary" id="btn-mail">✉ 選択した日報をメール送信</button>
+  <button class="btn btn-primary" id="btn-pdf-share">📄 PDFを作成して送る・保存（共有）</button>
+  <button class="btn btn-navy" id="btn-mail">✉ テキストでメール（iCloudメール用）</button>
+  <button class="btn btn-outline" id="btn-print">🖨 印刷プレビュー</button>
   <p class="hint" style="padding:0 4px">
-    ● PDF化：印刷画面が開きます。iPhoneでは共有メニューから「PDFとして保存」できます。<br>
-    ● メール送信：スマホの標準メールアプリが起動し、宛先・件名・本文（日報テキスト）が自動セットされます。PDFを添付したい場合は、先にPDF化で保存したファイルをメール画面で添付してください。
+    ● <strong>PDFを作成して送る・保存</strong>：選択した日報をその場でPDFファイル化し、iPhoneの共有シートが開きます。<strong>会社のメールアプリを選べばPDFが添付された状態で送信でき、「ファイルに保存」を選べば端末に保存できます。</strong>件名・本文の文面は自動でコピーされるので、メール画面で長押し→ペーストしてください。<br>
+    ● テキストでメール：標準メール（mailto）が起動します。会社携帯では会社メールに接続されない場合があるため、その際は上のPDF共有をご利用ください。<br>
+    ● 印刷プレビュー：従来どおり印刷画面を開きます。
   </p>
 </section>
 
@@ -514,6 +533,8 @@ select{
 
 <!-- ===== 印刷用レイアウト（PDF出力） ===== -->
 <div id="printArea"></div>
+<!-- ===== PDFファイル生成用（画面外） ===== -->
+<div id="pdfArea"></div>
 
 <script>
 "use strict";
@@ -1046,13 +1067,7 @@ function recordText(r){
     r.memo ? `備考　　　：${r.memo}` : ``,
   ].filter(l => l !== ``  || true).join("\n");
 }
-$("#btn-mail").addEventListener("click", () => {
-  const sel = selectedRecords();
-  if(!sel.length){ toast("⚠ 送信する日報を選択してください"); return; }
-  if(!mailCfg.to){
-    toast("⚠ 提出先メールアドレスが未設定です（マスタ設定タブ）");
-    return;
-  }
+function buildMailText(sel){
   const first = sel[0];
   const dateLabel = sel.length === 1 ? fmtDate(first.date)
                   : `${fmtDate(first.date)}〜${fmtDate(sel[sel.length-1].date)}`;
@@ -1061,12 +1076,94 @@ $("#btn-mail").addEventListener("click", () => {
     .replaceAll("{日付}", dateLabel).replaceAll("{氏名}", nameLabel);
   const body = sel.map(recordText).join("\n\n") +
     "\n\n--\n本メールは運転日報アプリから送信されています。";
-
+  return { subject, body };
+}
+$("#btn-mail").addEventListener("click", () => {
+  const sel = selectedRecords();
+  if(!sel.length){ toast("⚠ 送信する日報を選択してください"); return; }
+  if(!mailCfg.to){
+    toast("⚠ 提出先メールアドレスが未設定です（マスタ設定タブ）");
+    return;
+  }
+  const { subject, body } = buildMailText(sel);
   let url = "mailto:" + encodeURIComponent(mailCfg.to) +
     "?subject=" + encodeURIComponent(subject) +
     "&body=" + encodeURIComponent(body);
   if(mailCfg.cc) url += "&cc=" + encodeURIComponent(mailCfg.cc);
   location.href = url;
+});
+
+/* ============================================================
+   PDFファイル生成 → 共有（会社メール添付・端末保存用）
+============================================================ */
+function pdfFileName(sel){
+  const d = (sel[0].date || "").replaceAll("-", "");
+  const d2 = (sel[sel.length - 1].date || "").replaceAll("-", "");
+  return sel.length === 1 ? `unten-nippo-${d}.pdf` : `unten-nippo-${d}-${d2}.pdf`;
+}
+async function generatePdfBlob(sel){
+  const area = $("#pdfArea");
+  area.innerHTML = sel.map(buildPrintPage).join("");
+  try{
+    const blob = await html2pdf().set({
+      margin: [8, 8, 10, 8],
+      image: { type: "jpeg", quality: 0.95 },
+      html2canvas: { scale: 2, useCORS: true },
+      jsPDF: { unit: "mm", format: "a4", orientation: "portrait" },
+      pagebreak: { mode: ["css", "legacy"] }
+    }).from(area).outputPdf("blob");
+    return blob;
+  } finally {
+    area.innerHTML = "";
+  }
+}
+$("#btn-pdf-share").addEventListener("click", async () => {
+  const sel = selectedRecords();
+  if(!sel.length){ toast("⚠ PDF化する日報を選択してください"); return; }
+  const { subject, body } = buildMailText(sel);
+
+  // 件名・本文を先にクリップボードへ（メール画面で貼り付け用）
+  let copied = false;
+  try{
+    await navigator.clipboard.writeText(
+      "件名：" + subject + "\n宛先：" + (mailCfg.to || "（未設定）") +
+      (mailCfg.cc ? "\nCC：" + mailCfg.cc : "") + "\n\n" + body);
+    copied = true;
+  }catch(e){ /* コピー不可でも処理継続 */ }
+
+  toast("PDFを作成しています…しばらくお待ちください");
+  const btn = $("#btn-pdf-share");
+  btn.disabled = true;
+  try{
+    const blob = await generatePdfBlob(sel);
+    const fname = pdfFileName(sel);
+    const file = new File([blob], fname, { type: "application/pdf" });
+
+    if(navigator.canShare && navigator.canShare({ files: [file] })){
+      try{
+        await navigator.share({ files: [file], title: subject });
+        toast(copied ? "✅ 共有しました。件名・本文はコピー済みなので貼り付けできます"
+                     : "✅ 共有しました");
+        return;
+      }catch(err){
+        if(err && err.name === "AbortError"){ return; } // ユーザーがキャンセル
+        /* 共有不可 → ダウンロードにフォールバック */
+      }
+    }
+    // フォールバック：ダウンロード保存
+    const a = document.createElement("a");
+    a.href = URL.createObjectURL(blob);
+    a.download = fname;
+    document.body.appendChild(a);
+    a.click();
+    a.remove();
+    setTimeout(() => URL.revokeObjectURL(a.href), 30000);
+    toast("✅ PDFを保存しました（共有が使えないためダウンロードしました）");
+  }catch(err){
+    toast("⚠ PDFの作成に失敗しました。通信環境をご確認のうえ再度お試しください");
+  }finally{
+    btn.disabled = false;
+  }
 });
 
 /* ============================================================
