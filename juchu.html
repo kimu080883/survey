@@ -100,11 +100,11 @@
 </header>
 
 <main>
-  <div id="drop" tabindex="0" role="button" aria-label="契約書PDFを選択">
-    <strong>契約書PDFをここにドラッグ&ドロップ</strong>
-    <small>または下のボタンからパソコン内のファイルを選べます(複数可 / .pdf)</small>
+  <div id="drop" tabindex="0" role="button" aria-label="ファイルを選択">
+    <strong>契約書・請求書のPDFをここにドラッグ&ドロップ</strong>
+    <small>前回このアプリで作ったExcel(.xlsx)も入れられます → 続きからデータを追加できます</small>
     <button type="button" id="pick" class="pickbtn">ファイルを選択</button>
-    <input type="file" id="fileInput" accept=".pdf" multiple>
+    <input type="file" id="fileInput" accept=".pdf,.xlsx" multiple>
   </div>
 
   <div class="toolbar">
@@ -118,10 +118,10 @@
   <div class="tblwrap">
     <table id="tbl">
       <thead><tr>
-        <th></th><th>会社名</th><th>契約番号</th><th>契約日</th><th>工事名</th>
-        <th>工事内容</th><th>工事場所</th><th>工期</th><th>請負金額(円)</th><th>ファイル名</th>
+        <th></th><th>会社名</th><th>種別</th><th>番号</th><th>日付</th><th>工事名/件名</th>
+        <th>内容</th><th>場所</th><th>工期</th><th>金額(円)</th><th>ファイル名</th>
       </tr></thead>
-      <tbody id="tbody"><tr><td colspan="10" class="empty">まだ契約書が読み込まれていません。上の枠にPDFを入れると、ここに一覧が表示されます。</td></tr></tbody>
+      <tbody id="tbody"><tr><td colspan="11" class="empty">まだ何も読み込まれていません。PDF(契約書・請求書)や、前回作ったExcelを上の枠に入れてください。</td></tr></tbody>
     </table>
   </div>
   <p class="hint">読み取り結果はセルをクリックしてその場で修正できます。修正内容はExcelにそのまま反映されます。</p>
@@ -156,8 +156,12 @@ function ensureWorker(){
   return workerReady;
 }
 
-const records = [];   // {会社名,契約番号,契約日,工事名,工事内容,工事場所,工期,請負金額,ファイル名}
-const COLS = ["会社名","契約番号","契約日","工事名","工事内容","工事場所","工期","請負金額","ファイル名"];
+const records = [];   // {会社名,種別,契約番号,契約日,工事名,工事内容,工事場所,工期,請負金額,ファイル名}
+const COLS = ["会社名","種別","契約番号","契約日","工事名","工事内容","工事場所","工期","請負金額","ファイル名"];
+
+/* 重複判定キー(前回Excelの再取り込みや同じPDFの二重投入を防ぐ) */
+const keyOf = r => [r.会社名, r.契約番号, r.請負金額, r.ファイル名].join("|");
+const exists = r => records.some(x => keyOf(x) === keyOf(r));
 
 /* ---------- PDFテキスト抽出 ---------- */
 async function pdfToText(file){
@@ -190,13 +194,18 @@ async function pdfToText(file){
    実際の書式に合わせてこの配列にパターンを追加してください */
 const nk = s => s.normalize("NFKC");
 const PAT = {
-  契約番号: [/契約番号[::]?\s*([A-Za-z0-9\-]+)/, /注文番号[::]?\s*([A-Za-z0-9\-]+)/],
-  契約日:   [/契約日[::]?\s*([0-9]{4}年[0-9]{1,2}月[0-9]{1,2}日)/, /(令和[0-9]+年[0-9]{1,2}月[0-9]{1,2}日)/],
-  会社名:   [/受注者[\s ]*([\s\S]+?)[((]\s*以下/, /乙[::][\s ]*([^\n((]+?(?:株式会社|有限会社|合同会社)[^\n(( ]*)/],
-  工事名:   [/工\s*事\s*名\s+([^\n]+)/],
-  工事場所: [/工事場所\s+([^\n]+)/],
+  契約番号: [/契約番号[::]?\s*([A-Za-z0-9\-]+)/, /注文番号[::]?\s*([A-Za-z0-9\-]+)/,
+            /請求(?:書)?番号[::]?\s*([A-Za-z0-9\-]+)/, /(?:No|NO|№)[..::]?\s*([A-Za-z0-9\-]{3,})/],
+  契約日:   [/契約日[::]?\s*([0-9]{4}年[0-9]{1,2}月[0-9]{1,2}日)/, /請求日[::]?\s*([0-9]{4}年[0-9]{1,2}月[0-9]{1,2}日)/,
+            /発行日[::]?\s*([0-9]{4}年[0-9]{1,2}月[0-9]{1,2}日)/, /(令和[0-9]+年[0-9]{1,2}月[0-9]{1,2}日)/,
+            /([0-9]{4}年[0-9]{1,2}月[0-9]{1,2}日)/],
+  会社名:   [/受注者[\s ]*([\s\S]+?)[((]\s*以下/, /乙[::][\s ]*([^\n((]+?(?:株式会社|有限会社|合同会社)[^\n(( ]*)/,
+            /\n\s*((?:株式会社|有限会社|合同会社)[^\n  ]+)\s*\n/, /\n\s*([^\n  ]+(?:株式会社|有限会社|合同会社))\s*\n/],
+  工事名:   [/工\s*事\s*名\s+([^\n]+)/, /件\s*名[::]?\s+([^\n]+)/],
+  工事場所: [/工事場所\s+([^\n]+)/, /現場名[::]?\s+([^\n]+)/],
   工期:     [/工\s*期\s+([0-9]{4}年[^\n]+)/, /工\s*期\s+(令和[^\n]+)/],
-  請負金額: [/請負金額[\s ]*金?\s*([0-9,]+)\s*円/, /契約金額[\s ]*金?\s*([0-9,]+)\s*円/, /注文金額[\s ]*金?\s*([0-9,]+)\s*円/],
+  請負金額: [/請負金額[\s ]*金?\s*([0-9,]+)\s*円/, /契約金額[\s ]*金?\s*([0-9,]+)\s*円/, /注文金額[\s ]*金?\s*([0-9,]+)\s*円/,
+            /ご?請求金額(?:合計)?[^0-9\n]*?([0-9][0-9,]*)/, /合計(?:金額)?[^0-9\n]*?([0-9][0-9,]*)\s*円/],
 };
 function first(pats, text){
   for(const p of pats){ const m = text.match(p); if(m) return m[1].trim(); }
@@ -218,6 +227,7 @@ function parse(text, filename){
   const t = nk(text);
   const d = {ファイル名: filename};
   for(const k in PAT) d[k] = first(PAT[k], t);
+  d.種別 = /請\s*求\s*書/.test(t) ? "請求書" : /注\s*文\s*書/.test(t) ? "注文書" : /見\s*積/.test(t) ? "見積書" : /契\s*約\s*書/.test(t) ? "契約書" : "その他";
   d.会社名 = (d.会社名||"").replace(/\s+/g,"");
   d.工事内容 = extractNaiyou(t);
   const kin = (d.請負金額||"").replace(/,/g,"");
@@ -236,7 +246,7 @@ const fmt = n => n==null ? "" : n.toLocaleString("ja-JP");
 function render(){
   tbody.innerHTML = "";
   if(!records.length){
-    tbody.innerHTML = '<tr><td colspan="10" class="empty">まだ契約書が読み込まれていません。上の枠にPDFを入れると、ここに一覧が表示されます。</td></tr>';
+    tbody.innerHTML = '<tr><td colspan="11" class="empty">まだ何も読み込まれていません。PDF(契約書・請求書)や、前回作ったExcelを上の枠に入れてください。</td></tr>';
   }
   records.forEach((r, idx)=>{
     const tr = document.createElement("tr");
@@ -307,12 +317,53 @@ drop.addEventListener("drop", e=>handle(e.dataTransfer.files));
 input.onchange = ()=>{ handle(input.files); input.value=""; };
 
 async function handle(fileList){
-  const files = [...fileList].filter(f=>/\.pdf$/i.test(f.name));
-  if(!files.length){
-    status.textContent = "PDFファイルが見つかりません。ZIPの場合は解凍(展開)してから、中のPDFを入れてください。";
+  const all = [...fileList];
+  const pdfs  = all.filter(f=>/\.pdf$/i.test(f.name));
+  const xlsxs = all.filter(f=>/\.xlsx$/i.test(f.name));
+  if(!pdfs.length && !xlsxs.length){
+    status.textContent = "PDFまたはExcel(.xlsx)が見つかりません。ZIPの場合は解凍(展開)してから中のファイルを入れてください。";
     return;
   }
-  status.textContent = `読み取り中… 0/${files.length}`;
+
+  /* --- 前回のExcelを取り込み(重複は自動スキップ) --- */
+  for(const f of xlsxs){
+    try{
+      const wb = XLSX.read(await f.arrayBuffer(), {type:"array"});
+      const ws = wb.Sheets["全体一覧"] || wb.Sheets[wb.SheetNames[0]];
+      const rows = XLSX.utils.sheet_to_json(ws, {defval:""});
+      let added = 0, skipped = 0;
+      rows.forEach(r=>{
+        const comp = String(r["会社名"]||"").trim();
+        if(!comp) return;                                    // 合計行など
+        const kinRaw = r["金額(円)"] !== undefined ? r["金額(円)"] : r["請負金額(円)"];
+        const kin = typeof kinRaw === "number" ? Math.round(kinRaw)
+                  : /^\d+$/.test(String(kinRaw).replace(/,/g,"")) ? parseInt(String(kinRaw).replace(/,/g,""),10) : null;
+        const rec = {
+          会社名: comp,
+          種別:   String(r["種別"]||""),
+          契約番号: String(r["番号"]!==undefined ? r["番号"] : (r["契約番号"]||"")),
+          契約日:   String(r["日付"]!==undefined ? r["日付"] : (r["契約日"]||"")),
+          工事名:   String(r["工事名/件名"]!==undefined ? r["工事名/件名"] : (r["工事名"]||"")),
+          工事内容: String(r["内容"]!==undefined ? r["内容"] : (r["工事内容"]||"")),
+          工事場所: String(r["場所"]!==undefined ? r["場所"] : (r["工事場所"]||"")),
+          工期:     String(r["工期"]||""),
+          請負金額: kin,
+          ファイル名: String(r["ファイル名"]||""),
+        };
+        if(exists(rec)) skipped++;
+        else { records.push(rec); added++; }
+      });
+      log.insertAdjacentHTML("beforeend",
+        `<div class="ok">${f.name}(前回のExcel)→ ${added}件を追加` +
+        (skipped ? `、重複${skipped}件はスキップ` : "") + `</div>`);
+    }catch(err){
+      log.insertAdjacentHTML("beforeend", `<div class="warnl">${f.name}:Excelの読み込みに失敗しました(${err.message})</div>`);
+    }
+  }
+
+  /* --- PDFを読み取り --- */
+  const files = pdfs;
+  status.textContent = files.length ? `読み取り中… 0/${files.length}` : "";
   let done = 0;
   for(const f of files){
     try{
@@ -320,12 +371,16 @@ async function handle(fileList){
       if(!text.trim()){
         log.insertAdjacentHTML("beforeend",
           `<div class="warnl">${f.name}:文字を取り出せませんでした(スキャン画像のみのPDFの可能性)。行を追加したので手入力してください。</div>`);
-        records.push({会社名:"(会社名不明)",契約番号:"",契約日:"",工事名:"",工事内容:"",工事場所:"",工期:"",請負金額:null,ファイル名:f.name});
+        records.push({会社名:"(会社名不明)",種別:"",契約番号:"",契約日:"",工事名:"",工事内容:"",工事場所:"",工期:"",請負金額:null,ファイル名:f.name});
       }else{
         const r = parse(text, f.name);
-        records.push(r);
-        log.insertAdjacentHTML("beforeend",
-          `<div class="ok">${f.name} → ${r.会社名} / ${r.請負金額!=null ? "¥"+r.請負金額.toLocaleString() : "金額 要確認"}</div>`);
+        if(exists(r)){
+          log.insertAdjacentHTML("beforeend", `<div class="warnl">${f.name}:同じデータが既にあるためスキップしました</div>`);
+        }else{
+          records.push(r);
+          log.insertAdjacentHTML("beforeend",
+            `<div class="ok">${f.name} → ${r.種別} / ${r.会社名} / ${r.請負金額!=null ? "¥"+r.請負金額.toLocaleString() : "金額 要確認"}</div>`);
+        }
       }
     }catch(err){
       log.insertAdjacentHTML("beforeend", `<div class="warnl">${f.name}:読み取りに失敗しました(${err.message})</div>`);
@@ -343,18 +398,18 @@ document.getElementById("clear").onclick = ()=>{
 /* ---------- Excel出力(全体一覧+会社別シート、SUM式付き) ---------- */
 document.getElementById("dl").onclick = ()=>{
   const wb = XLSX.utils.book_new();
-  const HEAD = ["会社名","契約番号","契約日","工事名","工事内容","工事場所","工期","請負金額(円)","ファイル名"];
+  const HEAD = ["会社名","種別","番号","日付","工事名/件名","内容","場所","工期","金額(円)","ファイル名"];
 
   function buildSheet(rows, withCompany){
     const head = withCompany ? HEAD : HEAD.slice(1);
     const aoa = [head];
     rows.forEach(r=>{
-      const line = [r.契約番号,r.契約日,r.工事名,r.工事内容,r.工事場所,r.工期,r.請負金額,r.ファイル名];
+      const line = [r.種別,r.契約番号,r.契約日,r.工事名,r.工事内容,r.工事場所,r.工期,r.請負金額,r.ファイル名];
       aoa.push(withCompany ? [r.会社名,...line] : line);
     });
     const ws = XLSX.utils.aoa_to_sheet(aoa);
     if(!rows.length) return ws;
-    const kinCol = withCompany ? 7 : 6;              // 0始まり
+    const kinCol = withCompany ? 8 : 7;              // 0始まり(金額列)
     const colL = XLSX.utils.encode_col(kinCol);
     const last = rows.length + 1;                     // 1始まり最終データ行
     const sumRow = last + 1;
@@ -362,7 +417,7 @@ document.getElementById("dl").onclick = ()=>{
     ws[colL+sumRow] = {t:"n", f:`SUM(${colL}2:${colL}${last})`, z:"#,##0"};
     for(let i=2;i<=last;i++){ const c = ws[colL+i]; if(c && c.t==="n") c.z = "#,##0"; }
     ws["!cols"] = (withCompany?[{wch:22}]:[]).concat(
-      [{wch:13},{wch:13},{wch:36},{wch:46},{wch:24},{wch:28},{wch:14},{wch:32}]);
+      [{wch:9},{wch:13},{wch:13},{wch:34},{wch:44},{wch:22},{wch:26},{wch:14},{wch:32}]);
     if(!ws["!ref"].includes(colL+sumRow)){ // 範囲をSUM行まで拡張
       const rng = XLSX.utils.decode_range(ws["!ref"]); rng.e.r = sumRow-1;
       ws["!ref"] = XLSX.utils.encode_range(rng);
