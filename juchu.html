@@ -1,0 +1,385 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>受発注 振り分けツール|契約書PDF → Excel</title>
+<script src="https://cdn.jsdelivr.net/npm/pdfjs-dist@3.11.174/build/pdf.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+<style>
+  :root{
+    --ai:#1d3a5f;        /* 藍色(帳票の枠色) */
+    --ai-deep:#14293f;
+    --shu:#c0392b;       /* 朱肉の赤(判子) */
+    --paper:#f7f5f0;     /* 上質紙 */
+    --line:#d8d3c8;
+    --ink:#2b2a26;
+    --ok:#2e7d52;
+    --warn:#b26a00;
+    --mono:"Yu Gothic","Hiragino Kaku Gothic ProN","Noto Sans JP",sans-serif;
+  }
+  *{box-sizing:border-box;margin:0;padding:0}
+  body{font-family:var(--mono);background:var(--paper);color:var(--ink);line-height:1.6}
+
+  header{background:var(--ai);color:#fff;padding:26px 28px 22px;position:relative;overflow:hidden}
+  header::after{content:"受発注";position:absolute;right:-10px;top:-30px;font-size:120px;font-weight:900;
+    color:rgba(255,255,255,.05);letter-spacing:.05em;pointer-events:none}
+  .hanko{display:inline-flex;align-items:center;justify-content:center;width:46px;height:46px;border:2.5px solid var(--shu);
+    border-radius:50%;color:#ff6b5b;font-weight:900;font-size:15px;line-height:1.1;text-align:center;
+    transform:rotate(-8deg);margin-right:14px;vertical-align:middle;flex:0 0 auto}
+  .htitle{display:flex;align-items:center}
+  h1{font-size:20px;font-weight:800;letter-spacing:.04em}
+  header p{font-size:12.5px;opacity:.75;margin-top:4px}
+
+  main{max-width:1100px;margin:0 auto;padding:26px 20px 60px}
+
+  /* ドロップゾーン */
+  #drop{border:2px dashed var(--ai);border-radius:6px;background:#fff;padding:42px 20px;text-align:center;
+    cursor:pointer;transition:background .15s,border-color .15s}
+  #drop.over{background:#e9eef5;border-color:var(--shu)}
+  #drop strong{font-size:16px;color:var(--ai)}
+  #drop small{display:block;color:#8a8578;margin-top:6px;font-size:12px}
+  #fileInput{display:none}
+  .pickbtn{display:inline-block;margin-top:16px;background:var(--ai);color:#fff;border:1.5px solid var(--ai);
+    font-size:14px;font-weight:700;padding:11px 26px;border-radius:4px;cursor:pointer}
+  .pickbtn:hover{background:var(--ai-deep)}
+  .pickbtn:focus-visible{outline:3px solid var(--shu);outline-offset:2px}
+
+  .toolbar{display:flex;gap:10px;align-items:center;margin:18px 0 8px;flex-wrap:wrap}
+  button{font-family:inherit;font-size:13.5px;font-weight:700;padding:10px 18px;border-radius:4px;border:1.5px solid var(--ai);
+    cursor:pointer;background:#fff;color:var(--ai);transition:.12s}
+  button:hover{background:#eef2f7}
+  button:focus-visible{outline:3px solid var(--shu);outline-offset:2px}
+  button.primary{background:var(--ai);color:#fff}
+  button.primary:hover{background:var(--ai-deep)}
+  button:disabled{opacity:.4;cursor:not-allowed}
+  #status{font-size:12.5px;color:#6d6a60}
+
+  /* 集計カード */
+  #summary{display:flex;gap:12px;flex-wrap:wrap;margin:16px 0}
+  .card{background:#fff;border:1px solid var(--line);border-left:4px solid var(--ai);border-radius:4px;
+    padding:12px 16px;min-width:190px}
+  .card .comp{font-size:13px;font-weight:800;color:var(--ai)}
+  .card .amt{font-size:18px;font-weight:800;letter-spacing:.02em;margin-top:2px}
+  .card .cnt{font-size:11.5px;color:#8a8578}
+  .card.total{border-left-color:var(--shu)}
+  .card.total .comp{color:var(--shu)}
+
+  /* テーブル */
+  .tblwrap{overflow-x:auto;background:#fff;border:1px solid var(--line);border-radius:4px}
+  table{border-collapse:collapse;width:100%;font-size:12.5px;min-width:980px}
+  th{background:var(--ai);color:#fff;font-weight:700;padding:8px 10px;text-align:left;white-space:nowrap;
+    position:sticky;top:0}
+  td{border-bottom:1px solid #eceae3;padding:7px 10px;vertical-align:top}
+  tr:nth-child(even) td{background:#fbfaf7}
+  td[contenteditable]{cursor:text}
+  td[contenteditable]:focus{outline:2px solid var(--shu);outline-offset:-2px;background:#fff8f0}
+  td.num{text-align:right;font-variant-numeric:tabular-nums;white-space:nowrap}
+  td.ng{color:var(--warn);font-weight:700}
+  .del{border:none;background:none;color:#b0aa9c;font-size:15px;cursor:pointer;padding:2px 6px}
+  .del:hover{color:var(--shu)}
+  .hint{font-size:11.5px;color:#8a8578;margin:8px 2px 24px}
+  .empty{padding:34px;text-align:center;color:#9a958a;font-size:13px}
+
+  #log{font-size:12px;margin-top:14px}
+  #log div{padding:2px 0}
+  .ok::before{content:"✔ ";color:var(--ok)} .warnl::before{content:"⚠ ";color:var(--warn)}
+  #fatal{background:var(--shu);color:#fff;font-size:13.5px;font-weight:700;padding:12px 20px;line-height:1.5}
+  @media (prefers-reduced-motion:reduce){*{transition:none!important}}
+</style>
+</head>
+<body>
+<header>
+  <div class="htitle">
+    <span class="hanko">受発注<br>整理</span>
+    <div>
+      <h1>受発注 振り分けツール</h1>
+      <p>契約書・注文書のPDFを読み取り、会社ごとに請負金額・工事内容を振り分けてExcelに変換します。データはこのブラウザ内だけで処理され、外部には送信されません。</p>
+    </div>
+  </div>
+</header>
+
+<main>
+  <div id="drop" tabindex="0" role="button" aria-label="契約書PDFを選択">
+    <strong>契約書PDFをここにドラッグ&ドロップ</strong>
+    <small>または下のボタンからパソコン内のファイルを選べます(複数可 / .pdf)</small>
+    <button type="button" id="pick" class="pickbtn">ファイルを選択</button>
+    <input type="file" id="fileInput" accept=".pdf" multiple>
+  </div>
+
+  <div class="toolbar">
+    <button class="primary" id="dl" disabled>Excelをダウンロード</button>
+    <button id="clear" disabled>すべてクリア</button>
+    <span id="status"></span>
+  </div>
+
+  <div id="summary"></div>
+
+  <div class="tblwrap">
+    <table id="tbl">
+      <thead><tr>
+        <th></th><th>会社名</th><th>契約番号</th><th>契約日</th><th>工事名</th>
+        <th>工事内容</th><th>工事場所</th><th>工期</th><th>請負金額(円)</th><th>ファイル名</th>
+      </tr></thead>
+      <tbody id="tbody"><tr><td colspan="10" class="empty">まだ契約書が読み込まれていません。上の枠にPDFを入れると、ここに一覧が表示されます。</td></tr></tbody>
+    </table>
+  </div>
+  <p class="hint">読み取り結果はセルをクリックしてその場で修正できます。修正内容はExcelにそのまま反映されます。</p>
+
+  <div id="log"></div>
+</main>
+
+<script>
+/* ---------- 起動チェック(読み込み失敗を画面で知らせる) ---------- */
+const WORKER_URL = "https://cdn.jsdelivr.net/npm/pdfjs-dist@3.11.174/build/pdf.worker.min.js";
+function showFatal(msg){
+  let b = document.getElementById("fatal");
+  if(!b){ b = document.createElement("div"); b.id = "fatal"; document.body.prepend(b); }
+  b.textContent = msg;
+}
+window.addEventListener("error", e => showFatal("エラーが発生しました:" + e.message));
+if(typeof pdfjsLib === "undefined" || typeof XLSX === "undefined"){
+  showFatal("読み取り用ライブラリを読み込めませんでした。インターネットに接続した状態でこのファイルを開き直してください。社内ネットワークの場合は cdnjs.cloudflare.com への接続がブロックされていないかご確認ください。");
+}
+
+/* PDFワーカーを一度ダウンロードして同一オリジン(Blob)で起動する。
+   PCに保存したHTML(file://)ではCDNのワーカーを直接起動できないための対策 */
+let workerReady = null;
+function ensureWorker(){
+  if(!workerReady){
+    workerReady = fetch(WORKER_URL)
+      .then(r => { if(!r.ok) throw new Error("worker http " + r.status); return r.blob(); })
+      .then(b => { pdfjsLib.GlobalWorkerOptions.workerSrc = URL.createObjectURL(b); })
+      .catch(() => { if(!pdfjsLib.GlobalWorkerOptions.workerSrc)
+                       pdfjsLib.GlobalWorkerOptions.workerSrc = WORKER_URL; });
+  }
+  return workerReady;
+}
+
+const records = [];   // {会社名,契約番号,契約日,工事名,工事内容,工事場所,工期,請負金額,ファイル名}
+const COLS = ["会社名","契約番号","契約日","工事名","工事内容","工事場所","工期","請負金額","ファイル名"];
+
+/* ---------- PDFテキスト抽出 ---------- */
+async function pdfToText(file){
+  await ensureWorker();
+  const buf = await file.arrayBuffer();
+  const pdf = await pdfjsLib.getDocument({
+    data: buf,
+    cMapUrl: "https://cdn.jsdelivr.net/npm/pdfjs-dist@3.11.174/cmaps/",
+    cMapPacked: true
+  }).promise;
+  let text = "";
+  for(let p = 1; p <= pdf.numPages; p++){
+    const page = await pdf.getPage(p);
+    const tc = await page.getTextContent();
+    // Y座標で行を再構成(帳票レイアウト対策)
+    const lines = {};
+    tc.items.forEach(it => {
+      const y = Math.round(it.transform[5]);
+      (lines[y] = lines[y] || []).push(it);
+    });
+    Object.keys(lines).map(Number).sort((a,b)=>b-a).forEach(y=>{
+      lines[y].sort((a,b)=>a.transform[4]-b.transform[4]);
+      text += lines[y].map(i=>i.str).join(" ") + "\n";
+    });
+  }
+  return text;
+}
+
+/* ---------- 項目抽出(正規表現) ----------
+   実際の書式に合わせてこの配列にパターンを追加してください */
+const nk = s => s.normalize("NFKC");
+const PAT = {
+  契約番号: [/契約番号[::]?\s*([A-Za-z0-9\-]+)/, /注文番号[::]?\s*([A-Za-z0-9\-]+)/],
+  契約日:   [/契約日[::]?\s*([0-9]{4}年[0-9]{1,2}月[0-9]{1,2}日)/, /(令和[0-9]+年[0-9]{1,2}月[0-9]{1,2}日)/],
+  会社名:   [/受注者[\s ]*([\s\S]+?)[((]\s*以下/, /乙[::][\s ]*([^\n((]+?(?:株式会社|有限会社|合同会社)[^\n(( ]*)/],
+  工事名:   [/工\s*事\s*名\s+([^\n]+)/],
+  工事場所: [/工事場所\s+([^\n]+)/],
+  工期:     [/工\s*期\s+([0-9]{4}年[^\n]+)/, /工\s*期\s+(令和[^\n]+)/],
+  請負金額: [/請負金額[\s ]*金?\s*([0-9,]+)\s*円/, /契約金額[\s ]*金?\s*([0-9,]+)\s*円/, /注文金額[\s ]*金?\s*([0-9,]+)\s*円/],
+};
+function first(pats, text){
+  for(const p of pats){ const m = text.match(p); if(m) return m[1].trim(); }
+  return "";
+}
+function extractNaiyou(text){
+  const i = text.search(/工事内容/);
+  if(i < 0) return "";
+  const before = text.slice(0, i).split("\n").filter(l=>l.trim());
+  const prev = before.length ? before[before.length-1].trim() : "";
+  let tail = text.slice(i + 4);
+  const stop = tail.search(/請負金額|契約金額|工\s*期|支払条件/);
+  if(stop >= 0) tail = tail.slice(0, stop);
+  let body = tail.split("\n").map(l=>l.trim()).filter(Boolean).join(" ");
+  if(prev && !/工事場所|工\s*事\s*名|契約|発注|受注/.test(prev)) body = (prev+" "+body).trim();
+  return body;
+}
+function parse(text, filename){
+  const t = nk(text);
+  const d = {ファイル名: filename};
+  for(const k in PAT) d[k] = first(PAT[k], t);
+  d.会社名 = (d.会社名||"").replace(/\s+/g,"");
+  d.工事内容 = extractNaiyou(t);
+  const kin = (d.請負金額||"").replace(/,/g,"");
+  d.請負金額 = /^\d+$/.test(kin) ? parseInt(kin,10) : null;
+  if(!d.会社名){
+    const m = filename.match(/((?:株式会社|有限会社|合同会社)?[^_\s]*(?:株式会社|有限会社|建設|工業|塗装|電気工事)[^_.\s]*)/);
+    d.会社名 = m ? m[1] : "(会社名不明)";
+  }
+  return d;
+}
+
+/* ---------- 画面表示 ---------- */
+const tbody = document.getElementById("tbody");
+const fmt = n => n==null ? "" : n.toLocaleString("ja-JP");
+
+function render(){
+  tbody.innerHTML = "";
+  if(!records.length){
+    tbody.innerHTML = '<tr><td colspan="10" class="empty">まだ契約書が読み込まれていません。上の枠にPDFを入れると、ここに一覧が表示されます。</td></tr>';
+  }
+  records.forEach((r, idx)=>{
+    const tr = document.createElement("tr");
+    const del = document.createElement("td");
+    del.innerHTML = `<button class="del" title="この行を削除" aria-label="行を削除">✕</button>`;
+    del.querySelector("button").onclick = ()=>{ records.splice(idx,1); render(); };
+    tr.appendChild(del);
+    COLS.forEach(k=>{
+      const td = document.createElement("td");
+      const isNum = k==="請負金額";
+      td.textContent = isNum ? fmt(r[k]) : (r[k]||"");
+      if(k!=="ファイル名"){
+        td.contentEditable = "plaintext-only";
+        td.addEventListener("blur", ()=>{
+          if(isNum){
+            const v = td.textContent.replace(/[,,円\s]/g,"");
+            r[k] = /^\d+$/.test(v) ? parseInt(v,10) : null;
+            td.textContent = fmt(r[k]);
+            td.classList.toggle("ng", r[k]==null);
+            renderSummary();
+          }else{
+            r[k] = td.textContent.trim();
+            if(k==="会社名") renderSummary();
+          }
+        });
+      }
+      if(isNum){ td.classList.add("num"); if(r[k]==null){td.classList.add("ng"); td.textContent="要確認";} }
+      tr.appendChild(td);
+    });
+    tbody.appendChild(tr);
+  });
+  renderSummary();
+  document.getElementById("dl").disabled = !records.length;
+  document.getElementById("clear").disabled = !records.length;
+}
+
+function renderSummary(){
+  const box = document.getElementById("summary");
+  box.innerHTML = "";
+  if(!records.length) return;
+  const g = {};
+  records.forEach(r=>{ (g[r.会社名]=g[r.会社名]||[]).push(r); });
+  let total = 0, cnt = 0;
+  Object.keys(g).forEach(c=>{
+    const sum = g[c].reduce((a,r)=>a+(r.請負金額||0),0);
+    total += sum; cnt += g[c].length;
+    box.insertAdjacentHTML("beforeend",
+      `<div class="card"><div class="comp">${c}</div><div class="amt">¥${sum.toLocaleString()}</div><div class="cnt">${g[c].length}件</div></div>`);
+  });
+  box.insertAdjacentHTML("afterbegin",
+    `<div class="card total"><div class="comp">全社合計</div><div class="amt">¥${total.toLocaleString()}</div><div class="cnt">${cnt}件 / ${Object.keys(g).length}社</div></div>`);
+}
+
+/* ---------- ファイル受け取り ---------- */
+const drop = document.getElementById("drop");
+const input = document.getElementById("fileInput");
+const log = document.getElementById("log");
+const status = document.getElementById("status");
+
+const pick = document.getElementById("pick");
+
+pick.onclick = e=>{ e.stopPropagation(); input.click(); };   // 明示ボタン
+drop.onclick = e=>{ if(e.target !== pick) input.click(); };    // 枠のどこでも可(ボタン以外)
+drop.onkeydown = e=>{ if(e.key==="Enter"||e.key===" "){ e.preventDefault(); input.click(); } };
+["dragover","dragenter"].forEach(ev=>drop.addEventListener(ev, e=>{e.preventDefault();drop.classList.add("over");}));
+["dragleave","drop"].forEach(ev=>drop.addEventListener(ev, e=>{e.preventDefault();drop.classList.remove("over");}));
+drop.addEventListener("drop", e=>handle(e.dataTransfer.files));
+input.onchange = ()=>{ handle(input.files); input.value=""; };
+
+async function handle(fileList){
+  const files = [...fileList].filter(f=>/\.pdf$/i.test(f.name));
+  if(!files.length){
+    status.textContent = "PDFファイルが見つかりません。ZIPの場合は解凍(展開)してから、中のPDFを入れてください。";
+    return;
+  }
+  status.textContent = `読み取り中… 0/${files.length}`;
+  let done = 0;
+  for(const f of files){
+    try{
+      const text = await pdfToText(f);
+      if(!text.trim()){
+        log.insertAdjacentHTML("beforeend",
+          `<div class="warnl">${f.name}:文字を取り出せませんでした(スキャン画像のみのPDFの可能性)。行を追加したので手入力してください。</div>`);
+        records.push({会社名:"(会社名不明)",契約番号:"",契約日:"",工事名:"",工事内容:"",工事場所:"",工期:"",請負金額:null,ファイル名:f.name});
+      }else{
+        const r = parse(text, f.name);
+        records.push(r);
+        log.insertAdjacentHTML("beforeend",
+          `<div class="ok">${f.name} → ${r.会社名} / ${r.請負金額!=null ? "¥"+r.請負金額.toLocaleString() : "金額 要確認"}</div>`);
+      }
+    }catch(err){
+      log.insertAdjacentHTML("beforeend", `<div class="warnl">${f.name}:読み取りに失敗しました(${err.message})</div>`);
+    }
+    status.textContent = `読み取り中… ${++done}/${files.length}`;
+  }
+  status.textContent = `${records.length}件 読み込み済み`;
+  render();
+}
+
+document.getElementById("clear").onclick = ()=>{
+  records.length = 0; log.innerHTML = ""; status.textContent = ""; render();
+};
+
+/* ---------- Excel出力(全体一覧+会社別シート、SUM式付き) ---------- */
+document.getElementById("dl").onclick = ()=>{
+  const wb = XLSX.utils.book_new();
+  const HEAD = ["会社名","契約番号","契約日","工事名","工事内容","工事場所","工期","請負金額(円)","ファイル名"];
+
+  function buildSheet(rows, withCompany){
+    const head = withCompany ? HEAD : HEAD.slice(1);
+    const aoa = [head];
+    rows.forEach(r=>{
+      const line = [r.契約番号,r.契約日,r.工事名,r.工事内容,r.工事場所,r.工期,r.請負金額,r.ファイル名];
+      aoa.push(withCompany ? [r.会社名,...line] : line);
+    });
+    const ws = XLSX.utils.aoa_to_sheet(aoa);
+    if(!rows.length) return ws;
+    const kinCol = withCompany ? 7 : 6;              // 0始まり
+    const colL = XLSX.utils.encode_col(kinCol);
+    const last = rows.length + 1;                     // 1始まり最終データ行
+    const sumRow = last + 1;
+    XLSX.utils.sheet_add_aoa(ws, [["合計"]], {origin: XLSX.utils.encode_cell({r:sumRow-1, c:kinCol-1})});
+    ws[colL+sumRow] = {t:"n", f:`SUM(${colL}2:${colL}${last})`, z:"#,##0"};
+    for(let i=2;i<=last;i++){ const c = ws[colL+i]; if(c && c.t==="n") c.z = "#,##0"; }
+    ws["!cols"] = (withCompany?[{wch:22}]:[]).concat(
+      [{wch:13},{wch:13},{wch:36},{wch:46},{wch:24},{wch:28},{wch:14},{wch:32}]);
+    if(!ws["!ref"].includes(colL+sumRow)){ // 範囲をSUM行まで拡張
+      const rng = XLSX.utils.decode_range(ws["!ref"]); rng.e.r = sumRow-1;
+      ws["!ref"] = XLSX.utils.encode_range(rng);
+    }
+    return ws;
+  }
+
+  XLSX.utils.book_append_sheet(wb, buildSheet(records, true), "全体一覧");
+  const g = {};
+  records.forEach(r=>{ (g[r.会社名]=g[r.会社名]||[]).push(r); });
+  Object.keys(g).forEach(c=>{
+    const name = c.replace(/[\[\]:*?\/\\]/g,"").slice(0,31) || "不明";
+    XLSX.utils.book_append_sheet(wb, buildSheet(g[c], false), name);
+  });
+  const d = new Date(), z = n=>String(n).padStart(2,"0");
+  XLSX.writeFile(wb, `受発注一覧_${d.getFullYear()}${z(d.getMonth()+1)}${z(d.getDate())}.xlsx`);
+};
+</script>
+</body>
+</html>
