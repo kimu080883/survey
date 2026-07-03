@@ -11,8 +11,9 @@
 <link rel="icon" href='data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64"><rect width="64" height="64" rx="14" fill="%231B2A4A"/><rect x="13" y="46" width="5" height="11" rx="1.5" fill="%236B7488"/><rect x="24" y="46" width="5" height="11" rx="1.5" fill="%236B7488"/><rect x="35" y="46" width="5" height="11" rx="1.5" fill="%236B7488"/><rect x="46" y="46" width="5" height="11" rx="1.5" fill="%236B7488"/><rect x="6" y="48" width="52" height="4" rx="2" fill="%23AEB6C6"/><path d="M14 40 q0 -12 10 -13 l14 -1 q10 0 14 8 l3 6 q1 2 -1 2 l-38 0 q-2 0 -2 -2 z" fill="%23FF6B35"/><path d="M27 29 l10 -0.8 q6 0 9 5.8 l-19 0 z" fill="%23BFE7FF"/><circle cx="22" cy="43" r="6" fill="%232B3245"/><circle cx="22" cy="43" r="2.6" fill="%23FFD35C"/><circle cx="44" cy="43" r="6" fill="%232B3245"/><circle cx="44" cy="43" r="2.6" fill="%23FFD35C"/><circle cx="51.5" cy="36.5" r="1.8" fill="%23FFF3B0"/><path d="M31 36 q3 2.4 6 0" stroke="%23fff" stroke-width="1.6" fill="none" stroke-linecap="round"/></svg>'>
 <!-- ▼ SheetJS（Excel読み込みライブラリ）をCDNから読み込み -->
 <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
-<!-- ▼ html2pdf（PDF生成ライブラリ）をCDNから読み込み -->
-<script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
+<!-- ▼ PDF生成ライブラリ（html2canvas＋jsPDF）をCDNから読み込み -->
+<script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
 <style>
 :root{
   --navy:#1B2A4A;      /* レールの鋼色（メイン） */
@@ -218,8 +219,8 @@ select{
 }
 #toast.show{opacity:1;transform:translateX(-50%) translateY(0)}
 
-/* ===== PDF生成用（画面外レンダリング） ===== */
-#pdfArea{position:fixed;left:-10000px;top:0;width:733px;background:#fff;color:#000;
+/* ===== PDF生成用（生成中のみ表示・オーバーレイで隠す） ===== */
+#pdfArea{display:none;position:absolute;left:0;top:0;width:794px;background:#fff;color:#000;z-index:2000;
   font-family:"Hiragino Sans","Hiragino Kaku Gothic ProN","Yu Gothic",Meiryo,sans-serif;}
 #pdfArea .p-page{page-break-after:always;padding:14px 8px 24px;font-size:13px;line-height:1.55}
 #pdfArea .p-title{text-align:center;font-size:20px;font-weight:800;letter-spacing:.3em;margin-bottom:4px}
@@ -232,6 +233,15 @@ select{
 #pdfArea .p-judge-ng{font-weight:800;text-decoration:underline}
 #pdfArea .p-sign{display:flex;justify-content:flex-end;gap:14px;margin-top:16px}
 #pdfArea .p-sign div{border:1px solid #000;width:84px;height:84px;font-size:10px;text-align:center;padding-top:4px}
+
+/* ===== PDF作成中オーバーレイ ===== */
+#pdfBusy{display:none;position:fixed;inset:0;z-index:3000;background:rgba(27,42,74,.96);
+  color:#fff;flex-direction:column;align-items:center;justify-content:center;gap:16px;
+  font-size:1rem;font-weight:700;}
+#pdfBusy .spin{width:44px;height:44px;border-radius:50%;
+  border:4px solid rgba(255,255,255,.25);border-top-color:var(--orange);
+  animation:spin .8s linear infinite;}
+@keyframes spin{to{transform:rotate(360deg)}}
 
 /* ===== 印刷（PDF）レイアウト ===== */
 #printArea{display:none}
@@ -535,6 +545,8 @@ select{
 <div id="printArea"></div>
 <!-- ===== PDFファイル生成用（画面外） ===== -->
 <div id="pdfArea"></div>
+<!-- ===== PDF作成中オーバーレイ ===== -->
+<div id="pdfBusy"><div class="spin"></div><div>PDFを作成しています…</div></div>
 
 <script>
 "use strict";
@@ -1096,30 +1108,60 @@ $("#btn-mail").addEventListener("click", () => {
 /* ============================================================
    PDFファイル生成 → 共有（会社メール添付・端末保存用）
 ============================================================ */
+function fmtDateJPName(d){
+  if(!d) return "日付未設定";
+  const [y, m, dd] = d.split("-").map(Number);
+  return `${y}年${m}月${dd}日`;
+}
 function pdfFileName(sel){
-  const d = (sel[0].date || "").replaceAll("-", "");
-  const d2 = (sel[sel.length - 1].date || "").replaceAll("-", "");
-  return sel.length === 1 ? `unten-nippo-${d}.pdf` : `unten-nippo-${d}-${d2}.pdf`;
+  const names = [...new Set(sel.map(r => (r.driver || "").split(/[\s　]+/)[0]))]
+    .filter(Boolean).join("・") || "運転者";
+  const d1 = fmtDateJPName(sel[0].date);
+  const d2 = fmtDateJPName(sel[sel.length - 1].date);
+  const span = (d1 === d2) ? d1 : `${d1}〜${d2}`;
+  return `運転日報報告(${names})(${span}).pdf`;
 }
 async function generatePdfBlob(sel){
   const area = $("#pdfArea");
+  const busy = $("#pdfBusy");
   area.innerHTML = sel.map(buildPrintPage).join("");
+  busy.style.display = "flex";
+  area.style.display = "block";
+  window.scrollTo(0, 0);
+  await new Promise(r => setTimeout(r, 200)); // レイアウト確定を待つ
   try{
-    const blob = await html2pdf().set({
-      margin: [8, 8, 10, 8],
-      image: { type: "jpeg", quality: 0.95 },
-      html2canvas: { scale: 2, useCORS: true },
-      jsPDF: { unit: "mm", format: "a4", orientation: "portrait" },
-      pagebreak: { mode: ["css", "legacy"] }
-    }).from(area).outputPdf("blob");
-    return blob;
+    const { jsPDF } = window.jspdf;
+    const pdf = new jsPDF({ unit: "mm", format: "a4", orientation: "portrait" });
+    const pages = area.querySelectorAll(".p-page");
+    const pageW = 210, pageH = 297, mg = 8;
+    for(let i = 0; i < pages.length; i++){
+      // 1ページずつ描画（iPhoneのキャンバスサイズ上限を回避）
+      const canvas = await html2canvas(pages[i], {
+        scale: 2, backgroundColor: "#ffffff", logging: false,
+        scrollX: 0, scrollY: 0
+      });
+      const img = canvas.toDataURL("image/jpeg", 0.92);
+      let w = pageW - mg * 2;
+      let h = canvas.height * w / canvas.width;
+      const maxH = pageH - mg * 2;
+      if(h > maxH){ w = w * maxH / h; h = maxH; }
+      if(i > 0) pdf.addPage();
+      pdf.addImage(img, "JPEG", mg, mg, w, h);
+    }
+    return pdf.output("blob");
   } finally {
+    area.style.display = "none";
+    busy.style.display = "none";
     area.innerHTML = "";
   }
 }
 $("#btn-pdf-share").addEventListener("click", async () => {
   const sel = selectedRecords();
   if(!sel.length){ toast("⚠ PDF化する日報を選択してください"); return; }
+  if(typeof html2canvas === "undefined" || !window.jspdf){
+    toast("⚠ PDF機能の読み込みに失敗しています。通信環境の良い場所でページを再読み込みしてください");
+    return;
+  }
   const { subject, body } = buildMailText(sel);
 
   // 件名・本文を先にクリップボードへ（メール画面で貼り付け用）
@@ -1131,7 +1173,6 @@ $("#btn-pdf-share").addEventListener("click", async () => {
     copied = true;
   }catch(e){ /* コピー不可でも処理継続 */ }
 
-  toast("PDFを作成しています…しばらくお待ちください");
   const btn = $("#btn-pdf-share");
   btn.disabled = true;
   try{
