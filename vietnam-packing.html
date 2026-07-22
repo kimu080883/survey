@@ -1,0 +1,348 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, viewport-fit=cover">
+<title>ベトナム旅行 持ち物リスト</title>
+
+<!-- ホーム画面アプリ設定 -->
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="default">
+<meta name="apple-mobile-web-app-title" content="ベトナム旅行">
+<meta name="theme-color" content="#f6d7e5">
+<!-- ホーム画面アイコン（同じフォルダの vietnam-packing-icon.png を使用） -->
+<link rel="apple-touch-icon" href="vietnam-packing-icon.png">
+<link rel="icon" href="vietnam-packing-icon.png">
+
+<style>
+  :root{
+    --page:#f6d7e5; --card:#fffafc; --frame:#f3c9db;
+    --script:#e5308a; --cat:#9d6b7b; --catline:#e9c8d5;
+    --text:#3d3a3c; --sub:#a99ba1; --box:#d8b6c5; --accent:#ef4f9a;
+  }
+  *{box-sizing:border-box;-webkit-tap-highlight-color:transparent;}
+  html,body{margin:0;padding:0;}
+  body{
+    background:var(--page);
+    font-family:-apple-system,"Hiragino Sans","Hiragino Kaku Gothic ProN","Noto Sans JP",sans-serif;
+    color:var(--text);
+    padding:
+      calc(env(safe-area-inset-top) + 6px)
+      calc(env(safe-area-inset-right) + 8px)
+      calc(env(safe-area-inset-bottom) + 14px)
+      calc(env(safe-area-inset-left) + 8px);
+  }
+  .wrap{max-width:560px;margin:0 auto;}
+  .card{
+    background:var(--card);
+    border:2px solid var(--frame);
+    border-radius:28px;
+    box-shadow:0 8px 24px rgba(214,120,160,.18);
+    padding:20px 16px 26px;
+  }
+
+  /* ---- header ---- */
+  header{text-align:center;margin-bottom:6px;}
+  .script{
+    font-family:"Snell Roundhand","Apple Chancery","Segoe Script",cursive;
+    color:var(--script);
+    font-size:42px;line-height:1.05;font-weight:700;
+    letter-spacing:.5px;margin:2px 0 0;
+    text-shadow:0 1px 0 rgba(255,255,255,.6);
+  }
+  .subttl{
+    color:#cf6fa0;font-size:12px;font-weight:700;
+    letter-spacing:.34em;margin:2px 0 0;
+  }
+  .trip{
+    display:inline-block;margin-top:10px;
+    background:#fbe6f0;color:var(--cat);
+    font-size:13px;font-weight:700;
+    padding:5px 14px;border-radius:999px;
+  }
+
+  /* ---- progress ---- */
+  .prog{margin:16px 4px 4px;}
+  .prog .row{display:flex;justify-content:space-between;align-items:center;font-size:13px;color:var(--sub);}
+  .prog .count{color:var(--accent);font-weight:700;}
+  .bar{height:8px;background:#f4dbe6;border-radius:999px;margin-top:6px;overflow:hidden;}
+  .bar > i{display:block;height:100%;width:0;background:linear-gradient(90deg,#f78fbb,#ef4f9a);border-radius:999px;transition:width .25s;}
+  .reset{background:none;border:none;color:#c78ba3;font-size:12px;padding:4px 2px;text-decoration:underline;cursor:pointer;}
+
+  /* ---- sections ---- */
+  section{margin-top:20px;}
+  .cat{
+    color:var(--cat);font-weight:800;font-size:18px;
+    letter-spacing:.14em;margin:0 0 6px;
+    padding-bottom:6px;border-bottom:1.5px solid var(--catline);
+  }
+  ul{list-style:none;margin:0;padding:0;}
+  li.item{
+    display:flex;align-items:flex-start;gap:11px;
+    padding:8px 6px;border-radius:12px;cursor:pointer;
+  }
+  li.item:active{background:#fdeef5;}
+  .box{
+    width:26px;height:26px;flex:0 0 26px;margin-top:1px;
+    border:2px solid var(--box);border-radius:7px;
+    background:#fff;display:flex;align-items:center;justify-content:center;
+    transition:background .12s,border-color .12s;
+  }
+  .box svg{width:16px;height:16px;opacity:0;transform:scale(.5);transition:.15s;}
+  .item.checked .box{background:linear-gradient(135deg,#f78fbb,#ef4f9a);border-color:#ef4f9a;}
+  .item.checked .box svg{opacity:1;transform:scale(1);}
+  .label{font-size:17px;line-height:1.5;padding-top:1px;color:var(--text);}
+  .label .sub{color:var(--sub);font-size:12px;margin-left:2px;}
+  .bag{margin-left:4px;font-size:15px;}
+  .item.checked .label{color:#c3b3bb;text-decoration:line-through;}
+  .del{
+    margin-left:auto;flex:0 0 auto;align-self:center;
+    color:#e39ab9;font-size:20px;line-height:1;padding:2px 6px;border-radius:8px;
+  }
+  .del:active{background:#fbe0ec;}
+
+  /* ---- add item ---- */
+  .add{color:var(--accent);font-size:15px;font-weight:700;padding:9px 6px 4px;cursor:pointer;display:inline-flex;align-items:center;gap:6px;}
+  .add-box{display:none;gap:8px;padding:6px 4px 2px;}
+  .add-box.on{display:flex;}
+  .add-box input{
+    flex:1;font-size:16px;padding:9px 11px;border:1.5px solid var(--frame);
+    border-radius:10px;outline:none;color:var(--text);background:#fff;
+  }
+  .add-box input:focus{border-color:var(--accent);}
+  .add-box button{
+    font-size:15px;font-weight:700;border:none;border-radius:10px;
+    padding:0 14px;color:#fff;background:var(--accent);cursor:pointer;
+  }
+
+  /* ---- note ---- */
+  .note{background:#fdeaf3;border-radius:18px;padding:16px;margin-top:24px;}
+  .note .cat{border:none;padding:0;margin-bottom:8px;}
+  .note textarea{
+    width:100%;border:none;background:transparent;resize:vertical;
+    min-height:96px;font-size:16px;line-height:1.6;color:var(--text);
+    font-family:inherit;outline:none;
+  }
+
+  /* ---- footer ---- */
+  footer{margin-top:22px;text-align:center;}
+  .legend{font-size:13px;color:var(--sub);}
+  .plane{color:var(--accent);font-size:26px;margin-top:4px;}
+  .credit{font-size:12px;color:#c3a9b4;margin-top:2px;}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <div class="card">
+    <header>
+      <div class="script">Solo female traveler</div>
+      <div class="subttl">PACKING CHECKLIST</div>
+      <div class="trip">🇻🇳 ベトナム旅行 ・ 7月29日</div>
+    </header>
+
+    <div class="prog">
+      <div class="row">
+        <span>準備 <span class="count" id="cnt">0 / 0</span></span>
+        <button class="reset" id="reset">すべてのチェックを外す</button>
+      </div>
+      <div class="bar"><i id="barfill"></i></div>
+    </div>
+
+    <div id="list"></div>
+
+    <div class="note">
+      <div class="cat">NOTE：</div>
+      <textarea id="note" placeholder="メモ（航空券の便名・ホテル名・持って行くか迷っている物 など）"></textarea>
+    </div>
+
+    <footer>
+      <div class="legend">🧳 ＝ 手荷物（機内に持ち込む物）</div>
+      <div class="plane">✈︎</div>
+      <div class="credit">@misatrip.com</div>
+    </footer>
+  </div>
+</div>
+
+<script>
+/* ===== データ（元のリストを忠実に再現）===== */
+const SECTIONS = [
+  { title:"IMPORTANT", items:[
+    {t:"パスポート", bag:true},
+    {t:"パスポートコピー"},
+    {t:"ビザ（VISA,査証）", bag:true},
+    {t:"お財布", bag:true},
+    {t:"クレジットカード（2枚）", bag:true},
+    {t:"国際キャッシュカード（1枚）", bag:true},
+    {t:"現金（両替用の日本円）", bag:true},
+  ]},
+  { title:"TOILETRIES", items:[
+    {t:"コスメ用品"},
+    {t:"ブラシ", sub:"アイシャドウブラシなど"},
+    {t:"化粧水"},
+    {t:"美容液"},
+    {t:"クリーム"},
+    {t:"日焼け止め"},
+    {t:"リップクリーム"},
+    {t:"クレンジング"},
+    {t:"洗顔"},
+    {t:"コンタクト用品", sub:"保存液・眼鏡"},
+    {t:"生理用品"},
+    {t:"歯ブラシ"},
+    {t:"歯磨き粉"},
+    {t:"ウェットティッシュ", bag:true},
+    {t:"シャンプー"},
+    {t:"リンス"},
+    {t:"石鹸（ボディーソープ）"},
+    {t:"ヘアスプレー（バームなど）"},
+    {t:"クシ"},
+  ]},
+  { title:"CLOTTHES & BAGS", items:[
+    {t:"スーツケース"},
+    {t:"観光用のカバン"},
+    {t:"エコバッグ"},
+    {t:"下着×日数分"},
+    {t:"トップス×日数分"},
+    {t:"ボトムス×日数分"},
+    {t:"ワンピース"},
+    {t:"パジャマ"},
+    {t:"靴"},
+    {t:"靴下×日数分+1足"},
+    {t:"アクセサリー"},
+  ]},
+  { title:"ELECTRONICS", items:[
+    {t:"ヘアアイロン"},
+    {t:"カメラ・充電器", bag:true},
+    {t:"スマートフォン"},
+    {t:"全世界対応　変換プラグ"},
+    {t:"モバイルバッテリー", bag:true},
+    {t:"スマホの充電器"},
+  ]},
+  { title:"OTHERS", items:[
+    {t:"筆記用具", bag:true},
+    {t:"医薬品・サプリメント", bag:true},
+    {t:"ガイドブック"},
+  ]},
+];
+
+const KEY = "vn_pack_v1";
+const CHECK = '<svg viewBox="0 0 24 24" fill="none"><path d="M4 12.5l5 5L20 6" stroke="#fff" stroke-width="3.4" stroke-linecap="round" stroke-linejoin="round"/></svg>';
+
+/* ===== 保存データ ===== */
+let store = load();
+function load(){
+  try{ return JSON.parse(localStorage.getItem(KEY)) || {}; }catch(e){ return {}; }
+}
+function save(){ try{ localStorage.setItem(KEY, JSON.stringify(store)); }catch(e){} }
+store.checked = store.checked || {};      // { id:true }
+store.custom  = store.custom  || {};      // { sectionIndex:[{id,t}] }
+store.note    = store.note    || "";
+
+/* ===== 描画 ===== */
+const listEl = document.getElementById("list");
+function render(){
+  listEl.innerHTML = "";
+  SECTIONS.forEach((sec, si)=>{
+    const s = document.createElement("section");
+    const h = document.createElement("div");
+    h.className = "cat"; h.textContent = sec.title;
+    s.appendChild(h);
+
+    const ul = document.createElement("ul");
+    // 元の項目
+    sec.items.forEach((it, ii)=>{
+      ul.appendChild(makeItem("d_"+si+"_"+ii, it.t, it.sub, it.bag, false, si));
+    });
+    // 追加された項目
+    (store.custom[si]||[]).forEach(c=>{
+      ul.appendChild(makeItem(c.id, c.t, null, false, true, si));
+    });
+    s.appendChild(ul);
+
+    // ＋ 追加
+    const add = document.createElement("div");
+    add.className = "add"; add.innerHTML = "＋ 項目を追加";
+    const box = document.createElement("div");
+    box.className = "add-box";
+    const inp = document.createElement("input");
+    inp.type="text"; inp.placeholder="追加する物を入力";
+    const btn = document.createElement("button"); btn.textContent="追加";
+    box.appendChild(inp); box.appendChild(btn);
+
+    add.onclick = ()=>{ box.classList.add("on"); inp.focus(); };
+    const doAdd = ()=>{
+      const v = inp.value.trim(); if(!v) return;
+      store.custom[si] = store.custom[si] || [];
+      store.custom[si].push({ id:"c_"+Date.now(), t:v });
+      save(); render(); updateProgress();
+    };
+    btn.onclick = doAdd;
+    inp.addEventListener("keydown", e=>{ if(e.key==="Enter") doAdd(); });
+
+    s.appendChild(add); s.appendChild(box);
+    listEl.appendChild(s);
+  });
+  updateProgress();
+}
+
+function makeItem(id, text, sub, bag, deletable, si){
+  const li = document.createElement("li");
+  li.className = "item" + (store.checked[id] ? " checked" : "");
+
+  const b = document.createElement("div");
+  b.className = "box"; b.innerHTML = CHECK;
+
+  const lab = document.createElement("div");
+  lab.className = "label";
+  lab.appendChild(document.createTextNode(text));
+  if(sub){ const sp=document.createElement("span"); sp.className="sub"; sp.textContent="（"+sub+"）"; lab.appendChild(sp); }
+  if(bag){ const bg=document.createElement("span"); bg.className="bag"; bg.textContent="🧳"; lab.appendChild(bg); }
+
+  li.appendChild(b); li.appendChild(lab);
+
+  // 追加項目は削除ボタン付き
+  if(deletable){
+    const del = document.createElement("div");
+    del.className="del"; del.textContent="×";
+    del.onclick = (e)=>{
+      e.stopPropagation();
+      store.custom[si] = (store.custom[si]||[]).filter(c=>c.id!==id);
+      delete store.checked[id];
+      save(); render();
+    };
+    li.appendChild(del);
+  }
+
+  li.onclick = ()=>{
+    if(store.checked[id]) delete store.checked[id];
+    else store.checked[id] = true;
+    li.classList.toggle("checked");
+    save(); updateProgress();
+  };
+  return li;
+}
+
+/* ===== 進捗 ===== */
+function updateProgress(){
+  const boxes = document.querySelectorAll(".item");
+  const done = document.querySelectorAll(".item.checked").length;
+  const total = boxes.length;
+  document.getElementById("cnt").textContent = done + " / " + total;
+  document.getElementById("barfill").style.width = total ? (done/total*100)+"%" : "0%";
+}
+
+/* ===== NOTE ===== */
+const noteEl = document.getElementById("note");
+noteEl.value = store.note;
+noteEl.addEventListener("input", ()=>{ store.note = noteEl.value; save(); });
+
+/* ===== リセット ===== */
+document.getElementById("reset").onclick = ()=>{
+  if(confirm("すべてのチェックを外します。よろしいですか？（追加した項目・メモは残ります）")){
+    store.checked = {}; save(); render();
+  }
+};
+
+render();
+</script>
+</body>
+</html>
