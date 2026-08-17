@@ -27,7 +27,7 @@ body{
   background-image:
     linear-gradient(var(--grid) .5px,transparent .5px),
     linear-gradient(90deg,var(--grid) .5px,transparent .5px);
-  background-size:24px 24px;
+  background-size:24px 24px;background-attachment:fixed;
   color:var(--ink);
   font-family:var(--go);
   font-size:15px;line-height:1.65;
@@ -68,6 +68,7 @@ body{
 .flag .l{font-size:10.5px;letter-spacing:.1em;color:var(--ink-2);font-family:var(--mono)}
 .flag .v{font-family:var(--mono);font-size:19px;font-weight:700;line-height:1.25;margin-top:1px}
 .flag .m{font-size:11px;color:var(--ink-2);margin-top:1px}
+.flag.span2{grid-column:1/-1}
 .warn .v{color:var(--aka)}
 
 /* ---- 見出し ---- */
@@ -103,16 +104,35 @@ details[open] summary::before{content:"▾ ";}
 .f .u{width:26px;flex:none;font-size:11.5px;color:var(--ink-2);font-family:var(--mono)}
 
 /* 臨時支出 */
-#extras .row{display:flex;gap:5px;margin-bottom:5px;align-items:center}
-#extras .row input[type=text]{flex:1;width:auto;text-align:left}
-#extras .row input.age{width:52px}
-#extras .row input.amt{width:70px}
-#extras .row button{
-  border:1px solid var(--rule);background:#fff;color:var(--aka);
-  width:28px;height:29px;font-size:15px;line-height:1;cursor:pointer;border-radius:0;
+#extras .row{border-bottom:1px dotted var(--rule);padding:6px 0 7px}
+#extras .r1{display:flex;gap:5px;align-items:center}
+#extras .r1 input{
+  flex:1;width:auto;text-align:left;font-family:var(--go);font-size:13.5px;
+  padding:5px 7px;border:1px solid var(--rule);background:#fff;color:var(--ink);border-radius:0;
 }
+#extras .r2{
+  font-size:11px;color:var(--ink-2);font-family:var(--mono);
+  margin-top:4px;padding-left:1px;white-space:nowrap;
+}
+#extras .r2 input.n{
+  width:46px;text-align:right;font-family:var(--mono);font-size:13px;
+  padding:2px 4px;margin:0 2px;border:1px solid var(--rule);background:#fff;
+  color:var(--ink);border-radius:0;
+}
+#extras .r1 button{
+  border:1px solid var(--rule);background:#fff;
+  width:30px;height:30px;flex:none;font-size:15px;line-height:1;cursor:pointer;border-radius:0;
+}
+#extras .r1 button.cp{color:var(--ai);font-size:14px}
+#extras .r1 button.dl{color:var(--aka)}
+#extras .r1 button:active{background:#EFEFE2}
+.extot{
+  font-family:var(--mono);font-size:12px;color:var(--ink-2);
+  margin-top:9px;padding-top:7px;border-top:1px solid var(--rule);
+}
+.extot b{color:var(--aka);font-size:14px}
 .addbtn{
-  margin-top:4px;border:1px solid var(--yacho);background:var(--yacho);color:#EDF2EC;
+  margin-top:8px;border:1px solid var(--yacho);background:var(--yacho);color:#EDF2EC;
   padding:7px 14px;font-size:12.5px;font-family:var(--mono);cursor:pointer;border-radius:0;
 }
 
@@ -153,8 +173,22 @@ tr.ev td{
 tr.ev td .in{color:var(--ai)}
 .foot{font-size:11.5px;color:var(--ink-2);padding:9px 11px;line-height:1.55;border-top:1px solid var(--rule)}
 
-.memo{font-size:12.5px;color:var(--ink-2);line-height:1.6;margin-top:10px}
+.memo{
+  background:#FBFAF4;border:1px solid var(--rule);border-left:4px solid var(--yacho);
+  padding:13px 14px;margin-top:14px;
+  font-size:13px;color:var(--ink-2);line-height:1.75;
+}
+.memo .h{
+  font-family:var(--min);font-size:13px;letter-spacing:.12em;color:var(--yacho);
+  font-weight:600;margin-bottom:6px;
+}
 .memo b{color:var(--ink)}
+.memo p{margin:0 0 9px}
+.memo p:last-child{margin-bottom:0}
+.memo .sw{
+  display:inline-block;width:9px;height:9px;vertical-align:middle;
+  margin:0 3px 2px 0;border:1px solid rgba(0,0,0,.25);
+}
 @media (max-width:400px){
   tbody td{font-size:12.5px;padding:5px 3px}
   .answer .big{font-size:34px}
@@ -191,6 +225,11 @@ tr.ev td .in{color:var(--ai)}
       <div class="l">60歳の元手</div>
       <div class="v" id="r60V">—</div>
       <div class="m">ローン完済後・取崩し前</div>
+    </div>
+    <div class="flag span2">
+      <div class="l">家電・住宅の更新費（43〜85歳）</div>
+      <div class="v" id="exV">—</div>
+      <div class="m" id="exM">—</div>
     </div>
   </div>
 
@@ -241,9 +280,10 @@ tr.ev td .in{color:var(--ai)}
         <div class="f"><label>85歳に残しておく額</label><input id="target" type="number" step="100"><span class="u">万</span></div>
       </div>
 
-      <div class="grp"><div class="t">臨時の出費</div>
+      <div class="grp"><div class="t">家電・住宅の更新（⧉でコピー／周期0年＝1回だけ）</div>
         <div id="extras"></div>
-        <button class="addbtn" id="addEx">＋ 行を足す</button>
+        <div class="extot" id="exTot">—</div>
+        <button class="addbtn" id="addEx">＋ 項目を足す</button>
       </div>
 
     </div>
@@ -261,8 +301,13 @@ tr.ev td .in{color:var(--ai)}
   </div>
 
   <div class="memo">
-    <b>読み方</b>　「増減」はその年に貯金が増えた／減った額。「残高」は年末に手元にある現金。「iDeCo」は60歳まで引き出せないお金なので別勘定にしています。「月々」はその年に生活に回せる額で、59歳までは手取りから積立とローンを引いた残り、60歳からは残高を85歳まで割った額です。<br><br>
-    <b>藍色</b>が入ってくるお金、<b>朱色</b>が出ていくお金。●印は節目の年です。
+    <div class="h">読み方</div>
+    <p><b>増減</b>　その年に手元の貯金が増えた／減った額。</p>
+    <p><b>残高</b>　年末に手元にある現金。ここが薄くなる年が危ない年です。</p>
+    <p><b>iDeCo</b>　60歳まで引き出せないお金なので、残高とは別に積み上げています。60歳の行で合流します。</p>
+    <p><b>月々</b>　生活に回せる額。59歳までは手取りから積立とローンを引いた残り、60歳からは残高を85歳まで割った額です。</p>
+    <p><span class="sw" style="background:#1C4E77"></span><b>藍</b>が入ってくるお金、<span class="sw" style="background:#B03027"></span><b>朱</b>が出ていくお金。<b>●</b>印は節目の年です。</p>
+    <p>数字はこの端末に残ります。年に一度、通帳を見て「普通貯金」を実額に直せば、そこから先が引き直されます。</p>
   </div>
 
 </div>
@@ -279,10 +324,25 @@ tr.ev td .in{color:var(--ai)}
     wifeY:180, nenkin:32, target:1000
   };
   var EX = [
-    {age:55, name:"外壁塗装", amt:150},
-    {age:62, name:"家電の入替", amt:60},
-    {age:72, name:"家電の入替", amt:60},
-    {age:78, name:"住宅の修繕", amt:100}
+    {name:"洗濯機（ドラム式）",     age:44, amt:25,  cyc:10},
+    {name:"エアコン リビング",       age:45, amt:22,  cyc:14},
+    {name:"冷蔵庫",                 age:45, amt:25,  cyc:13},
+    {name:"シロアリ防除",           age:45, amt:10,  cyc:5},
+    {name:"外壁・屋根の塗装",       age:46, amt:130, cyc:15},
+    {name:"給湯器（エコキュート）", age:46, amt:45,  cyc:13},
+    {name:"電子レンジ・炊飯器ほか", age:46, amt:10,  cyc:8},
+    {name:"エアコン 寝室",          age:47, amt:13,  cyc:14},
+    {name:"食洗機",                 age:47, amt:15,  cyc:11},
+    {name:"テレビ",                 age:48, amt:15,  cyc:12},
+    {name:"IHヒーター・レンジフード",age:49, amt:30, cyc:15},
+    {name:"エアコン 子供部屋",      age:50, amt:13,  cyc:14},
+    {name:"トイレ 2ヶ所",           age:52, amt:35,  cyc:18},
+    {name:"洗面台・浴室の水栓",     age:53, amt:20,  cyc:18},
+    {name:"クロス・床の張替え",     age:55, amt:60,  cyc:20},
+    {name:"ユニットバス交換",       age:58, amt:110, cyc:25},
+    {name:"給排水管の更新",         age:62, amt:70,  cyc:0},
+    {name:"玄関ドア・サッシ",       age:65, amt:40,  cyc:0},
+    {name:"屋根の葺き替え",         age:74, amt:160, cyc:0}
   ];
   var KEY="shisan_yacho_v1";
 
@@ -331,15 +391,33 @@ tr.ev td .in{color:var(--ai)}
   }
   function sgn(n){ return (n>=0?"+":"")+fmt(n); }
 
+  /* --- 周期をひろげて 43〜85歳 の実出費に変換 --- */
+  function expand(){
+    var out=[];
+    EX.forEach(function(e){
+      var a=Math.round(e.age), c=Math.round(e.cyc||0), amt=+e.amt||0;
+      if(a<A0||a>A1) { if(a>A1) return; }
+      if(c>0){
+        for(var x=a; x<=A1; x+=c){ if(x>=A0) out.push({age:x,name:e.name,amt:amt}); }
+      }else if(a>=A0&&a<=A1){
+        out.push({age:a,name:e.name,amt:amt});
+      }
+    });
+    return out;
+  }
+
   /* --- 臨時支出の行 --- */
   function drawEx(){
     var h="";
     EX.forEach(function(e,i){
       h+='<div class="row">'
-       + '<input class="age" type="number" value="'+e.age+'" data-i="'+i+'" data-f="age">'
-       + '<input type="text" value="'+String(e.name).replace(/"/g,"&quot;")+'" data-i="'+i+'" data-f="name">'
-       + '<input class="amt" type="number" value="'+e.amt+'" data-i="'+i+'" data-f="amt">'
-       + '<button data-del="'+i+'">×</button></div>';
+       + '<div class="r1"><input type="text" value="'+String(e.name).replace(/"/g,"&quot;")+'" data-i="'+i+'" data-f="name">'
+       + '<button class="cp" data-cp="'+i+'" title="この行をコピー">⧉</button>'
+       + '<button class="dl" data-del="'+i+'" title="この行を消す">×</button></div>'
+       + '<div class="r2">初回 <input class="n" type="number" value="'+e.age+'" data-i="'+i+'" data-f="age">歳'
+       + '　金額 <input class="n" type="number" value="'+e.amt+'" data-i="'+i+'" data-f="amt">万'
+       + '　周期 <input class="n" type="number" value="'+(e.cyc||0)+'" data-i="'+i+'" data-f="cyc">年</div>'
+       + '</div>';
     });
     document.getElementById("extras").innerHTML=h;
   }
@@ -350,12 +428,24 @@ tr.ev td .in{color:var(--ai)}
     render();
   });
   document.getElementById("extras").addEventListener("click",function(ev){
+    var cp=ev.target.getAttribute("data-cp");
+    if(cp!=null){
+      var s=EX[+cp];
+      var n=String(s.name), mm=n.match(/^(.*?)\s*(\d+)$/);
+      n = mm ? (mm[1]+" "+(+mm[2]+1)) : (n+" 2");
+      EX.splice(+cp+1,0,{name:n, age:s.age, amt:s.amt, cyc:s.cyc||0});
+      drawEx(); render();
+      var rows=document.getElementById("extras").children;
+      var t=rows[+cp+1]&&rows[+cp+1].querySelector('input[type=text]');
+      if(t){ t.focus(); t.select&&t.select(); }
+      return;
+    }
     var d=ev.target.getAttribute("data-del");
     if(d==null) return;
     EX.splice(+d,1); drawEx(); render();
   });
   document.getElementById("addEx").addEventListener("click",function(){
-    EX.push({age:65,name:"予定外の出費",amt:50}); drawEx(); render();
+    EX.push({name:"項目を書く",age:60,amt:20,cyc:0}); drawEx(); render();
   });
 
   var A0=43, A1=85, BORN=1983;
@@ -370,6 +460,8 @@ tr.ev td .in{color:var(--ai)}
   function build(){
     var v=read(), r=v.idR/100;
     var rows=[], cash=v.cash+v.zaiB, ideco=0;
+    var XL=expand(), exTotal=0;
+    XL.forEach(function(e){ exTotal+=e.amt; });
 
     /* --- 43〜59歳 --- */
     for(var age=A0; age<=59; age++){
@@ -381,7 +473,7 @@ tr.ev td .in{color:var(--ai)}
       if(age>=v.hsA && age<v.hsA+3){ d-=v.hsY; ev.push({t:"高校",a:-v.hsY}); }
       if(age>=v.unA && age<v.unA+4){ d-=v.unY; ev.push({t:"大学",a:-v.unY}); }
       if(age===Math.round(v.carA)){ d-=v.carV; ev.push({t:"車の買替",a:-v.carV}); }
-      EX.forEach(function(e){ if(Math.round(e.age)===age){ d-=e.amt; ev.push({t:e.name,a:-e.amt}); } });
+      XL.forEach(function(e){ if(e.age===age){ d-=e.amt; ev.push({t:e.name,a:-e.amt}); } });
 
       cash += d;
       rows.push({age:age,d:d,cash:cash,ideco:ideco,ev:ev,
@@ -394,7 +486,7 @@ tr.ev td .in{color:var(--ai)}
     /* --- 60〜85歳の月額を逆算 --- */
     var inflow = v.wifeY*5 + v.nenkin*12*21;
     var exLate = 0;
-    EX.forEach(function(e){ var a=Math.round(e.age); if(a>=60&&a<=A1) exLate+=e.amt; });
+    XL.forEach(function(e){ if(e.age>=60) exLate+=e.amt; });
     var yearly = (cash60 + inflow - exLate - v.target) / (A1-60+1);
     var monthly = yearly/12;
 
@@ -415,17 +507,13 @@ tr.ev td .in{color:var(--ai)}
       if(age===65){ ev.push({t:"年金がはじまる",a:0}); node=true; }
       var out = yearly;
       var exY=0;
-      EX.forEach(function(e){ if(Math.round(e.age)===age){ exY+=e.amt; ev.push({t:e.name,a:-e.amt}); } });
+      XL.forEach(function(e){ if(e.age===age){ exY+=e.amt; ev.push({t:e.name,a:-e.amt}); } });
 
-      if(age===60){
-        c = c + inc - out - exY;
-        rows.push({age:60,d:d+inc-out-exY,cash:c,ideco:0,ev:ev,m:monthly,node:true});
-      }else{
-        c = c + inc - out - exY;
-        rows.push({age:age,d:inc-out-exY,cash:c,ideco:0,ev:ev,m:monthly,node:node||exY>0});
-      }
+      c = c + inc - out - exY;
+      rows.push({age:age,d:(age===60? d+inc-out-exY : inc-out-exY),
+        cash:c,ideco:0,ev:ev,m:monthly,node:node||exY>0});
     }
-    return {rows:rows, monthly:monthly, cash60:cash60};
+    return {rows:rows, monthly:monthly, cash60:cash60, exTotal:exTotal};
   }
 
   function render(){
@@ -447,6 +535,10 @@ tr.ev td .in{color:var(--ai)}
     document.getElementById("lowM").textContent = low.age+"歳（"+(BORN+low.age)+"年）";
     if(low.cash<200) fl.classList.add("warn"); else fl.classList.remove("warn");
     document.getElementById("r60V").textContent = fmt(R.cash60)+"万";
+    document.getElementById("exTot").innerHTML =
+      "43〜85歳の更新費 合計 <b>"+fmt(R.exTotal)+"万円</b>（年あたり "+Math.round(R.exTotal/43)+"万円）";
+    document.getElementById("exV").textContent = fmt(R.exTotal)+"万";
+    document.getElementById("exM").textContent = "年あたり "+Math.round(R.exTotal/43)+"万円";
 
     /* 表 */
     var h="", phase=null;
