@@ -63,6 +63,21 @@ body{
 .answer .big small{font-size:16px;font-weight:600;letter-spacing:0;margin-left:3px}
 .answer .note{font-size:12.5px;color:var(--ink-2);line-height:1.5}
 
+.nenkin{
+  border:1px solid var(--rule);border-top:3px solid var(--ai);
+  background:#FBFAF4;padding:11px 13px 12px;margin-bottom:12px;
+}
+.nenkin>.l{font-size:11px;letter-spacing:.12em;color:var(--ink-2);font-family:var(--mono);margin-bottom:6px}
+.nenkin .row{display:flex;align-items:baseline;gap:6px}
+.nenkin .c{flex:1;display:flex;flex-direction:column}
+.nenkin .c.tot{border-left:1px solid var(--rule);padding-left:9px;flex:1.15}
+.nenkin .k{font-size:10.5px;color:var(--ink-2);font-family:var(--mono);letter-spacing:.06em}
+.nenkin .v{font-family:var(--mono);font-size:20px;font-weight:700;color:var(--ai);line-height:1.2}
+.nenkin .c.tot .v{font-size:26px}
+.nenkin .n{
+  font-size:11.5px;color:var(--ink-2);line-height:1.5;
+  margin-top:8px;padding-top:7px;border-top:1px dotted var(--rule);
+}
 .flags{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:14px}
 .flag{border:1px solid var(--rule);background:#FBFAF4;padding:9px 10px}
 .flag .l{font-size:10.5px;letter-spacing:.1em;color:var(--ink-2);font-family:var(--mono)}
@@ -215,6 +230,16 @@ tr.ev td .in{color:var(--ai)}
     <div class="note" id="ansNote">—</div>
   </div>
 
+  <div class="nenkin">
+    <div class="l">65歳からの年金（世帯）</div>
+    <div class="row">
+      <div class="c"><span class="k">あなた</span><span class="v" id="nkMe">—</span></div>
+      <div class="c"><span class="k">奥さま</span><span class="v" id="nkWife">—</span></div>
+      <div class="c tot"><span class="k">合計 月額</span><span class="v" id="nkSum">—</span></div>
+    </div>
+    <div class="n" id="nkNote">—</div>
+  </div>
+
   <div class="flags">
     <div class="flag" id="fLow">
       <div class="l">最少残高</div>
@@ -276,7 +301,8 @@ tr.ev td .in{color:var(--ai)}
 
       <div class="grp"><div class="t">60歳以降の収入</div>
         <div class="f"><label>奥さまの年収（60〜64歳）</label><input id="wifeY" type="number" step="10"><span class="u">万</span></div>
-        <div class="f"><label>世帯年金 月額（65歳〜）</label><input id="nenkin" type="number" step="1"><span class="u">万</span></div>
+        <div class="f"><label>あなたの年金 月額（65歳〜）</label><input id="nenkinMe" type="number" step="0.5"><span class="u">万</span></div>
+        <div class="f"><label>奥さまの年金 月額（65歳〜）</label><input id="nenkinWife" type="number" step="0.5"><span class="u">万</span></div>
         <div class="f"><label>85歳に残しておく額</label><input id="target" type="number" step="100"><span class="u">万</span></div>
       </div>
 
@@ -293,7 +319,7 @@ tr.ev td .in{color:var(--ai)}
   <div class="book">
     <table>
       <thead><tr>
-        <th>年齢</th><th>増減</th><th>残高</th><th>iDeCo</th><th>月々</th>
+        <th>年齢</th><th>収入</th><th>増減</th><th>残高</th><th>月々</th>
       </tr></thead>
       <tbody id="tb"></tbody>
     </table>
@@ -302,10 +328,10 @@ tr.ev td .in{color:var(--ai)}
 
   <div class="memo">
     <div class="h">読み方</div>
-    <p><b>増減</b>　その年に手元の貯金が増えた／減った額。</p>
+    <p><b>収入</b>　60歳からはその年に入ってくる額（60〜64歳は奥さまの給与、65歳からは世帯年金）。59歳までは代わりに<b>［iDeCoの積み上がり］</b>を角カッコで表示しています。60歳まで引き出せないお金なので、残高とは別勘定です。</p>
+    <p><b>増減</b>　その年に手元の貯金が増えた／減った額。60歳以降は「収入 − 生活費 − 更新費」なので、年金より生活費が多ければマイナスになります。</p>
     <p><b>残高</b>　年末に手元にある現金。ここが薄くなる年が危ない年です。</p>
-    <p><b>iDeCo</b>　60歳まで引き出せないお金なので、残高とは別に積み上げています。60歳の行で合流します。</p>
-    <p><b>月々</b>　生活に回せる額。59歳までは手取りから積立とローンを引いた残り、60歳からは残高を85歳まで割った額です。</p>
+    <p><b>月々</b>　生活に回せる額。59歳までは手取りから積立とローンを引いた残り、60歳からは残高と年金を85歳まで割った額です。</p>
     <p><span class="sw" style="background:#1C4E77"></span><b>藍</b>が入ってくるお金、<span class="sw" style="background:#B03027"></span><b>朱</b>が出ていくお金。<b>●</b>印は節目の年です。</p>
     <p>数字はこの端末に残ります。年に一度、通帳を見て「普通貯金」を実額に直せば、そこから先が引き直されます。</p>
   </div>
@@ -321,7 +347,7 @@ tr.ev td .in{color:var(--ai)}
     hsA:45, hsY:50, unA:48, unY:125,
     carA:49, carV:700,
     taishoku:1450, kojin:1000,
-    wifeY:180, nenkin:32, target:1000
+    wifeY:180, nenkinMe:20, nenkinWife:12, target:1000
   };
   var EX = [
     {name:"洗濯機（ドラム式）",     age:44, amt:25,  cyc:10},
@@ -460,6 +486,7 @@ tr.ev td .in{color:var(--ai)}
   function build(){
     var v=read(), r=v.idR/100;
     var rows=[], cash=v.cash+v.zaiB, ideco=0;
+    var nk = v.nenkinMe + v.nenkinWife;          /* 世帯年金 月額 */
     var XL=expand(), exTotal=0;
     XL.forEach(function(e){ exTotal+=e.amt; });
 
@@ -476,7 +503,7 @@ tr.ev td .in{color:var(--ai)}
       XL.forEach(function(e){ if(e.age===age){ d-=e.amt; ev.push({t:e.name,a:-e.amt}); } });
 
       cash += d;
-      rows.push({age:age,d:d,cash:cash,ideco:ideco,ev:ev,
+      rows.push({age:age,d:d,cash:cash,ideco:ideco,inc:0,ev:ev,
         m: v.take - v.mSave - v.mZai - im - v.loanM, node: ev.length>0});
     }
 
@@ -484,7 +511,7 @@ tr.ev td .in{color:var(--ai)}
     var cash60 = cash + v.taishoku + v.kojin + ideco - v.loanB;
 
     /* --- 60〜85歳の月額を逆算 --- */
-    var inflow = v.wifeY*5 + v.nenkin*12*21;
+    var inflow = v.wifeY*5 + nk*12*21;
     var exLate = 0;
     XL.forEach(function(e){ if(e.age>=60) exLate+=e.amt; });
     var yearly = (cash60 + inflow - exLate - v.target) / (A1-60+1);
@@ -503,17 +530,18 @@ tr.ev td .in{color:var(--ai)}
         node=true;
         c=cash60;
       }
-      var inc = (age<65? v.wifeY : v.nenkin*12);
-      if(age===65){ ev.push({t:"年金がはじまる",a:0}); node=true; }
+      var inc = (age<65? v.wifeY : nk*12);
+      if(age===65){ ev.push({t:"年金がはじまる（あなた "+v.nenkinMe+"万＋奥さま "+v.nenkinWife+"万／月）",a:0}); node=true; }
       var out = yearly;
       var exY=0;
       XL.forEach(function(e){ if(e.age===age){ exY+=e.amt; ev.push({t:e.name,a:-e.amt}); } });
 
       c = c + inc - out - exY;
       rows.push({age:age,d:(age===60? d+inc-out-exY : inc-out-exY),
-        cash:c,ideco:0,ev:ev,m:monthly,node:node||exY>0});
+        cash:c,ideco:0,inc:inc,ev:ev,m:monthly,node:node||exY>0});
     }
-    return {rows:rows, monthly:monthly, cash60:cash60, exTotal:exTotal};
+    return {rows:rows, monthly:monthly, cash60:cash60, exTotal:exTotal,
+            nk:nk, nkTotal:nk*12*21, wifeTotal:v.wifeY*5};
   }
 
   function render(){
@@ -534,6 +562,13 @@ tr.ev td .in{color:var(--ai)}
     document.getElementById("lowV").textContent = fmt(low.cash)+"万";
     document.getElementById("lowM").textContent = low.age+"歳（"+(BORN+low.age)+"年）";
     if(low.cash<200) fl.classList.add("warn"); else fl.classList.remove("warn");
+    document.getElementById("nkMe").textContent   = v.nenkinMe.toFixed(1)+"万";
+    document.getElementById("nkWife").textContent = v.nenkinWife.toFixed(1)+"万";
+    document.getElementById("nkSum").textContent  = R.nk.toFixed(1)+"万";
+    document.getElementById("nkNote").textContent =
+      "65〜85歳の21年で受け取る総額 " + fmt(R.nkTotal) + "万円。"
+      + "60〜64歳は年金ゼロで、奥さまの収入 " + fmt(R.wifeTotal) + "万円（5年分）だけが入ります。";
+
     document.getElementById("r60V").textContent = fmt(R.cash60)+"万";
     document.getElementById("exTot").innerHTML =
       "43〜85歳の更新費 合計 <b>"+fmt(R.exTotal)+"万円</b>（年あたり "+Math.round(R.exTotal/43)+"万円）";
@@ -548,9 +583,9 @@ tr.ev td .in{color:var(--ai)}
       h+='<tr'+(r.node?' class="node"':'')+'>'
        + '<td><span class="age">'+r.age+'</span><span class="yr">'+(BORN+r.age)+'</span>'
        + (r.age<=51? '<span class="kid">子'+(r.age-29)+'</span>':'')+'</td>'
+       + '<td class="plus">'+(r.age<60? (r.ideco>0?'['+fmt(r.ideco)+']':'—') : fmt(r.inc))+'</td>'
        + '<td class="'+(r.d>=0?'plus':'minus')+'">'+sgn(r.d)+'</td>'
        + '<td class="bal'+(r.cash<0?' neg':'')+'">'+fmt(r.cash)+'</td>'
-       + '<td class="plus">'+(r.ideco>0?fmt(r.ideco):'—')+'</td>'
        + '<td>'+r.m.toFixed(1)+'</td></tr>';
       if(r.ev.length){
         var s=r.ev.map(function(e){
