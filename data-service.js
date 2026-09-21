@@ -15,9 +15,19 @@ const appError = (code, message, detail) => {
 };
 const monthOf = date => String(date || "").slice(0, 7);
 const normalizeMaster = data => ({
+  departments: (data.departments || []).map((v, i) => ({
+    id:String(v.id || ("dept-" + (i + 1))),
+    name:String(v.name || ""),
+    active:v.active !== false
+  })),
   employees: (data.employees || []).map((v, i) => typeof v === "string"
-    ? {id: "emp-" + (i + 1), name: v, active: true}
-    : {id: String(v.id), name: String(v.name), active: v.active !== false}),
+    ? {id: "emp-" + (i + 1), name: v, departmentId:"", department:"", active: true}
+    : {
+      id:String(v.id), name:String(v.name),
+      departmentId:String(v.departmentId || v.current_department_id || ""),
+      department:String(v.department || ""),
+      active:v.active !== false
+    }),
   vehicles: (data.vehicles || []).map((v, i) => ({
     id: String(v.id || ("veh-" + (i + 1))),
     no: String(v.no || ""),
@@ -201,12 +211,17 @@ class SupabaseDataService {
     if(this.masterCache && !force && Date.now() - this.masterCache.at < 60000){
       return clone(this.masterCache.value);
     }
-    const [employees, vehicles] = await Promise.all([
-      this._request("/employees?select=id,name,active,display_order&active=eq.true&order=display_order.asc"),
+    const [departments, employees, vehicles] = await Promise.all([
+      this._request("/departments?select=id,name,active,display_order&active=eq.true&order=display_order.asc"),
+      this._request("/employees?select=id,name,department,current_department_id,active,display_order&active=eq.true&order=display_order.asc"),
       this._request("/vehicles?select=id,vehicle_no,vehicle_name,active,current_odometer,revision,display_order&active=eq.true&order=display_order.asc")
     ]);
     const value = normalizeMaster({
-      employees:(employees || []).map(v => ({id:v.id, name:v.name, active:v.active})),
+      departments:(departments || []).map(v => ({id:v.id, name:v.name, active:v.active})),
+      employees:(employees || []).map(v => ({
+        id:v.id, name:v.name, departmentId:v.current_department_id,
+        department:v.department, active:v.active
+      })),
       vehicles:(vehicles || []).map(v => ({
         id:v.id, no:v.vehicle_no, name:v.vehicle_name,
         active:v.active, initialOdometer:v.current_odometer
@@ -241,6 +256,8 @@ class SupabaseDataService {
       date:row.report_date,
       employeeId:row.employee_id,
       employeeName:source && source.employeeName || emp && emp.name || row.employee_id,
+      departmentId:row.department_id || source && source.departmentId || emp && emp.departmentId || "",
+      departmentName:row.department_name || source && source.departmentName || emp && emp.department || "",
       vehicleId:row.vehicle_id,
       vehicleNo:source && source.vehicleNo || veh && veh.no || row.vehicle_id,
       vehicleName:source && source.vehicleName || veh && veh.name || "",
@@ -307,7 +324,7 @@ class SupabaseDataService {
   }
   async listReports(filters){
     const q = new URLSearchParams();
-    q.set("select", "id,client_request_id,report_date,employee_id,vehicle_id,start_odometer,end_odometer,distance,start_correction_reason,destination,start_time,end_time,alcohol_pre,alcohol_post,etc,highway,parking,client_version,route,purpose,pre_alcohol,post_alcohol,notes,vehicle_revision,created_at");
+    q.set("select", "id,client_request_id,report_date,employee_id,department_id,department_name,vehicle_id,start_odometer,end_odometer,distance,start_correction_reason,destination,start_time,end_time,alcohol_pre,alcohol_post,etc,highway,parking,client_version,route,purpose,pre_alcohol,post_alcohol,notes,vehicle_revision,created_at");
     q.set("order", "report_date.desc,created_at.desc");
     if(filters && filters.month){
       const range = this._toMonthRange(filters.month);

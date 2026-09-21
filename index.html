@@ -36,13 +36,13 @@ nav button{flex:1;border:0;background:#fff;color:var(--muted);padding:9px 2px 10
 @media(max-width:520px){.grid2,.grid3{grid-template-columns:1fr}.grid2.compact{grid-template-columns:1fr 1fr}.kpis{grid-template-columns:1fr 1fr 1fr}.mode{display:none}}
 @media print{header,nav,.no-print,#toast{display:none!important}body{padding:0;background:#fff}.tab{display:none!important}#tab-admin{display:block!important}.card{box-shadow:none;border:0;padding:0}main{max-width:none}.table-wrap{overflow:visible}table{min-width:0}th,td{font-size:9pt}}
 </style>
-<script src="./app-config.js?v=5.0.1"></script>
-<script src="./data-service.js?v=5.0.1"></script>
+<script src="./app-config.js?v=5.1.0"></script>
+<script src="./data-service.js?v=5.1.0"></script>
 </head>
 <body>
 <header>
   <div class="logo">🚙</div>
-  <div><h1>運転日報・車両距離管理</h1><div class="sub">車両別の距離引継ぎ・月次集計｜v5.0.1</div></div>
+  <div><h1>運転日報・車両距離管理</h1><div class="sub">車両別の距離引継ぎ・所属履歴・月次集計｜v5.1.0</div></div>
   <div class="mode" id="mode-badge"></div>
 </header>
 
@@ -53,6 +53,7 @@ nav button{flex:1;border:0;background:#fff;color:var(--muted);padding:9px 2px 10
   <div class="card">
     <h2>運転者・車両</h2>
     <div class="field"><label class="req" for="date">日付</label><input id="date" type="date"></div>
+    <div class="field"><label class="req" for="department">所属</label><select id="department"><option value="">選択してください</option></select></div>
     <div class="field"><label class="req" for="employee">運転者</label><select id="employee"><option value="">選択してください</option></select></div>
     <div class="field"><label class="req" for="vehicle">車両番号</label><select id="vehicle"><option value="">選択してください</option></select></div>
     <div id="vehicle-state" class="state hidden"><strong id="vehicle-state-main"></strong><span id="vehicle-state-sub"></span></div>
@@ -173,7 +174,7 @@ const CFG = window.APP_CONFIG;
 const service = window.FleetData.service;
 const $ = function(s){ return document.querySelector(s); };
 const $$ = function(s){ return document.querySelectorAll(s); };
-let master = {employees:[], vehicles:[]};
+let master = {departments:[], employees:[], vehicles:[]};
 let vehicleState = null;
 
 function today(){
@@ -217,16 +218,19 @@ async function loadMaster(){
   status.textContent="社員・車両マスタを同期しています…";
   try{
     master=await service.getMaster();
-    var empOpts='<option value="">選択してください</option>'+master.employees.filter(function(e){return e.active;}).map(function(e){
-      return '<option value="'+esc(e.id)+'">'+esc(e.name)+'</option>';
+    $("#department").innerHTML='<option value="">選択してください</option>'+master.departments.filter(function(d){return d.active;}).map(function(d){
+      return '<option value="'+esc(d.id)+'">'+esc(d.name)+'</option>';
     }).join("");
-    $("#employee").innerHTML=empOpts;
-    $("#pre-checker").innerHTML=empOpts;
-    $("#post-checker").innerHTML=empOpts;
+    renderEmployeeOptions();
+    var checkerOpts='<option value="">選択してください</option>'+master.employees.filter(function(e){return e.active;}).map(function(e){
+      return '<option value="'+esc(e.id)+'">'+esc(e.name+(e.department?"（"+e.department+"）":""))+'</option>';
+    }).join("");
+    $("#pre-checker").innerHTML=checkerOpts;
+    $("#post-checker").innerHTML=checkerOpts;
     $("#vehicle").innerHTML='<option value="">選択してください</option>'+master.vehicles.filter(function(v){return v.active;}).map(function(v){
       return '<option value="'+esc(v.id)+'">'+esc(v.no+(v.name?"（"+v.name+"）":""))+'</option>';
     }).join("");
-    status.textContent="✅ マスタ同期済み：社員 "+master.employees.length+"名／車両 "+master.vehicles.length+"台";
+    status.textContent="✅ マスタ同期済み：所属 "+master.departments.length+"件／社員 "+master.employees.length+"名／車両 "+master.vehicles.length+"台";
     return true;
   }catch(err){
     status.textContent="⚠ マスタ同期失敗："+err.message;
@@ -234,6 +238,17 @@ async function loadMaster(){
     return false;
   }
 }
+
+function renderEmployeeOptions(){
+  var departmentId=$("#department").value;
+  var rows=master.employees.filter(function(e){
+    return e.active && (!departmentId || e.departmentId===departmentId);
+  });
+  $("#employee").innerHTML='<option value="">選択してください</option>'+rows.map(function(e){
+    return '<option value="'+esc(e.id)+'">'+esc(e.name)+'</option>';
+  }).join("");
+}
+$("#department").addEventListener("change",renderEmployeeOptions);
 
 function calcDistance(){
   var s=Number($("#start-odo").value), e=Number($("#end-odo").value);
@@ -306,6 +321,7 @@ function requiredValue(id,label){
   return value;
 }
 function buildReport(){
+  requiredValue("department","所属");
   var employeeId=requiredValue("employee","運転者");
   var vehicleId=requiredValue("vehicle","車両");
   var employee=master.employees.find(function(e){return e.id===employeeId;});
@@ -322,6 +338,7 @@ function buildReport(){
   return {
     date:requiredValue("date","日付"),
     employeeId:employeeId,employeeName:employee.name,
+    departmentId:employee.departmentId,departmentName:employee.department,
     vehicleId:vehicleId,vehicleNo:vehicle.no,vehicleName:vehicle.name,
     destination:$("#destination").value.trim(),
     startTime:$("#start-time").value,endTime:$("#end-time").value,
@@ -363,7 +380,7 @@ function reportHtml(r){
   return '<div class="report"><div class="report-head">'+esc(r.date)+'　'+esc(r.vehicleNo)+'　'+esc(r.employeeName)+'</div>'+
     '<div class="report-meta">開始 '+Number(r.startOdometer).toLocaleString()+' → 終了 '+Number(r.endOdometer).toLocaleString()+
     ' km　／　走行 <strong>'+Number(r.distance).toLocaleString()+' km</strong><br>'+
-    esc(r.destination||"目的地なし")+(r.correctionReason?'<br>⚠ 距離修正理由：'+esc(r.correctionReason):'')+'</div></div>';
+    (r.departmentName?'所属：'+esc(r.departmentName)+'<br>':'')+esc(r.destination||"目的地なし")+(r.correctionReason?'<br>⚠ 距離修正理由：'+esc(r.correctionReason):'')+'</div></div>';
 }
 async function loadHistory(){
   var list=$("#history-list");list.innerHTML='<p class="hint">読み込み中…</p>';
@@ -404,8 +421,8 @@ $("#download-csv").addEventListener("click",async function(){
     var month=$("#admin-month").value;
     var rows=await service.listReports({month:month});
     if(!rows.length){toast("対象月の日報がありません");return;}
-    var header=["日付","車両番号","車名","社員ID","運転者","開始距離","終了距離","走行距離","開始時刻","終了時刻","目的地","ETC","高速道路","有料駐車場","距離修正理由","保存日時"];
-    var lines=[header].concat(rows.map(function(r){return [r.date,r.vehicleNo,r.vehicleName,r.employeeId,r.employeeName,r.startOdometer,r.endOdometer,r.distance,r.startTime,r.endTime,r.destination,r.etc,r.highway,r.parking,r.correctionReason,r.savedAt];}));
+    var header=["日付","車両番号","車名","社員ID","運転者","所属","開始距離","終了距離","走行距離","開始時刻","終了時刻","目的地","ETC","高速道路","有料駐車場","距離修正理由","保存日時"];
+    var lines=[header].concat(rows.map(function(r){return [r.date,r.vehicleNo,r.vehicleName,r.employeeId,r.employeeName,r.departmentName,r.startOdometer,r.endOdometer,r.distance,r.startTime,r.endTime,r.destination,r.etc,r.highway,r.parking,r.correctionReason,r.savedAt];}));
     var csv="\ufeff"+lines.map(function(row){return row.map(csvCell).join(",");}).join("\r\n");
     var blob=new Blob([csv],{type:"text/csv;charset=utf-8"});
     var a=document.createElement("a");a.href=URL.createObjectURL(blob);a.download="車両運転日報_"+month+".csv";a.click();
