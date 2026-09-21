@@ -3,7 +3,7 @@
  * 実データ移行前に認証方式と管理者権限を追加してください。
  */
 window.APP_CONFIG = Object.freeze({
-  appVersion: "5.1.0",
+  appVersion: "5.1.1",
   mode: "supabase", // "demo" | "supabase" | "api"
   apiBaseUrl: "",
   supabaseUrl: "https://ofrpludsknfvgdxrodfa.supabase.co",

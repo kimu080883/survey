@@ -36,13 +36,13 @@ nav button{flex:1;border:0;background:#fff;color:var(--muted);padding:9px 2px 10
 @media(max-width:520px){.grid2,.grid3{grid-template-columns:1fr}.grid2.compact{grid-template-columns:1fr 1fr}.kpis{grid-template-columns:1fr 1fr 1fr}.mode{display:none}}
 @media print{header,nav,.no-print,#toast{display:none!important}body{padding:0;background:#fff}.tab{display:none!important}#tab-admin{display:block!important}.card{box-shadow:none;border:0;padding:0}main{max-width:none}.table-wrap{overflow:visible}table{min-width:0}th,td{font-size:9pt}}
 </style>
-<script src="./app-config.js?v=5.1.0"></script>
-<script src="./data-service.js?v=5.1.0"></script>
+<script src="./app-config.js?v=5.1.1"></script>
+<script src="./data-service.js?v=5.1.1"></script>
 </head>
 <body>
 <header>
   <div class="logo">🚙</div>
-  <div><h1>運転日報・車両距離管理</h1><div class="sub">車両別の距離引継ぎ・所属履歴・月次集計｜v5.1.0</div></div>
+  <div><h1>運転日報・車両距離管理</h1><div class="sub">車両別の距離引継ぎ・所属履歴・月次集計｜v5.1.1</div></div>
   <div class="mode" id="mode-badge"></div>
 </header>
 
@@ -146,16 +146,15 @@ nav button{flex:1;border:0;background:#fff;color:var(--muted);padding:9px 2px 10
     <h2>システム状態</h2>
     <div id="system-status" class="alert alert-info"></div>
     <button class="btn btn-navy" id="sync-master">社員・車両マスタを再同期</button>
-    <p class="hint">現在はSupabaseの中央試験DBへ接続しています。実データ移行前に社員認証と管理者権限を設定します。</p>
+    <p class="hint">現在はSupabaseの中央試験DBへ接続しています。保存済みの日報・車両距離・マスタはサーバーに保持され、各端末で同じデータを共有します。</p>
   </div>
   <div class="card">
-    <h2>試験データ管理</h2>
-    <button class="btn btn-outline" id="reset-demo">この端末の試験日報を初期化</button>
-    <p class="hint">試験モードでのみ使用できます。実運用データは削除できません。</p>
+    <h2>日報データ管理</h2>
+    <p class="hint">「日報を保存」を押して「保存完了」と表示された日報は、中央試験DBに保存済みです。履歴と月次集計にも反映され、この画面から削除・初期化はできません。</p>
   </div>
   <div class="card">
     <h2>運用上の注意</h2>
-    <p class="hint">デモモードのデータはこの端末内だけに保存されます。本番APIモードでは全社員が同じ中央データベースを使用します。開始距離の引継ぎと同時入力制御は、最終的に本番API側でも原子的に処理する必要があります。</p>
+    <p class="hint">入力途中の内容はまだ保存されません。入力後は必ず「日報を保存」を押し、「保存完了」を確認してください。保存した終了距離は、次に同じ車両を使う社員の開始距離へ自動で引き継がれます。実データ運用を始める前に、社員認証と管理者権限を設定します。</p>
   </div>
 </section>
 </main>
@@ -431,12 +430,6 @@ $("#download-csv").addEventListener("click",async function(){
 });
 
 $("#sync-master").addEventListener("click",async function(){if(await loadMaster())toast("✅ マスタを同期しました");});
-$("#reset-demo").addEventListener("click",async function(){
-  if(CFG.mode!=="demo"){toast("本番モードでは初期化できません");return;}
-  if(!confirm("この端末の試験日報と車両距離をすべて初期化しますか？"))return;
-  await service.resetDemo();toast("試験データを初期化しました");clearAfterSave();loadAdmin();loadHistory();
-});
-
 async function init(){
   $("#date").value=today();$("#history-month").value=thisMonth();$("#admin-month").value=thisMonth();
   $("#mode-badge").textContent=CFG.mode==="demo"?"端末内デモ":(CFG.mode==="supabase"?"中央試験DB":"本番DB");
