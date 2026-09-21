@@ -1,0 +1,1297 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="theme-color" content="#1B2A4A">
+<title>運転日報・アルコールチェック</title>
+<!-- ▼ ファビコン：レール×自動車の融合アイコン（SVGをdata URIで埋め込み） -->
+<link rel="icon" href='data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64"><rect width="64" height="64" rx="14" fill="%231B2A4A"/><rect x="13" y="46" width="5" height="11" rx="1.5" fill="%236B7488"/><rect x="24" y="46" width="5" height="11" rx="1.5" fill="%236B7488"/><rect x="35" y="46" width="5" height="11" rx="1.5" fill="%236B7488"/><rect x="46" y="46" width="5" height="11" rx="1.5" fill="%236B7488"/><rect x="6" y="48" width="52" height="4" rx="2" fill="%23AEB6C6"/><path d="M14 40 q0 -12 10 -13 l14 -1 q10 0 14 8 l3 6 q1 2 -1 2 l-38 0 q-2 0 -2 -2 z" fill="%23FF6B35"/><path d="M27 29 l10 -0.8 q6 0 9 5.8 l-19 0 z" fill="%23BFE7FF"/><circle cx="22" cy="43" r="6" fill="%232B3245"/><circle cx="22" cy="43" r="2.6" fill="%23FFD35C"/><circle cx="44" cy="43" r="6" fill="%232B3245"/><circle cx="44" cy="43" r="2.6" fill="%23FFD35C"/><circle cx="51.5" cy="36.5" r="1.8" fill="%23FFF3B0"/><path d="M31 36 q3 2.4 6 0" stroke="%23fff" stroke-width="1.6" fill="none" stroke-linecap="round"/></svg>'>
+<!-- ▼ SheetJS（Excel読み込みライブラリ）をCDNから読み込み -->
+<script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+<!-- ▼ PDF生成ライブラリ（html2canvas＋jsPDF）をCDNから読み込み -->
+<script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+<style>
+:root{
+  --navy:#1B2A4A;      /* レールの鋼色（メイン） */
+  --navy-2:#2C3E63;
+  --orange:#FF6B35;    /* 車体オレンジ（アクセント） */
+  --orange-dark:#E5501B;
+  --bg:#F2F4F8;
+  --card:#FFFFFF;
+  --line:#DCE1EA;
+  --text:#22293A;
+  --muted:#6B7488;
+  --ok:#0E9F6E;
+  --ng:#E02424;
+  --radius:14px;
+}
+*{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent}
+html{font-size:16px}
+body{
+  font-family:"Hiragino Sans","Hiragino Kaku Gothic ProN","Yu Gothic UI","Yu Gothic",Meiryo,sans-serif;
+  background:var(--bg);color:var(--text);
+  padding-bottom:90px; /* 下部タブバーの分 */
+}
+/* ===== ヘッダー ===== */
+header{
+  background:var(--navy);color:#fff;
+  padding:14px 16px 12px;
+  display:flex;align-items:center;gap:10px;
+  position:sticky;top:0;z-index:50;
+}
+header svg{width:38px;height:38px;flex-shrink:0}
+header h1{font-size:1.05rem;font-weight:700;letter-spacing:.02em;line-height:1.3}
+header .sub{font-size:.7rem;opacity:.75;font-weight:400}
+
+/* ===== 下部タブバー ===== */
+nav{
+  position:fixed;bottom:0;left:0;right:0;z-index:60;
+  background:#fff;border-top:1px solid var(--line);
+  display:flex;
+  padding-bottom:env(safe-area-inset-bottom);
+}
+nav button{
+  flex:1;background:none;border:none;
+  padding:10px 4px 12px;font-size:.78rem;color:var(--muted);
+  display:flex;flex-direction:column;align-items:center;gap:3px;
+  font-family:inherit;cursor:pointer;
+}
+nav button .nicon{font-size:1.45rem;line-height:1}
+nav button.active{color:var(--orange-dark);font-weight:700}
+nav button.active::after{
+  content:"";display:block;width:34px;height:4px;border-radius:2px;
+  background:repeating-linear-gradient(90deg,var(--orange) 0 6px,transparent 6px 10px); /* 枕木風 */
+  margin-top:2px;
+}
+
+/* ===== 共通レイアウト ===== */
+main{max-width:640px;margin:0 auto;padding:14px 14px 20px}
+section.tab{display:none}
+section.tab.active{display:block;animation:fade .18s ease}
+@keyframes fade{from{opacity:0;transform:translateY(4px)}to{opacity:1;transform:none}}
+.card{
+  background:var(--card);border-radius:var(--radius);
+  padding:16px 14px;margin-bottom:14px;
+  box-shadow:0 1px 3px rgba(27,42,74,.08);
+}
+.card h2{
+  font-size:.95rem;color:var(--navy);margin-bottom:12px;
+  display:flex;align-items:center;gap:8px;
+}
+.card h2::before{content:"";width:5px;height:18px;border-radius:3px;background:var(--orange)}
+.field{margin-bottom:13px}
+.field label{
+  display:block;font-size:.8rem;font-weight:700;color:var(--muted);
+  margin-bottom:5px;
+}
+.req::after{content:" 必須";font-size:.65rem;color:#fff;background:var(--ng);
+  border-radius:4px;padding:1px 5px;margin-left:5px;font-weight:700;vertical-align:1px}
+input[type=text],input[type=date],input[type=time],input[type=number],input[type=email],select,textarea{
+  width:100%;font-size:1.05rem;font-family:inherit;
+  padding:13px 12px;border:1.5px solid var(--line);border-radius:10px;
+  background:#fff;color:var(--text);appearance:none;
+  min-height:50px;
+}
+input:focus,select:focus,textarea:focus{outline:none;border-color:var(--orange)}
+textarea{min-height:80px;resize:vertical}
+select{
+  background-image:url('data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" width="14" height="9" viewBox="0 0 14 9"><path d="M1 1l6 6 6-6" stroke="%236B7488" stroke-width="2" fill="none" stroke-linecap="round"/></svg>');
+  background-repeat:no-repeat;background-position:right 12px center;padding-right:36px;
+}
+.row2{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.row3{display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px}
+.inline-now{display:flex;gap:8px}
+.inline-now input{flex:1}
+.btn-now{
+  flex-shrink:0;min-height:50px;padding:0 13px;border-radius:10px;border:1.5px solid var(--navy-2);
+  background:#fff;color:var(--navy-2);font-weight:700;font-size:.85rem;font-family:inherit;cursor:pointer;
+}
+.btn-now:active{background:var(--navy-2);color:#fff}
+
+/* ===== セグメント（あり/なし・OK/NG） ===== */
+.seg{display:flex;border:1.5px solid var(--line);border-radius:10px;overflow:hidden}
+.seg label{flex:1;margin:0}
+.seg input{position:absolute;opacity:0;pointer-events:none}
+.seg span{
+  display:flex;align-items:center;justify-content:center;
+  min-height:50px;font-size:1rem;font-weight:700;color:var(--muted);
+  background:#fff;cursor:pointer;border-left:1.5px solid var(--line);
+}
+.seg label:first-child span{border-left:none}
+.seg input:checked + span{background:var(--navy);color:#fff}
+.seg.judge input[value="OK"]:checked + span{background:var(--ok)}
+.seg.judge input[value="NG"]:checked + span{background:var(--ng)}
+
+/* ===== アルコールチェック枠 ===== */
+.alc{
+  border:2px solid var(--navy);border-radius:12px;padding:12px;margin-bottom:12px;background:#FAFBFF;
+}
+.alc-title{font-weight:800;color:var(--navy);font-size:.92rem;margin-bottom:10px;display:flex;align-items:center;gap:6px}
+.alc-title .badge{font-size:.65rem;background:var(--orange);color:#fff;border-radius:5px;padding:2px 7px}
+.ng-alert{
+  display:none;margin-top:10px;padding:11px 12px;border-radius:10px;
+  background:#FDE8E8;color:var(--ng);font-weight:800;font-size:.9rem;line-height:1.5;
+}
+.ng-alert.show{display:block}
+
+/* ===== ボタン ===== */
+.btn{
+  display:flex;align-items:center;justify-content:center;gap:8px;width:100%;
+  min-height:56px;border:none;border-radius:12px;
+  font-size:1.08rem;font-weight:800;font-family:inherit;cursor:pointer;
+}
+.btn:active{transform:scale(.985)}
+.btn-primary{background:var(--orange);color:#fff;box-shadow:0 3px 10px rgba(255,107,53,.35)}
+.btn-navy{background:var(--navy);color:#fff}
+.btn-outline{background:#fff;color:var(--navy);border:1.8px solid var(--navy)}
+.btn-sm{min-height:44px;font-size:.9rem;border-radius:10px}
+.btn+.btn{margin-top:10px}
+.btn:disabled{opacity:.4;box-shadow:none}
+
+.dist-view{
+  font-size:1.5rem;font-weight:800;color:var(--navy);
+  padding:8px 12px;background:#F0F3F9;border-radius:10px;text-align:center;
+}
+.dist-view small{font-size:.8rem;color:var(--muted);font-weight:700}
+
+/* ===== マスタ設定 ===== */
+.file-drop{
+  border:2px dashed var(--line);border-radius:12px;padding:16px 12px;text-align:center;
+  color:var(--muted);font-size:.86rem;background:#FAFBFD;
+}
+.file-drop input{display:none}
+.file-drop .btn{margin-top:10px}
+.master-status{
+  margin-top:10px;font-size:.85rem;font-weight:700;color:var(--ok);
+  display:flex;align-items:center;gap:6px;justify-content:center;
+}
+.hint{font-size:.75rem;color:var(--muted);line-height:1.6;margin-top:8px}
+.hint code{background:#EEF1F6;border-radius:4px;padding:1px 5px;font-size:.72rem}
+
+/* ===== 運転指示事項 ===== */
+.instr-tools{display:flex;align-items:center;gap:10px;margin-bottom:8px}
+.instr-tools span{flex:1;font-size:.8rem;font-weight:700;color:var(--muted)}
+#instr-list{border:1.5px solid var(--line);border-radius:12px;overflow:hidden}
+.instr-row{display:flex;align-items:center;gap:10px;padding:11px 12px;border-top:1px solid var(--line);background:#fff;cursor:pointer;margin:0}
+.instr-row:first-child{border-top:none}
+.instr-row input{width:22px;height:22px;accent-color:var(--orange);flex-shrink:0}
+.instr-row .no{flex-shrink:0;width:24px;height:24px;border-radius:50%;background:#EEF1F6;color:var(--navy);font-size:.72rem;font-weight:800;display:flex;align-items:center;justify-content:center}
+.instr-row .txt{font-size:.86rem;line-height:1.45;color:var(--text)}
+.instr-row.on{background:#FFF3EC}
+.instr-row.on .no{background:var(--orange);color:#fff}
+
+/* ===== 履歴 ===== */
+.hist-toolbar{display:flex;align-items:center;gap:10px;margin-bottom:12px}
+.hist-toolbar label{display:flex;align-items:center;gap:7px;font-size:.85rem;font-weight:700;color:var(--muted)}
+.hist-item{
+  background:#fff;border:1.5px solid var(--line);border-radius:12px;
+  padding:12px;margin-bottom:10px;display:flex;gap:11px;align-items:flex-start;
+}
+.hist-item.checked{border-color:var(--orange);background:#FFF8F4}
+.hist-item input[type=checkbox]{width:24px;height:24px;margin-top:3px;accent-color:var(--orange);flex-shrink:0}
+.hist-body{flex:1;min-width:0}
+.hist-date{font-weight:800;color:var(--navy);font-size:.95rem}
+.hist-meta{font-size:.8rem;color:var(--muted);margin-top:3px;line-height:1.55;word-break:break-all}
+.hist-alc{display:inline-block;font-size:.7rem;font-weight:800;border-radius:5px;padding:2px 7px;margin-top:5px}
+.hist-alc.ok{background:#DEF7EC;color:var(--ok)}
+.hist-alc.ng{background:#FDE8E8;color:var(--ng)}
+.hist-actions{display:flex;flex-direction:column;gap:6px;flex-shrink:0}
+.mini-btn{
+  border:1.5px solid var(--line);background:#fff;border-radius:8px;
+  min-width:56px;min-height:38px;font-size:.78rem;font-weight:700;color:var(--navy);font-family:inherit;cursor:pointer;
+}
+.mini-btn.del{color:var(--ng);border-color:#F5C2C2}
+.empty{
+  text-align:center;color:var(--muted);font-size:.88rem;padding:26px 10px;line-height:1.7;
+}
+.empty .nicon{font-size:2rem;display:block;margin-bottom:6px}
+
+/* ===== トースト ===== */
+#toast{
+  position:fixed;left:50%;bottom:100px;transform:translateX(-50%) translateY(20px);
+  background:var(--navy);color:#fff;padding:12px 20px;border-radius:30px;
+  font-size:.9rem;font-weight:700;opacity:0;pointer-events:none;transition:.25s;z-index:99;
+  max-width:90vw;text-align:center;
+}
+#toast.show{opacity:1;transform:translateX(-50%) translateY(0)}
+
+/* ===== PDF生成用（生成中のみ表示・オーバーレイで隠す） ===== */
+#pdfArea{display:none;position:absolute;left:0;top:0;width:794px;background:#fff;color:#000;z-index:2000;
+  font-family:"Hiragino Sans","Hiragino Kaku Gothic ProN","Yu Gothic",Meiryo,sans-serif;}
+#pdfArea .p-page{page-break-after:always;padding:14px 8px 24px;font-size:13px;line-height:1.55}
+#pdfArea .p-title{text-align:center;font-size:20px;font-weight:800;letter-spacing:.3em;margin-bottom:4px}
+#pdfArea .p-sub{text-align:center;font-size:11px;margin-bottom:16px}
+#pdfArea table.p-tbl{width:100%;border-collapse:collapse;margin-bottom:12px}
+#pdfArea .p-tbl th,#pdfArea .p-tbl td{border:1px solid #000;padding:6px 7px;font-size:13px;text-align:left;vertical-align:middle}
+#pdfArea .p-tbl th{background:#EDEDED;width:30%;font-weight:700}
+#pdfArea .p-sec{font-weight:800;margin:12px 0 5px;font-size:14px;border-left:4px solid #000;padding-left:7px}
+#pdfArea .p-judge-ok{font-weight:800}
+#pdfArea .p-judge-ng{font-weight:800;text-decoration:underline}
+#pdfArea .p-sign{display:flex;justify-content:flex-end;gap:14px;margin-top:16px}
+#pdfArea .p-sign div{border:1px solid #000;width:84px;height:84px;font-size:10px;text-align:center;padding-top:4px}
+
+/* ===== PDF作成中オーバーレイ ===== */
+#pdfBusy{display:none;position:fixed;inset:0;z-index:3000;background:rgba(27,42,74,.96);
+  color:#fff;flex-direction:column;align-items:center;justify-content:center;gap:16px;
+  font-size:1rem;font-weight:700;}
+#pdfBusy .spin{width:44px;height:44px;border-radius:50%;
+  border:4px solid rgba(255,255,255,.25);border-top-color:var(--orange);
+  animation:spin .8s linear infinite;}
+@keyframes spin{to{transform:rotate(360deg)}}
+
+/* ===== 印刷（PDF）レイアウト ===== */
+#printArea{display:none}
+@media print{
+  body{background:#fff;padding:0}
+  header,nav,main,#toast{display:none !important}
+  #printArea{display:block;font-size:11pt;color:#000}
+  .p-page{page-break-after:always;padding:6mm 4mm}
+  .p-page:last-child{page-break-after:auto}
+  .p-title{text-align:center;font-size:15pt;font-weight:800;letter-spacing:.3em;margin-bottom:2mm}
+  .p-sub{text-align:center;font-size:9pt;margin-bottom:5mm}
+  table.p-tbl{width:100%;border-collapse:collapse;margin-bottom:4mm}
+  table.p-tbl th,table.p-tbl td{border:1px solid #000;padding:2.2mm 2mm;font-size:10pt;text-align:left;vertical-align:middle}
+  table.p-tbl th{background:#EDEDED;width:30%;font-weight:700}
+  .p-sec{font-weight:800;margin:3mm 0 1.5mm;font-size:10.5pt;border-left:3.5px solid #000;padding-left:2mm}
+  .p-judge-ok{font-weight:800}
+  .p-judge-ng{font-weight:800;text-decoration:underline}
+  .p-sign{display:flex;justify-content:flex-end;gap:4mm;margin-top:5mm}
+  .p-sign div{border:1px solid #000;width:22mm;height:22mm;font-size:8pt;text-align:center;padding-top:1mm}
+}
+@media (min-width:640px){
+  header h1{font-size:1.2rem}
+}
+</style>
+</head>
+<body>
+
+<header>
+  <!-- ヘッダー用アイコン（ファビコンと同一デザイン） -->
+  <svg viewBox="0 0 64 64" aria-hidden="true"><rect width="64" height="64" rx="14" fill="#2C3E63"/><rect x="13" y="46" width="5" height="11" rx="1.5" fill="#6B7488"/><rect x="24" y="46" width="5" height="11" rx="1.5" fill="#6B7488"/><rect x="35" y="46" width="5" height="11" rx="1.5" fill="#6B7488"/><rect x="46" y="46" width="5" height="11" rx="1.5" fill="#6B7488"/><rect x="6" y="48" width="52" height="4" rx="2" fill="#AEB6C6"/><path d="M14 40 q0 -12 10 -13 l14 -1 q10 0 14 8 l3 6 q1 2 -1 2 l-38 0 q-2 0 -2 -2 z" fill="#FF6B35"/><path d="M27 29 l10 -0.8 q6 0 9 5.8 l-19 0 z" fill="#BFE7FF"/><circle cx="22" cy="43" r="6" fill="#2B3245"/><circle cx="22" cy="43" r="2.6" fill="#FFD35C"/><circle cx="44" cy="43" r="6" fill="#2B3245"/><circle cx="44" cy="43" r="2.6" fill="#FFD35C"/><circle cx="51.5" cy="36.5" r="1.8" fill="#FFF3B0"/><path d="M31 36 q3 2.4 6 0" stroke="#fff" stroke-width="1.6" fill="none" stroke-linecap="round"/></svg>
+  <div>
+    <h1>運転日報・アルコールチェック</h1>
+    <div class="sub">社有車 運転記録アプリ｜v3.1（自動同期試験）</div>
+  </div>
+</header>
+
+<main>
+
+<!-- ============================================================
+     タブ1：日報入力
+============================================================ -->
+<section id="tab-input" class="tab active">
+
+  <div class="card">
+    <h2>基本情報</h2>
+    <div class="field">
+      <label class="req" for="f-date">日付</label>
+      <input type="date" id="f-date">
+    </div>
+    <div class="field">
+      <label class="req" for="f-driver">運転者名</label>
+      <select id="f-driver"><option value="">-- 選択してください --</option></select>
+    </div>
+    <div class="field">
+      <label for="f-vehicle">使用車両</label>
+      <select id="f-vehicle"><option value="">-- 選択してください --</option></select>
+    </div>
+    <div class="field">
+      <label for="f-dest">目的地</label>
+      <input type="text" id="f-dest" placeholder="例：戸越公園駅 工事現場">
+    </div>
+    <div class="row2">
+      <div class="field">
+        <label for="f-time-start">使用開始時間</label>
+        <div class="inline-now">
+          <input type="time" id="f-time-start">
+          <button type="button" class="btn-now" data-now="f-time-start">今</button>
+        </div>
+      </div>
+      <div class="field">
+        <label for="f-time-end">使用終了時間</label>
+        <div class="inline-now">
+          <input type="time" id="f-time-end">
+          <button type="button" class="btn-now" data-now="f-time-end">今</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="card">
+    <h2>アルコールチェック</h2>
+
+    <!-- 運転前 -->
+    <div class="alc">
+      <div class="alc-title">🚗 運転前チェック <span class="badge">必須</span></div>
+      <div class="row2">
+        <div class="field">
+          <label for="pre-time">確認時刻</label>
+          <div class="inline-now">
+            <input type="time" id="pre-time">
+            <button type="button" class="btn-now" data-now="pre-time">今</button>
+          </div>
+        </div>
+        <div class="field">
+          <label for="pre-value">測定値 (mg/L)</label>
+          <input type="number" id="pre-value" inputmode="decimal" step="0.01" min="0" placeholder="0.00">
+        </div>
+      </div>
+      <div class="field">
+        <label for="pre-checker">確認者</label>
+        <select id="pre-checker" class="checker-select"><option value="">-- 選択してください --</option></select>
+      </div>
+      <div class="field">
+        <label>判定</label>
+        <div class="seg judge">
+          <label><input type="radio" name="pre-judge" value="OK"><span>OK</span></label>
+          <label><input type="radio" name="pre-judge" value="NG"><span>NG</span></label>
+        </div>
+      </div>
+    </div>
+
+    <!-- 運転後 -->
+    <div class="alc">
+      <div class="alc-title">🏁 運転後チェック <span class="badge">必須</span></div>
+      <div class="row2">
+        <div class="field">
+          <label for="post-time">確認時刻</label>
+          <div class="inline-now">
+            <input type="time" id="post-time">
+            <button type="button" class="btn-now" data-now="post-time">今</button>
+          </div>
+        </div>
+        <div class="field">
+          <label for="post-value">測定値 (mg/L)</label>
+          <input type="number" id="post-value" inputmode="decimal" step="0.01" min="0" placeholder="0.00">
+        </div>
+      </div>
+      <div class="field">
+        <label for="post-checker">確認者</label>
+        <select id="post-checker" class="checker-select"><option value="">-- 選択してください --</option></select>
+      </div>
+      <div class="field">
+        <label>判定</label>
+        <div class="seg judge">
+          <label><input type="radio" name="post-judge" value="OK"><span>OK</span></label>
+          <label><input type="radio" name="post-judge" value="NG"><span>NG</span></label>
+        </div>
+      </div>
+    </div>
+
+    <div id="ng-alert" class="ng-alert">⚠ NG判定が選択されています。運転は禁止です。直ちに安全運転管理者へ連絡してください。</div>
+  </div>
+
+  <div class="card">
+    <h2>走行情報</h2>
+    <div class="row2">
+      <div class="field">
+        <label for="f-meter-start">開始メーター (km)</label>
+        <input type="number" id="f-meter-start" inputmode="numeric" min="0" placeholder="例：12345">
+      </div>
+      <div class="field">
+        <label for="f-meter-end">終了メーター (km)</label>
+        <input type="number" id="f-meter-end" inputmode="numeric" min="0" placeholder="例：12400">
+      </div>
+    </div>
+    <div class="dist-view">走行距離：<span id="f-dist">--</span> km</div>
+  </div>
+
+  <div class="card">
+    <h2>各種選択</h2>
+    <div class="field">
+      <label>ETC使用</label>
+      <div class="seg">
+        <label><input type="radio" name="f-etc" value="あり"><span>あり</span></label>
+        <label><input type="radio" name="f-etc" value="なし" checked><span>なし</span></label>
+      </div>
+    </div>
+    <div class="field">
+      <label>高速道路運転</label>
+      <div class="seg">
+        <label><input type="radio" name="f-highway" value="あり"><span>あり</span></label>
+        <label><input type="radio" name="f-highway" value="なし" checked><span>なし</span></label>
+      </div>
+    </div>
+    <div class="field">
+      <label>有料駐車場使用</label>
+      <div class="seg">
+        <label><input type="radio" name="f-parking" value="あり"><span>あり</span></label>
+        <label><input type="radio" name="f-parking" value="なし" checked><span>なし</span></label>
+      </div>
+    </div>
+  </div>
+
+  <div class="card">
+    <h2>運転指示事項</h2>
+    <p class="hint" style="margin:0 0 10px">本日の運転で該当する指示事項を選択してください（複数選択可）。</p>
+    <div class="instr-tools">
+      <span id="instr-count">0件 選択中</span>
+      <button type="button" class="mini-btn" id="btn-instr-clear">全解除</button>
+    </div>
+    <div id="instr-list"></div>
+    <div class="field" style="margin-top:12px;margin-bottom:0">
+      <label for="f-instr-note">管理者からの個別指示（自由記述）</label>
+      <textarea id="f-instr-note" placeholder="その他状況により、管理者は適宜指示を行うこと"></textarea>
+    </div>
+  </div>
+
+  <div class="card">
+    <h2>備考</h2>
+    <div class="field" style="margin-bottom:0">
+      <label for="f-memo">備考</label>
+      <textarea id="f-memo" placeholder="給油・洗車・異常の有無など"></textarea>
+    </div>
+  </div>
+
+  <button class="btn btn-primary" id="btn-save">💾 一時保存（アプリ内保存）</button>
+</section>
+
+<!-- ============================================================
+     タブ2：マスタ設定
+============================================================ -->
+<section id="tab-master" class="tab">
+
+  <div class="card">
+    <h2>マスタ自動同期（試験運用）</h2>
+    <div class="file-drop">
+      <div id="sync-status" class="master-status">起動時に試験用マスタを確認します</div>
+      <button type="button" class="btn btn-primary btn-sm" id="btn-sync" style="margin-top:12px">🔄 今すぐ同期</button>
+    </div>
+    <p class="hint">現在は公開しても問題のないダミーデータで同期機能を検証しています。実データ移行時は、社内認証付きのBox連携先へ切り替えます。</p>
+  </div>
+
+  <div class="card">
+    <h2>社員名簿の読み込み</h2>
+    <div class="file-drop">
+      Excelファイル（.xlsx）を選択すると、<br>「運転者名」「確認者」の選択肢に反映されます。
+      <label class="btn btn-navy btn-sm" style="margin-top:12px">
+        📄 社員名簿Excelを選択
+        <input type="file" id="file-emp" accept=".xlsx,.xls,.csv">
+      </label>
+      <div class="master-status" id="emp-status"></div>
+    </div>
+    <p class="hint">読み込み条件：先頭シートに <code>氏名</code>（または<code>名前</code>）という列名があること。見つからない場合は2列目を氏名として読み込みます。</p>
+  </div>
+
+  <div class="card">
+    <h2>社有車一覧の読み込み</h2>
+    <div class="file-drop">
+      Excelファイル（.xlsx）を選択すると、<br>「使用車両」の選択肢に反映されます。
+      <label class="btn btn-navy btn-sm" style="margin-top:12px">
+        🚙 社有車一覧Excelを選択
+        <input type="file" id="file-veh" accept=".xlsx,.xls,.csv">
+      </label>
+      <div class="master-status" id="veh-status"></div>
+    </div>
+    <p class="hint">読み込み条件：先頭シートに <code>車両番号</code>（または<code>ナンバー</code>）と <code>車名</code>（または<code>車種</code>）の列名があること。</p>
+  </div>
+
+  <div class="card">
+    <h2>メール初期設定</h2>
+    <div class="field">
+      <label for="m-to">提出先メールアドレス（TO）</label>
+      <input type="email" id="m-to" placeholder="例：kanri@example.co.jp" inputmode="email" autocapitalize="off">
+    </div>
+    <div class="field">
+      <label for="m-cc">CC（複数はカンマ区切り）</label>
+      <input type="text" id="m-cc" placeholder="例：jimu@example.co.jp" inputmode="email" autocapitalize="off">
+    </div>
+    <div class="field">
+      <label for="m-subject">件名テンプレート</label>
+      <input type="text" id="m-subject" placeholder="【運転日報】{日付} {氏名}">
+      <p class="hint"><code>{日付}</code> と <code>{氏名}</code> は送信時に自動で置き換わります。</p>
+    </div>
+    <button class="btn btn-navy" id="btn-save-mail">✉ メール設定を保存</button>
+  </div>
+
+  <div class="card">
+    <h2>データ管理</h2>
+    <button class="btn btn-outline btn-sm" id="btn-clear-master">マスタ（名簿・車両）を消去</button>
+    <p class="hint">名簿・車両・メール設定・日報履歴は、すべて<strong>この端末（ブラウザ）内</strong>にのみ保存されます。サーバーには一切送信されません。</p>
+  </div>
+</section>
+
+<!-- ============================================================
+     タブ3：履歴・出力
+============================================================ -->
+<section id="tab-history" class="tab">
+  <div class="card">
+    <h2>保存済みの日報</h2>
+    <div class="hist-toolbar">
+      <label><input type="checkbox" id="chk-all" style="width:22px;height:22px;accent-color:var(--orange)">すべて選択</label>
+      <span style="flex:1"></span>
+      <span id="sel-count" style="font-size:.82rem;color:var(--muted);font-weight:700">0件 選択中</span>
+    </div>
+    <div id="hist-list"></div>
+  </div>
+
+  <button class="btn btn-primary" id="btn-pdf-share">📄 PDFを作成して送る・保存（共有）</button>
+  <button class="btn btn-navy" id="btn-mail">✉ テキストでメール（iCloudメール用）</button>
+  <button class="btn btn-outline" id="btn-print">🖨 印刷プレビュー</button>
+  <p class="hint" style="padding:0 4px">
+    ● <strong>PDFを作成して送る・保存</strong>：選択した日報をその場でPDFファイル化し、iPhoneの共有シートが開きます。<strong>会社のメールアプリを選べばPDFが添付された状態で送信でき、「ファイルに保存」を選べば端末に保存できます。</strong>件名・本文の文面は自動でコピーされるので、メール画面で長押し→ペーストしてください。<br>
+    ● テキストでメール：標準メール（mailto）が起動します。会社携帯では会社メールに接続されない場合があるため、その際は上のPDF共有をご利用ください。<br>
+    ● 印刷プレビュー：従来どおり印刷画面を開きます。
+  </p>
+</section>
+
+</main>
+
+<!-- ===== 下部タブバー ===== -->
+<nav>
+  <button class="active" data-tab="tab-input"><span class="nicon">📝</span>日報入力</button>
+  <button data-tab="tab-master"><span class="nicon">⚙️</span>マスタ設定</button>
+  <button data-tab="tab-history"><span class="nicon">📚</span>履歴・出力</button>
+</nav>
+
+<div id="toast"></div>
+
+<!-- ===== 印刷用レイアウト（PDF出力） ===== -->
+<div id="printArea"></div>
+<!-- ===== PDFファイル生成用（画面外） ===== -->
+<div id="pdfArea"></div>
+<!-- ===== PDF作成中オーバーレイ ===== -->
+<div id="pdfBusy"><div class="spin"></div><div>PDFを作成しています…</div></div>
+
+<script>
+"use strict";
+/* ============================================================
+   保存キー（localStorage）
+============================================================ */
+const LS_MASTER  = "nippo_master_v1";   // {employees:[], vehicles:[]}
+const LS_MAIL    = "nippo_mail_v1";     // {to, cc, subject}
+const LS_RECORDS = "nippo_records_v1";  // 日報配列
+const MASTER_DATA_URL = "./master-demo.json"; // 試験用。実運用時は社内認証付きAPIへ差し替え
+
+const $  = (s) => document.querySelector(s);
+const $$ = (s) => document.querySelectorAll(s);
+
+let master  = load(LS_MASTER,  {employees: [], vehicles: []});
+let mailCfg = load(LS_MAIL,    {to: "", cc: "", subject: "【運転日報】{日付} {氏名}"});
+let records = load(LS_RECORDS, []);
+let editingId = null; // 履歴からの再編集中ID
+
+function load(key, def){
+  try{
+    const v = JSON.parse(localStorage.getItem(key));
+    return v === null || v === undefined ? def : v;
+  }catch(e){ return def; }
+}
+function save(key, v){ localStorage.setItem(key, JSON.stringify(v)); }
+
+async function syncMasterData({silent = false} = {}){
+  const status = $("#sync-status");
+  const btn = $("#btn-sync");
+  if(status) status.textContent = "🔄 マスタを確認しています…";
+  if(btn) btn.disabled = true;
+  try{
+    const res = await fetch(MASTER_DATA_URL + "?t=" + Date.now(), {cache: "no-store"});
+    if(!res.ok) throw new Error("HTTP " + res.status);
+    const data = await res.json();
+    if(!Array.isArray(data.employees) || !Array.isArray(data.vehicles)){
+      throw new Error("マスタ形式が正しくありません");
+    }
+    const employees = [...new Set(data.employees.map(v => String(v).trim()).filter(Boolean))];
+    const vehicles = data.vehicles.map(v => ({
+      no: String(v.no || "").trim(),
+      name: String(v.name || "").trim()
+    })).filter(v => v.no);
+    if(!employees.length || !vehicles.length) throw new Error("マスタが空です");
+    master = {
+      employees,
+      vehicles,
+      syncedAt: new Date().toISOString(),
+      source: data.source || "demo"
+    };
+    save(LS_MASTER, master);
+    renderSelects();
+    if(status) status.textContent = `✅ 自動同期済み：社員 ${employees.length}名／車両 ${vehicles.length}台`;
+    if(!silent) toast("✅ マスタを最新状態に同期しました");
+  }catch(err){
+    const cached = master.employees.length || master.vehicles.length;
+    if(status) status.textContent = cached
+      ? "⚠ 同期できないため、端末に保存済みのマスタを使用中"
+      : "⚠ 自動同期できません。手動でExcelを読み込んでください";
+    if(!silent) toast("⚠ 自動同期に失敗しました。通信環境をご確認ください");
+  }finally{
+    if(btn) btn.disabled = false;
+  }
+}
+
+function toast(msg){
+  const t = $("#toast");
+  t.textContent = msg;
+  t.classList.add("show");
+  clearTimeout(t._tm);
+  t._tm = setTimeout(() => t.classList.remove("show"), 2600);
+}
+
+/* ============================================================
+   タブ切り替え
+============================================================ */
+$$("nav button").forEach(btn => {
+  btn.addEventListener("click", () => {
+    $$("nav button").forEach(b => b.classList.remove("active"));
+    btn.classList.add("active");
+    $$("section.tab").forEach(s => s.classList.remove("active"));
+    $("#" + btn.dataset.tab).classList.add("active");
+    if(btn.dataset.tab === "tab-history") renderHistory();
+    window.scrollTo(0, 0);
+  });
+});
+
+/* ============================================================
+   「今」ボタン（現在時刻セット）
+============================================================ */
+$$(".btn-now").forEach(b => {
+  b.addEventListener("click", () => {
+    const d = new Date();
+    $("#" + b.dataset.now).value =
+      String(d.getHours()).padStart(2,"0") + ":" + String(d.getMinutes()).padStart(2,"0");
+  });
+});
+
+/* ============================================================
+   運転指示事項（20項目）
+============================================================ */
+const INSTRUCTIONS = [
+  "狭い道・住宅地は、行違いやお年寄り子供に注意",
+  "雨天等路面湿潤時、スリップ注意",
+  "「思いやり」「譲り合い」の励行",
+  "優先交通権の確認 横断歩道・歩行者優先",
+  "踏切注意 発進時の前後左右の確認",
+  "交差点、信号確認 早め早めの方向指示器",
+  "カーブ・交差点 見通し注意",
+  "車間距離の保持 急ブレーキ・急発進の禁止",
+  "運転マナー・交通ルールの遵守",
+  "疲労・過労運転禁止（キツイ時は申告）",
+  "居眠り運転防止、仮眠をとれ",
+  "スマホ使用等「ながら」運転の禁止",
+  "シートベルト・必ず着用",
+  "積載状況を目視・触手で確認",
+  "無理な追い越し禁止！状況を十分に確認",
+  "危険予知・事故予測の励行",
+  "夕暮れは早めのライトで事故防止",
+  "脇見運転禁止（よそ見しない）",
+  "周囲の交通に配慮、速度超過厳禁！！",
+  "「だろう」運転禁止「かもしれない」運転の励行"
+];
+function renderInstructions(){
+  $("#instr-list").innerHTML = INSTRUCTIONS.map((t, i) => `
+    <label class="instr-row">
+      <input type="checkbox" class="instr-chk" value="${escHtml(t)}">
+      <span class="no">${i + 1}</span><span class="txt">${escHtml(t)}</span>
+    </label>`).join("");
+  $$(".instr-chk").forEach(c => c.addEventListener("change", () => {
+    c.closest(".instr-row").classList.toggle("on", c.checked);
+    updateInstrCount();
+  }));
+}
+function updateInstrCount(){
+  $("#instr-count").textContent = `${$$(".instr-chk:checked").length}件 選択中`;
+}
+function clearInstructions(){
+  $$(".instr-chk").forEach(c => {
+    c.checked = false;
+    c.closest(".instr-row").classList.remove("on");
+  });
+  updateInstrCount();
+}
+
+/* ============================================================
+   走行距離の自動計算
+============================================================ */
+function calcDist(){
+  const s = parseFloat($("#f-meter-start").value);
+  const e = parseFloat($("#f-meter-end").value);
+  if(!isNaN(s) && !isNaN(e) && e >= s){
+    $("#f-dist").textContent = (Math.round((e - s) * 10) / 10).toLocaleString();
+  }else{
+    $("#f-dist").textContent = "--";
+  }
+}
+$("#f-meter-start").addEventListener("input", calcDist);
+$("#f-meter-end").addEventListener("input", calcDist);
+
+/* ============================================================
+   NG判定アラート表示
+============================================================ */
+function updateNgAlert(){
+  const pre  = document.querySelector('input[name="pre-judge"]:checked');
+  const post = document.querySelector('input[name="post-judge"]:checked');
+  const ng = (pre && pre.value === "NG") || (post && post.value === "NG");
+  $("#ng-alert").classList.toggle("show", ng);
+}
+$$('input[name="pre-judge"], input[name="post-judge"]').forEach(r =>
+  r.addEventListener("change", updateNgAlert));
+
+/* ============================================================
+   マスタ（社員・車両）→ セレクトへ反映
+============================================================ */
+function renderSelects(){
+  const empOpts = ['<option value="">-- 選択してください --</option>']
+    .concat(master.employees.map(n => `<option value="${escHtml(n)}">${escHtml(n)}</option>`))
+    .join("");
+  const keep = sel => { const v = sel.value; sel.innerHTML = empOpts; sel.value = v; };
+  keep($("#f-driver"));
+  $$(".checker-select").forEach(keep);
+
+  const vehSel = $("#f-vehicle");
+  const vv = vehSel.value;
+  vehSel.innerHTML = ['<option value="">-- 選択してください --</option>']
+    .concat(master.vehicles.map(v => {
+      const label = v.name ? `${v.no}（${v.name}）` : v.no;
+      return `<option value="${escHtml(label)}">${escHtml(label)}</option>`;
+    })).join("");
+  vehSel.value = vv;
+
+  $("#emp-status").innerHTML = master.employees.length
+    ? `✅ 社員 ${master.employees.length}名 読み込み済み` : "";
+  $("#veh-status").innerHTML = master.vehicles.length
+    ? `✅ 車両 ${master.vehicles.length}台 読み込み済み` : "";
+}
+function escHtml(s){
+  return String(s).replace(/[&<>"']/g, c =>
+    ({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
+}
+
+/* ============================================================
+   Excel読み込み（SheetJS）
+============================================================ */
+function readExcel(file, cb){
+  const reader = new FileReader();
+  reader.onload = (e) => {
+    try{
+      const wb = XLSX.read(new Uint8Array(e.target.result), {type: "array"});
+      const ws = wb.Sheets[wb.SheetNames[0]];
+      const rows = XLSX.utils.sheet_to_json(ws, {defval: ""}); // 1行目をヘッダーとして解釈
+      cb(rows, null);
+    }catch(err){ cb(null, err); }
+  };
+  reader.onerror = () => cb(null, new Error("読み込み失敗"));
+  reader.readAsArrayBuffer(file);
+}
+// 列名のゆらぎ吸収：候補のいずれかを含むキーを探す
+function findKey(row, candidates){
+  const keys = Object.keys(row);
+  for(const c of candidates){
+    const hit = keys.find(k => String(k).replace(/\s/g,"").includes(c));
+    if(hit) return hit;
+  }
+  return null;
+}
+
+// 社員名簿
+$("#file-emp").addEventListener("change", (ev) => {
+  const file = ev.target.files[0];
+  if(!file) return;
+  readExcel(file, (rows, err) => {
+    if(err || !rows || !rows.length){ toast("⚠ 読み込めませんでした。ファイル形式をご確認ください"); return; }
+    const key = findKey(rows[0], ["氏名", "名前"]) || Object.keys(rows[0])[1] || Object.keys(rows[0])[0];
+    const names = rows.map(r => String(r[key]).trim()).filter(n => n && n !== "undefined");
+    if(!names.length){ toast("⚠ 氏名の列が見つかりませんでした"); return; }
+    master.employees = [...new Set(names)];
+    save(LS_MASTER, master);
+    renderSelects();
+    toast(`✅ 社員名簿 ${master.employees.length}名を読み込みました`);
+  });
+  ev.target.value = "";
+});
+
+// 社有車一覧
+$("#file-veh").addEventListener("change", (ev) => {
+  const file = ev.target.files[0];
+  if(!file) return;
+  readExcel(file, (rows, err) => {
+    if(err || !rows || !rows.length){ toast("⚠ 読み込めませんでした。ファイル形式をご確認ください"); return; }
+    const noKey   = findKey(rows[0], ["車両番号", "ナンバー", "登録番号"]) || Object.keys(rows[0])[0];
+    const nameKey = findKey(rows[0], ["車名", "車種"]);
+    const vehicles = rows.map(r => ({
+      no:   String(r[noKey]).trim(),
+      name: nameKey ? String(r[nameKey]).trim() : ""
+    })).filter(v => v.no && v.no !== "undefined");
+    if(!vehicles.length){ toast("⚠ 車両番号の列が見つかりませんでした"); return; }
+    master.vehicles = vehicles;
+    save(LS_MASTER, master);
+    renderSelects();
+    toast(`✅ 車両一覧 ${master.vehicles.length}台を読み込みました`);
+  });
+  ev.target.value = "";
+});
+
+$("#btn-clear-master").addEventListener("click", () => {
+  if(!confirm("社員名簿と車両一覧を消去します。よろしいですか？\n（日報の履歴は消えません）")) return;
+  master = {employees: [], vehicles: []};
+  save(LS_MASTER, master);
+  renderSelects();
+  toast("マスタを消去しました");
+});
+
+/* ============================================================
+   メール設定
+============================================================ */
+function renderMailCfg(){
+  $("#m-to").value = mailCfg.to || "";
+  $("#m-cc").value = mailCfg.cc || "";
+  $("#m-subject").value = mailCfg.subject || "";
+}
+$("#btn-save-mail").addEventListener("click", () => {
+  mailCfg = {
+    to: $("#m-to").value.trim(),
+    cc: $("#m-cc").value.trim(),
+    subject: $("#m-subject").value.trim() || "【運転日報】{日付} {氏名}"
+  };
+  save(LS_MAIL, mailCfg);
+  toast("✅ メール設定を保存しました");
+});
+
+/* ============================================================
+   日報の保存（バリデーション付き）
+============================================================ */
+function getJudge(name){
+  const el = document.querySelector(`input[name="${name}"]:checked`);
+  return el ? el.value : "";
+}
+function collectForm(){
+  return {
+    id: editingId || ("r" + Date.now()),
+    date: $("#f-date").value,
+    driver: $("#f-driver").value,
+    vehicle: $("#f-vehicle").value,
+    dest: $("#f-dest").value.trim(),
+    timeStart: $("#f-time-start").value,
+    timeEnd: $("#f-time-end").value,
+    alcPre:  {time: $("#pre-time").value,  value: $("#pre-value").value,  checker: $("#pre-checker").value,  judge: getJudge("pre-judge")},
+    alcPost: {time: $("#post-time").value, value: $("#post-value").value, checker: $("#post-checker").value, judge: getJudge("post-judge")},
+    meterStart: $("#f-meter-start").value,
+    meterEnd: $("#f-meter-end").value,
+    distance: $("#f-dist").textContent === "--" ? "" : $("#f-dist").textContent,
+    etc: getJudge("f-etc"),
+    highway: getJudge("f-highway"),
+    parking: getJudge("f-parking"),
+    instructions: [...$$(".instr-chk:checked")].map(c => c.value),
+    instrNote: $("#f-instr-note").value.trim(),
+    memo: $("#f-memo").value.trim(),
+    savedAt: new Date().toLocaleString("ja-JP")
+  };
+}
+$("#btn-save").addEventListener("click", () => {
+  const r = collectForm();
+
+  // --- 必須チェック ---
+  if(!r.date){ toast("⚠ 日付を入力してください"); return; }
+  if(!r.driver){ toast("⚠ 運転者名を選択してください（マスタ設定タブで名簿を読み込めます）"); return; }
+
+  // --- アルコールチェック（最重要）---
+  const preOk = r.alcPre.time && r.alcPre.value !== "" && r.alcPre.judge;
+  if(!preOk){
+    alert("⚠ 運転前のアルコールチェック（時刻・数値・判定）が未入力です。\n必ず入力してください。");
+    return;
+  }
+  const postOk = r.alcPost.time && r.alcPost.value !== "" && r.alcPost.judge;
+  if(!postOk){
+    if(!confirm("⚠ 運転後のアルコールチェックが未入力です。\n（運転前のみの途中保存として保存しますか？）")) return;
+  }
+  if(r.alcPre.judge === "NG" || r.alcPost.judge === "NG"){
+    if(!confirm("⚠ NG判定が含まれています。運転は禁止です。\nNG記録として保存しますか？")) return;
+  }
+
+  // --- 保存 ---
+  if(editingId){
+    const idx = records.findIndex(x => x.id === editingId);
+    if(idx >= 0) records[idx] = r; else records.push(r);
+    editingId = null;
+    $("#btn-save").innerHTML = "💾 一時保存（アプリ内保存）";
+    toast("✅ 日報を上書き保存しました");
+  }else{
+    records.push(r);
+    toast("✅ 日報を保存しました（履歴・出力タブで確認できます）");
+  }
+  save(LS_RECORDS, records);
+  clearForm();
+});
+
+function clearForm(){
+  ["f-dest","f-time-start","f-time-end","pre-time","pre-value","post-time","post-value",
+   "f-meter-start","f-meter-end","f-instr-note","f-memo"].forEach(id => $("#" + id).value = "");
+  clearInstructions();
+  $("#f-driver").value = ""; $("#f-vehicle").value = "";
+  $("#pre-checker").value = ""; $("#post-checker").value = "";
+  ["pre-judge","post-judge"].forEach(n =>
+    $$(`input[name="${n}"]`).forEach(r => r.checked = false));
+  ["f-etc","f-highway","f-parking"].forEach(n => {
+    $$(`input[name="${n}"]`).forEach(r => r.checked = (r.value === "なし"));
+  });
+  setToday();
+  calcDist();
+  updateNgAlert();
+}
+function setToday(){
+  const d = new Date();
+  $("#f-date").value = d.getFullYear() + "-" +
+    String(d.getMonth()+1).padStart(2,"0") + "-" + String(d.getDate()).padStart(2,"0");
+}
+
+/* ============================================================
+   履歴タブ
+============================================================ */
+function alcSummary(r){
+  const j = [r.alcPre.judge || "未", r.alcPost.judge || "未"];
+  const cls = (j.includes("NG")) ? "ng" : (j.includes("未") ? "ng" : "ok");
+  return `<span class="hist-alc ${cls}">酒気帯び確認：前 ${j[0]} ／ 後 ${j[1]}</span>`;
+}
+function renderHistory(){
+  const list = $("#hist-list");
+  if(!records.length){
+    list.innerHTML = `<div class="empty"><span class="nicon">🗂</span>保存された日報はまだありません。<br>「日報入力」タブから記録を追加してください。</div>`;
+    $("#chk-all").checked = false;
+    updateSelCount();
+    return;
+  }
+  const sorted = [...records].sort((a,b) => (b.date || "").localeCompare(a.date || ""));
+  list.innerHTML = sorted.map(r => `
+    <div class="hist-item" data-id="${r.id}">
+      <input type="checkbox" class="hist-chk" data-id="${r.id}">
+      <div class="hist-body">
+        <div class="hist-date">${fmtDate(r.date)}　${escHtml(r.driver)}</div>
+        <div class="hist-meta">
+          ${r.vehicle ? "🚙 " + escHtml(r.vehicle) + "　" : ""}${r.dest ? "📍 " + escHtml(r.dest) : ""}<br>
+          ${r.timeStart || "--:--"}〜${r.timeEnd || "--:--"}　走行 ${r.distance || "--"} km　📋 指示 ${(r.instructions || []).length}件
+        </div>
+        ${alcSummary(r)}
+      </div>
+      <div class="hist-actions">
+        <button class="mini-btn edit" data-id="${r.id}">編集</button>
+        <button class="mini-btn del" data-id="${r.id}">削除</button>
+      </div>
+    </div>`).join("");
+
+  $$(".hist-chk").forEach(c => c.addEventListener("change", () => {
+    c.closest(".hist-item").classList.toggle("checked", c.checked);
+    updateSelCount();
+  }));
+  $$(".mini-btn.del").forEach(b => b.addEventListener("click", () => {
+    const rec = records.find(x => x.id === b.dataset.id);
+    if(!confirm(`${fmtDate(rec.date)} ${rec.driver} の日報を削除します。よろしいですか？`)) return;
+    records = records.filter(x => x.id !== b.dataset.id);
+    save(LS_RECORDS, records);
+    renderHistory();
+    toast("削除しました");
+  }));
+  $$(".mini-btn.edit").forEach(b => b.addEventListener("click", () => loadToForm(b.dataset.id)));
+  updateSelCount();
+}
+function fmtDate(d){
+  if(!d) return "(日付なし)";
+  const [y,m,dd] = d.split("-");
+  const w = ["日","月","火","水","木","金","土"][new Date(d + "T00:00:00").getDay()];
+  return `${y}/${m}/${dd}(${w})`;
+}
+$("#chk-all").addEventListener("change", () => {
+  const on = $("#chk-all").checked;
+  $$(".hist-chk").forEach(c => {
+    c.checked = on;
+    c.closest(".hist-item").classList.toggle("checked", on);
+  });
+  updateSelCount();
+});
+function updateSelCount(){
+  $("#sel-count").textContent = `${$$(".hist-chk:checked").length}件 選択中`;
+}
+function selectedRecords(){
+  const ids = [...$$(".hist-chk:checked")].map(c => c.dataset.id);
+  return records.filter(r => ids.includes(r.id))
+                .sort((a,b) => (a.date || "").localeCompare(b.date || ""));
+}
+
+// 履歴 → 入力フォームへ読み戻し（編集）
+function loadToForm(id){
+  const r = records.find(x => x.id === id);
+  if(!r) return;
+  editingId = id;
+  $("#f-date").value = r.date; $("#f-driver").value = r.driver; $("#f-vehicle").value = r.vehicle;
+  $("#f-dest").value = r.dest; $("#f-time-start").value = r.timeStart; $("#f-time-end").value = r.timeEnd;
+  $("#pre-time").value = r.alcPre.time; $("#pre-value").value = r.alcPre.value; $("#pre-checker").value = r.alcPre.checker;
+  $("#post-time").value = r.alcPost.time; $("#post-value").value = r.alcPost.value; $("#post-checker").value = r.alcPost.checker;
+  $("#f-meter-start").value = r.meterStart; $("#f-meter-end").value = r.meterEnd;
+  $("#f-instr-note").value = r.instrNote || "";
+  $("#f-memo").value = r.memo;
+  const instrSet = new Set(r.instructions || []);
+  $$(".instr-chk").forEach(c => {
+    c.checked = instrSet.has(c.value);
+    c.closest(".instr-row").classList.toggle("on", c.checked);
+  });
+  updateInstrCount();
+  setRadio("pre-judge", r.alcPre.judge); setRadio("post-judge", r.alcPost.judge);
+  setRadio("f-etc", r.etc || "なし"); setRadio("f-highway", r.highway || "なし"); setRadio("f-parking", r.parking || "なし");
+  calcDist(); updateNgAlert();
+  $("#btn-save").innerHTML = "💾 上書き保存（編集中）";
+  $$("nav button")[0].click();
+  toast("編集モード：修正後に保存してください");
+}
+function setRadio(name, val){
+  $$(`input[name="${name}"]`).forEach(r => r.checked = (r.value === val));
+}
+
+/* ============================================================
+   PDF化（印刷レイアウト）
+============================================================ */
+function judgeHtml(j){
+  if(j === "OK") return '<span class="p-judge-ok">OK</span>';
+  if(j === "NG") return '<span class="p-judge-ng">NG（運転不可）</span>';
+  return "未実施";
+}
+function buildPrintPage(r){
+  return `
+  <div class="p-page">
+    <div class="p-title">運転日報・アルコールチェック記録</div>
+    <div class="p-sub">出力日時：${new Date().toLocaleString("ja-JP")}</div>
+
+    <div class="p-sec">基本情報</div>
+    <table class="p-tbl">
+      <tr><th>日付</th><td>${fmtDate(r.date)}</td></tr>
+      <tr><th>運転者名</th><td>${escHtml(r.driver)}</td></tr>
+      <tr><th>使用車両</th><td>${escHtml(r.vehicle) || "―"}</td></tr>
+      <tr><th>目的地</th><td>${escHtml(r.dest) || "―"}</td></tr>
+      <tr><th>使用時間</th><td>${r.timeStart || "--:--"} 〜 ${r.timeEnd || "--:--"}</td></tr>
+    </table>
+
+    <div class="p-sec">アルコールチェック</div>
+    <table class="p-tbl">
+      <tr><th></th><th style="width:35%">運転前</th><th style="width:35%">運転後</th></tr>
+      <tr><th>確認時刻</th><td>${r.alcPre.time || "―"}</td><td>${r.alcPost.time || "―"}</td></tr>
+      <tr><th>測定値 (mg/L)</th><td>${r.alcPre.value !== "" ? r.alcPre.value : "―"}</td><td>${r.alcPost.value !== "" ? r.alcPost.value : "―"}</td></tr>
+      <tr><th>確認者</th><td>${escHtml(r.alcPre.checker) || "―"}</td><td>${escHtml(r.alcPost.checker) || "―"}</td></tr>
+      <tr><th>判定</th><td>${judgeHtml(r.alcPre.judge)}</td><td>${judgeHtml(r.alcPost.judge)}</td></tr>
+    </table>
+
+    <div class="p-sec">走行情報</div>
+    <table class="p-tbl">
+      <tr><th>開始メーター</th><td>${r.meterStart || "―"} km</td></tr>
+      <tr><th>終了メーター</th><td>${r.meterEnd || "―"} km</td></tr>
+      <tr><th>走行距離</th><td>${r.distance || "―"} km</td></tr>
+      <tr><th>ETC使用</th><td>${r.etc || "―"}</td></tr>
+      <tr><th>高速道路運転</th><td>${r.highway || "―"}</td></tr>
+      <tr><th>有料駐車場使用</th><td>${r.parking || "―"}</td></tr>
+    </table>
+
+    <div class="p-sec">運転指示事項</div>
+    <table class="p-tbl"><tr><td>${
+      (r.instructions && r.instructions.length)
+        ? r.instructions.map(t => "☑ " + escHtml(t)).join("<br>")
+        : "（選択なし）"
+    }${r.instrNote ? "<br><br>【個別指示】" + escHtml(r.instrNote) : ""}</td></tr></table>
+
+    <div class="p-sec">備考</div>
+    <table class="p-tbl"><tr><td style="min-height:14mm">${escHtml(r.memo) || "　"}</td></tr></table>
+
+    <div class="p-sign"><div>安全運転<br>管理者</div><div>所属長</div><div>運転者</div></div>
+  </div>`;
+}
+$("#btn-print").addEventListener("click", () => {
+  const sel = selectedRecords();
+  if(!sel.length){ toast("⚠ PDF化する日報を選択してください"); return; }
+  $("#printArea").innerHTML = sel.map(buildPrintPage).join("");
+  setTimeout(() => window.print(), 100);
+});
+
+/* ============================================================
+   メール送信（mailto）
+============================================================ */
+function recordText(r){
+  return [
+    `━━━━━━━━━━━━━━━━━━`,
+    `■ 運転日報 ${fmtDate(r.date)}`,
+    `━━━━━━━━━━━━━━━━━━`,
+    `運転者　　：${r.driver}`,
+    `使用車両　：${r.vehicle || "―"}`,
+    `目的地　　：${r.dest || "―"}`,
+    `使用時間　：${r.timeStart || "--:--"}〜${r.timeEnd || "--:--"}`,
+    ``,
+    `【アルコールチェック】`,
+    `▼運転前　時刻:${r.alcPre.time || "―"} 数値:${r.alcPre.value !== "" ? r.alcPre.value : "―"}mg/L 確認者:${r.alcPre.checker || "―"} 判定:${r.alcPre.judge || "未"}`,
+    `▼運転後　時刻:${r.alcPost.time || "―"} 数値:${r.alcPost.value !== "" ? r.alcPost.value : "―"}mg/L 確認者:${r.alcPost.checker || "―"} 判定:${r.alcPost.judge || "未"}`,
+    ``,
+    `【走行情報】`,
+    `メーター　：${r.meterStart || "―"} → ${r.meterEnd || "―"} km（走行 ${r.distance || "―"} km）`,
+    `ETC:${r.etc || "―"} ／ 高速:${r.highway || "―"} ／ 有料P:${r.parking || "―"}`,
+    ``,
+    `【運転指示事項】`,
+    (r.instructions && r.instructions.length)
+      ? r.instructions.map(t => `☑ ${t}`).join("\n")
+      : `（選択なし）`,
+    r.instrNote ? `個別指示　：${r.instrNote}` : ``,
+    r.memo ? `備考　　　：${r.memo}` : ``,
+  ].filter(l => l !== ``  || true).join("\n");
+}
+function buildMailText(sel){
+  const first = sel[0];
+  const dateLabel = sel.length === 1 ? fmtDate(first.date)
+                  : `${fmtDate(first.date)}〜${fmtDate(sel[sel.length-1].date)}`;
+  const nameLabel = [...new Set(sel.map(r => r.driver))].join("・");
+  const subject = (mailCfg.subject || "【運転日報】{日付} {氏名}")
+    .replaceAll("{日付}", dateLabel).replaceAll("{氏名}", nameLabel);
+  const body = sel.map(recordText).join("\n\n") +
+    "\n\n--\n本メールは運転日報アプリから送信されています。";
+  return { subject, body };
+}
+$("#btn-mail").addEventListener("click", () => {
+  const sel = selectedRecords();
+  if(!sel.length){ toast("⚠ 送信する日報を選択してください"); return; }
+  if(!mailCfg.to){
+    toast("⚠ 提出先メールアドレスが未設定です（マスタ設定タブ）");
+    return;
+  }
+  const { subject, body } = buildMailText(sel);
+  let url = "mailto:" + encodeURIComponent(mailCfg.to) +
+    "?subject=" + encodeURIComponent(subject) +
+    "&body=" + encodeURIComponent(body);
+  if(mailCfg.cc) url += "&cc=" + encodeURIComponent(mailCfg.cc);
+  location.href = url;
+});
+
+/* ============================================================
+   PDFファイル生成 → 共有（会社メール添付・端末保存用）
+============================================================ */
+function fmtDateJPName(d){
+  if(!d) return "日付未設定";
+  const [y, m, dd] = d.split("-").map(Number);
+  return `${y}年${m}月${dd}日`;
+}
+function pdfFileName(sel){
+  const names = [...new Set(sel.map(r => (r.driver || "").split(/[\s　]+/)[0]))]
+    .filter(Boolean).join("・") || "運転者";
+  const d1 = fmtDateJPName(sel[0].date);
+  const d2 = fmtDateJPName(sel[sel.length - 1].date);
+  const span = (d1 === d2) ? d1 : `${d1}〜${d2}`;
+  return `運転日報報告(${names})(${span}).pdf`;
+}
+// 描画結果が真っ白（白紙）かどうかを判定する
+function canvasLooksBlank(canvas){
+  if(!canvas.width || !canvas.height) return true;
+  const ctx = canvas.getContext("2d");
+  const h = Math.min(canvas.height, 500); // 上部にはタイトル・罫線が必ずある
+  const data = ctx.getImageData(0, 0, canvas.width, h).data;
+  for(let i = 0; i < data.length; i += 40){
+    if(data[i] < 240 || data[i + 1] < 240 || data[i + 2] < 240) return false;
+  }
+  return true;
+}
+async function capturePage(el, scale){
+  return await html2canvas(el, {
+    scale: scale, backgroundColor: "#ffffff", logging: false,
+    useCORS: true, allowTaint: true,
+    scrollX: 0, scrollY: 0, windowWidth: 900
+  });
+}
+async function generatePdfBlob(sel){
+  const area = $("#pdfArea");
+  const busy = $("#pdfBusy");
+  area.innerHTML = sel.map(buildPrintPage).join("");
+  busy.style.display = "flex";
+  area.style.display = "block";
+  window.scrollTo(0, 0);
+  await new Promise(r => setTimeout(r, 250)); // レイアウト確定を待つ
+  try{
+    const { jsPDF } = window.jspdf;
+    const pdf = new jsPDF({ unit: "mm", format: "a4", orientation: "portrait" });
+    const pages = area.querySelectorAll(".p-page");
+    const pageW = 210, pageH = 297, mg = 8;
+    for(let i = 0; i < pages.length; i++){
+      // 1ページずつ描画（iPhoneのキャンバスサイズ上限を回避）
+      let canvas = await capturePage(pages[i], 2);
+      if(canvasLooksBlank(canvas)){
+        // 白紙なら低倍率で再試行
+        canvas = await capturePage(pages[i], 1);
+      }
+      if(canvasLooksBlank(canvas)){
+        throw new Error("BLANK_RENDER");
+      }
+      const img = canvas.toDataURL("image/jpeg", 0.92);
+      let w = pageW - mg * 2;
+      let h = canvas.height * w / canvas.width;
+      const maxH = pageH - mg * 2;
+      if(h > maxH){ w = w * maxH / h; h = maxH; }
+      if(i > 0) pdf.addPage();
+      pdf.addImage(img, "JPEG", mg, mg, w, h);
+    }
+    return pdf.output("blob");
+  } finally {
+    area.style.display = "none";
+    busy.style.display = "none";
+    area.innerHTML = "";
+  }
+}
+$("#btn-pdf-share").addEventListener("click", async () => {
+  const sel = selectedRecords();
+  if(!sel.length){ toast("⚠ PDF化する日報を選択してください"); return; }
+  if(typeof html2canvas === "undefined" || !window.jspdf){
+    toast("⚠ PDF機能の読み込みに失敗しています。通信環境の良い場所でページを再読み込みしてください");
+    return;
+  }
+  const { subject, body } = buildMailText(sel);
+
+  // 件名・本文を先にクリップボードへ（メール画面で貼り付け用）
+  let copied = false;
+  try{
+    await navigator.clipboard.writeText(
+      "件名：" + subject + "\n宛先：" + (mailCfg.to || "（未設定）") +
+      (mailCfg.cc ? "\nCC：" + mailCfg.cc : "") + "\n\n" + body);
+    copied = true;
+  }catch(e){ /* コピー不可でも処理継続 */ }
+
+  const btn = $("#btn-pdf-share");
+  btn.disabled = true;
+  try{
+    const blob = await generatePdfBlob(sel);
+    const fname = pdfFileName(sel);
+    const file = new File([blob], fname, { type: "application/pdf" });
+
+    if(navigator.canShare && navigator.canShare({ files: [file] })){
+      try{
+        await navigator.share({ files: [file], title: subject });
+        toast(copied ? "✅ 共有しました。件名・本文はコピー済みなので貼り付けできます"
+                     : "✅ 共有しました");
+        return;
+      }catch(err){
+        if(err && err.name === "AbortError"){ return; } // ユーザーがキャンセル
+        /* 共有不可 → ダウンロードにフォールバック */
+      }
+    }
+    // フォールバック：ダウンロード保存
+    const a = document.createElement("a");
+    a.href = URL.createObjectURL(blob);
+    a.download = fname;
+    document.body.appendChild(a);
+    a.click();
+    a.remove();
+    setTimeout(() => URL.revokeObjectURL(a.href), 30000);
+    toast("✅ PDFを保存しました（共有が使えないためダウンロードしました）");
+  }catch(err){
+    if(err && err.message === "BLANK_RENDER"){
+      toast("⚠ この機種ではPDF描画ができませんでした。「印刷プレビュー」からPDF化してください");
+    }else{
+      toast("⚠ PDFの作成に失敗しました。通信環境をご確認のうえ再度お試しください");
+    }
+  }finally{
+    btn.disabled = false;
+  }
+});
+
+/* ============================================================
+   初期化
+============================================================ */
+$("#btn-instr-clear").addEventListener("click", clearInstructions);
+$("#btn-sync").addEventListener("click", () => syncMasterData());
+renderInstructions();
+renderSelects();
+renderMailCfg();
+setToday();
+syncMasterData({silent: true});
+</script>
+</body>
+</html>
