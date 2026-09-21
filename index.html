@@ -274,7 +274,7 @@ select{
   <svg viewBox="0 0 64 64" aria-hidden="true"><rect width="64" height="64" rx="14" fill="#2C3E63"/><rect x="13" y="46" width="5" height="11" rx="1.5" fill="#6B7488"/><rect x="24" y="46" width="5" height="11" rx="1.5" fill="#6B7488"/><rect x="35" y="46" width="5" height="11" rx="1.5" fill="#6B7488"/><rect x="46" y="46" width="5" height="11" rx="1.5" fill="#6B7488"/><rect x="6" y="48" width="52" height="4" rx="2" fill="#AEB6C6"/><path d="M14 40 q0 -12 10 -13 l14 -1 q10 0 14 8 l3 6 q1 2 -1 2 l-38 0 q-2 0 -2 -2 z" fill="#FF6B35"/><path d="M27 29 l10 -0.8 q6 0 9 5.8 l-19 0 z" fill="#BFE7FF"/><circle cx="22" cy="43" r="6" fill="#2B3245"/><circle cx="22" cy="43" r="2.6" fill="#FFD35C"/><circle cx="44" cy="43" r="6" fill="#2B3245"/><circle cx="44" cy="43" r="2.6" fill="#FFD35C"/><circle cx="51.5" cy="36.5" r="1.8" fill="#FFF3B0"/><path d="M31 36 q3 2.4 6 0" stroke="#fff" stroke-width="1.6" fill="none" stroke-linecap="round"/></svg>
   <div>
     <h1>運転日報・アルコールチェック</h1>
-    <div class="sub">社有車 運転記録アプリ｜v3</div>
+    <div class="sub">社有車 運転記録アプリ｜v3.1（自動同期試験）</div>
   </div>
 </header>
 
@@ -456,6 +456,15 @@ select{
 <section id="tab-master" class="tab">
 
   <div class="card">
+    <h2>マスタ自動同期（試験運用）</h2>
+    <div class="file-drop">
+      <div id="sync-status" class="master-status">起動時に試験用マスタを確認します</div>
+      <button type="button" class="btn btn-primary btn-sm" id="btn-sync" style="margin-top:12px">🔄 今すぐ同期</button>
+    </div>
+    <p class="hint">現在は公開しても問題のないダミーデータで同期機能を検証しています。実データ移行時は、社内認証付きのBox連携先へ切り替えます。</p>
+  </div>
+
+  <div class="card">
     <h2>社員名簿の読み込み</h2>
     <div class="file-drop">
       Excelファイル（.xlsx）を選択すると、<br>「運転者名」「確認者」の選択肢に反映されます。
@@ -556,6 +565,7 @@ select{
 const LS_MASTER  = "nippo_master_v1";   // {employees:[], vehicles:[]}
 const LS_MAIL    = "nippo_mail_v1";     // {to, cc, subject}
 const LS_RECORDS = "nippo_records_v1";  // 日報配列
+const MASTER_DATA_URL = "./master-demo.json"; // 試験用。実運用時は社内認証付きAPIへ差し替え
 
 const $  = (s) => document.querySelector(s);
 const $$ = (s) => document.querySelectorAll(s);
@@ -572,6 +582,45 @@ function load(key, def){
   }catch(e){ return def; }
 }
 function save(key, v){ localStorage.setItem(key, JSON.stringify(v)); }
+
+async function syncMasterData({silent = false} = {}){
+  const status = $("#sync-status");
+  const btn = $("#btn-sync");
+  if(status) status.textContent = "🔄 マスタを確認しています…";
+  if(btn) btn.disabled = true;
+  try{
+    const res = await fetch(MASTER_DATA_URL + "?t=" + Date.now(), {cache: "no-store"});
+    if(!res.ok) throw new Error("HTTP " + res.status);
+    const data = await res.json();
+    if(!Array.isArray(data.employees) || !Array.isArray(data.vehicles)){
+      throw new Error("マスタ形式が正しくありません");
+    }
+    const employees = [...new Set(data.employees.map(v => String(v).trim()).filter(Boolean))];
+    const vehicles = data.vehicles.map(v => ({
+      no: String(v.no || "").trim(),
+      name: String(v.name || "").trim()
+    })).filter(v => v.no);
+    if(!employees.length || !vehicles.length) throw new Error("マスタが空です");
+    master = {
+      employees,
+      vehicles,
+      syncedAt: new Date().toISOString(),
+      source: data.source || "demo"
+    };
+    save(LS_MASTER, master);
+    renderSelects();
+    if(status) status.textContent = `✅ 自動同期済み：社員 ${employees.length}名／車両 ${vehicles.length}台`;
+    if(!silent) toast("✅ マスタを最新状態に同期しました");
+  }catch(err){
+    const cached = master.employees.length || master.vehicles.length;
+    if(status) status.textContent = cached
+      ? "⚠ 同期できないため、端末に保存済みのマスタを使用中"
+      : "⚠ 自動同期できません。手動でExcelを読み込んでください";
+    if(!silent) toast("⚠ 自動同期に失敗しました。通信環境をご確認ください");
+  }finally{
+    if(btn) btn.disabled = false;
+  }
+}
 
 function toast(msg){
   const t = $("#toast");
@@ -1237,10 +1286,12 @@ $("#btn-pdf-share").addEventListener("click", async () => {
    初期化
 ============================================================ */
 $("#btn-instr-clear").addEventListener("click", clearInstructions);
+$("#btn-sync").addEventListener("click", () => syncMasterData());
 renderInstructions();
 renderSelects();
 renderMailCfg();
 setToday();
+syncMasterData({silent: true});
 </script>
 </body>
 </html>
