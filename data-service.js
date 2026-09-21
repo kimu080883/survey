@@ -226,7 +226,9 @@ class SupabaseDataService {
       vehicleId:row.vehicle_id,
       latestOdometer:asNumber(row.current_odometer),
       revision:Number(row.revision || 0),
-      lastReportId:null,
+      lastReportId:row.last_report_id || null,
+      lastDriverName:row.last_driver_name || null,
+      lastUsedDate:row.last_used_date || null,
       updatedAt:row.last_report_at || null
     };
   }
@@ -246,10 +248,20 @@ class SupabaseDataService {
       endOdometer:asNumber(row.end_odometer),
       distance:asNumber(row.distance),
       correctionReason:row.start_correction_reason || "",
+      destination:row.destination || source && source.destination || row.route || "",
+      startTime:row.start_time || source && source.startTime || "",
+      endTime:row.end_time || source && source.endTime || "",
+      alcoholPre:row.alcohol_pre || source && source.alcoholPre || null,
+      alcoholPost:row.alcohol_post || source && source.alcoholPost || null,
+      etc:row.etc || source && source.etc || "なし",
+      highway:row.highway || source && source.highway || "なし",
+      parking:row.parking || source && source.parking || "なし",
+      memo:row.notes || source && source.memo || "",
+      clientVersion:row.client_version || source && source.clientVersion || "",
       route:row.route || "",
       purpose:row.purpose || "",
-      preAlcohol:asNumber(row.pre_alcohol),
-      postAlcohol:asNumber(row.post_alcohol),
+      preAlcohol:asNumber(row.pre_alcohol != null ? row.pre_alcohol : row.alcohol_pre && row.alcohol_pre.value),
+      postAlcohol:asNumber(row.post_alcohol != null ? row.post_alcohol : row.alcohol_post && row.alcohol_post.value),
       notes:row.notes || "",
       vehicleRevision:Number(row.vehicle_revision || 0),
       savedAt:row.created_at,
@@ -269,11 +281,20 @@ class SupabaseDataService {
       p_end_odometer:asNumber(report.endOdometer),
       p_expected_revision:Number(options && options.expectedRevision || 0),
       p_start_correction_reason:report.correctionReason || null,
+      p_destination:report.destination || null,
+      p_start_time:report.startTime || null,
+      p_end_time:report.endTime || null,
+      p_alcohol_pre:report.alcoholPre || null,
+      p_alcohol_post:report.alcoholPost || null,
+      p_etc:report.etc || "なし",
+      p_highway:report.highway || "なし",
+      p_parking:report.parking || "なし",
+      p_client_version:report.clientVersion || CFG.appVersion || null,
       p_route:report.route || null,
       p_purpose:report.purpose || null,
-      p_pre_alcohol:asNumber(report.preAlcohol),
-      p_post_alcohol:asNumber(report.postAlcohol),
-      p_notes:report.notes || null,
+      p_pre_alcohol:asNumber(report.preAlcohol != null ? report.preAlcohol : report.alcoholPre && report.alcoholPre.value),
+      p_post_alcohol:asNumber(report.postAlcohol != null ? report.postAlcohol : report.alcoholPost && report.alcoholPost.value),
+      p_notes:report.memo || report.notes || null,
       p_client_request_id:report.clientRequestId
     };
     const row = await this._request("/rpc/submit_driving_report", {
@@ -286,7 +307,7 @@ class SupabaseDataService {
   }
   async listReports(filters){
     const q = new URLSearchParams();
-    q.set("select", "id,client_request_id,report_date,employee_id,vehicle_id,start_odometer,end_odometer,distance,start_correction_reason,route,purpose,pre_alcohol,post_alcohol,notes,vehicle_revision,created_at");
+    q.set("select", "id,client_request_id,report_date,employee_id,vehicle_id,start_odometer,end_odometer,distance,start_correction_reason,destination,start_time,end_time,alcohol_pre,alcohol_post,etc,highway,parking,client_version,route,purpose,pre_alcohol,post_alcohol,notes,vehicle_revision,created_at");
     q.set("order", "report_date.desc,created_at.desc");
     if(filters && filters.month){
       const range = this._toMonthRange(filters.month);
