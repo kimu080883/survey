@@ -36,13 +36,13 @@ nav button{flex:1;border:0;background:#fff;color:var(--muted);padding:9px 2px 10
 @media(max-width:520px){.grid2,.grid3{grid-template-columns:1fr}.grid2.compact{grid-template-columns:1fr 1fr}.kpis{grid-template-columns:1fr 1fr 1fr}.mode{display:none}}
 @media print{header,nav,.no-print,#toast{display:none!important}body{padding:0;background:#fff}.tab{display:none!important}#tab-admin{display:block!important}.card{box-shadow:none;border:0;padding:0}main{max-width:none}.table-wrap{overflow:visible}table{min-width:0}th,td{font-size:9pt}}
 </style>
-<script src="./app-config.js?v=5.1.2"></script>
-<script src="./data-service.js?v=5.1.2"></script>
+<script src="./app-config.js?v=5.1.3"></script>
+<script src="./data-service.js?v=5.1.3"></script>
 </head>
 <body>
 <header>
   <div class="logo">🚙</div>
-  <div><h1>運転日報・車両距離管理</h1><div class="sub">車両別の距離引継ぎ・所属履歴・月次集計｜v5.1.2</div></div>
+  <div><h1>運転日報・車両距離管理</h1><div class="sub">車両別の距離引継ぎ・所属履歴・月次集計｜v5.1.3</div></div>
   <div class="mode" id="mode-badge"></div>
 </header>
 
@@ -103,6 +103,7 @@ nav button{flex:1;border:0;background:#fff;color:var(--muted);padding:9px 2px 10
     <div class="field"><label for="memo">備考</label><textarea id="memo" placeholder="給油、洗車、車両異常など"></textarea></div>
   </div>
   <button class="btn btn-primary" id="save-report" type="button">日報を確定保存</button>
+  <div id="save-status" class="alert hidden" style="margin-top:10px" role="status" aria-live="polite"></div>
   <p class="hint">保存時に車両の最新距離を再確認します。別の社員が先に同じ車両の日報を保存した場合は、上書きせず警告します。</p>
 </section>
 
@@ -205,6 +206,13 @@ function showGlobal(message){
   var el=$("#global-alert"); el.textContent=message; el.classList.remove("hidden");
 }
 function clearGlobal(){ $("#global-alert").classList.add("hidden"); }
+
+function showSaveStatus(message,kind){
+  var el=$("#save-status");
+  el.textContent=message;
+  el.className="alert "+(kind==="ok"?"alert-info":"alert-ng");
+  el.classList.remove("hidden");
+}
 
 $$("nav button").forEach(function(button){
   button.addEventListener("click",function(){
@@ -364,16 +372,20 @@ function clearAfterSave(){
 }
 $("#save-report").addEventListener("click",async function(){
   var button=this;clearGlobal();
+  $("#save-status").classList.add("hidden");
+  setBusy(button,true,"保存しています…");
   try{
     if(!vehicleState) throw new Error("車両の最新距離を取得してから保存してください");
     var report=buildReport();
-    setBusy(button,true,"保存しています…");
     var saved=await service.saveReport(report,{expectedRevision:vehicleState.revision});
     clearAfterSave();
-    var refreshed=await refreshReportViews(report.date.slice(0,7));
+    var refreshed=await refreshReportViews(report.date.slice(0,7),saved&&saved.id);
     if(refreshed){
-      toast("✅ 保存完了　履歴・月次も更新しました");
+      showSaveStatus("✅ サーバー保存完了：履歴に反映しました","ok");
+      toast("✅ 保存完了　履歴に反映しました");
+      document.querySelector('nav button[data-tab="tab-history"]').click();
     }else{
+      showSaveStatus("✅ 日報はサーバーへ保存済みです。表示の再確認を続けます。","ok");
       toast("✅ 日報は保存済みです");
       showGlobal("日報はサーバーへ保存済みですが、履歴または月次表示の再読込に失敗しました。各画面の更新ボタンを押してください。");
     }
@@ -384,6 +396,9 @@ $("#save-report").addEventListener("click",async function(){
     }else{
       showGlobal(err.message||"保存できませんでした");
     }
+    showSaveStatus("❌ 保存できませんでした："+(err.message||"入力内容を確認してください"),"ng");
+    toast("❌ 保存できませんでした");
+    $("#save-status").scrollIntoView({behavior:"smooth",block:"center"});
   }finally{setBusy(button,false);}
 });
 
@@ -393,13 +408,18 @@ function reportHtml(r){
     ' km　／　走行 <strong>'+Number(r.distance).toLocaleString()+' km</strong><br>'+
     (r.departmentName?'所属：'+esc(r.departmentName)+'<br>':'')+esc(r.destination||"目的地なし")+(r.correctionReason?'<br>⚠ 距離修正理由：'+esc(r.correctionReason):'')+'</div></div>';
 }
-async function loadHistory(){
+async function loadHistory(expectedId){
   var list=$("#history-list");list.innerHTML='<p class="hint">読み込み中…</p>';
   try{
-    var rows=await service.listReports({month:$("#history-month").value});
+    var rows=[];
+    for(var attempt=0;attempt<4;attempt++){
+      rows=await service.listReports({month:$("#history-month").value});
+      if(!expectedId||rows.some(function(r){return r.id===expectedId;})) break;
+      await new Promise(function(resolve){setTimeout(resolve,400*(attempt+1));});
+    }
     list.innerHTML=rows.length?rows.map(reportHtml).join(""):'<p class="hint">対象月の日報はありません。</p>';
     $("#history-updated").textContent="サーバーから更新："+updatedTime()+"（"+rows.length+"件）";
-    return true;
+    return !expectedId||rows.some(function(r){return r.id===expectedId;});
   }catch(err){
     list.innerHTML='<div class="alert alert-ng">'+esc(err.message)+'</div>';
     $("#history-updated").textContent="更新失敗："+updatedTime();
@@ -448,14 +468,23 @@ $("#reload-admin").addEventListener("click",async function(){
 });
 $("#admin-month").addEventListener("change",loadAdmin);
 
-async function refreshReportViews(month){
+async function refreshReportViews(month,expectedId){
   if(month){
     $("#history-month").value=month;
     $("#admin-month").value=month;
   }
-  var results=await Promise.all([loadHistory(),loadAdmin()]);
+  var results=await Promise.all([loadHistory(expectedId),loadAdmin()]);
   return results.every(function(ok){return ok;});
 }
+
+async function refreshActiveView(){
+  if(document.hidden) return;
+  if($("#tab-history").classList.contains("active")) await loadHistory();
+  if($("#tab-admin").classList.contains("active")) await loadAdmin();
+}
+setInterval(refreshActiveView,15000);
+document.addEventListener("visibilitychange",function(){if(!document.hidden) refreshActiveView();});
+window.addEventListener("focus",refreshActiveView);
 $("#print-summary").addEventListener("click",function(){window.print();});
 
 function csvCell(value){return '"'+String(value==null?"":value).replace(/"/g,'""')+'"';}
