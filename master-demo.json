@@ -2,23 +2,48 @@
   "source": "demo",
   "updatedAt": "2026-09-21T00:00:00+09:00",
   "employees": [
-    "テスト社員A",
-    "テスト社員B",
-    "テスト社員C",
-    "テスト確認者"
+    {
+      "id": "E001",
+      "name": "テスト社員A",
+      "active": true
+    },
+    {
+      "id": "E002",
+      "name": "テスト社員B",
+      "active": true
+    },
+    {
+      "id": "E003",
+      "name": "テスト社員C",
+      "active": true
+    },
+    {
+      "id": "E900",
+      "name": "テスト確認者",
+      "active": true
+    }
   ],
   "vehicles": [
     {
+      "id": "V001",
       "no": "TEST-001",
-      "name": "試験車両A"
+      "name": "試験車両A",
+      "initialOdometer": 10000,
+      "active": true
     },
     {
+      "id": "V002",
       "no": "TEST-002",
-      "name": "試験車両B"
+      "name": "試験車両B",
+      "initialOdometer": 25000,
+      "active": true
     },
     {
+      "id": "V003",
       "no": "TEST-003",
-      "name": "試験車両C"
+      "name": "試験車両C",
+      "initialOdometer": 5000,
+      "active": true
     }
   ]
 }
