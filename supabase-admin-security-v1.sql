@@ -1,0 +1,12 @@
+begin;
+create table if not exists public.admin_users(user_id uuid primary key references auth.users(id) on delete cascade,display_name text not null default '管理者',active boolean not null default true,created_at timestamptz not null default now());
+alter table public.admin_users enable row level security;revoke all on table public.admin_users from anon,authenticated;
+create or replace function public.is_admin() returns boolean language sql stable security definer set search_path=public,auth as $$select exists(select 1 from public.admin_users a where a.user_id=auth.uid() and a.active=true);$$;
+revoke all on function public.is_admin() from public,anon;grant execute on function public.is_admin() to authenticated;
+alter table public.driving_reports enable row level security;revoke select on table public.driving_reports from anon;grant select on table public.driving_reports to authenticated;
+do $$declare p record;begin for p in select policyname from pg_policies where schemaname='public' and tablename='driving_reports' and cmd='SELECT' loop execute format('drop policy %I on public.driving_reports',p.policyname);end loop;end$$;
+create policy driving_reports_admin_read on public.driving_reports for select to authenticated using(public.is_admin());
+create or replace function public.get_vehicle_input_state(p_vehicle_id text) returns table(vehicle_id text,current_odometer numeric,revision bigint) language sql stable security definer set search_path=public as $$select v.id::text,v.current_odometer::numeric,coalesce(v.revision,0)::bigint from public.vehicles v where v.id::text=p_vehicle_id limit 1;$$;
+revoke all on function public.get_vehicle_input_state(text) from public;grant execute on function public.get_vehicle_input_state(text) to anon,authenticated;
+do $$declare f record;begin for f in select n.nspname,p.proname,pg_get_function_identity_arguments(p.oid) args from pg_proc p join pg_namespace n on n.oid=p.pronamespace where n.nspname='public' and p.proname in('get_vehicle_state','get_monthly_vehicle_summary') loop execute format('revoke execute on function %I.%I(%s) from anon',f.nspname,f.proname,f.args);end loop;end$$;
+commit;
