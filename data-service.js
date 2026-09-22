@@ -155,8 +155,51 @@ class DemoDataService {
 class SupabaseDataService {
   constructor(){
     this.base = String(CFG.supabaseUrl || "").replace(/\/$/, "") + "/rest/v1";
+    this.authBase = String(CFG.supabaseUrl || "").replace(/\/$/, "") + "/auth/v1";
     this.key = String(CFG.supabasePublishableKey || "");
     this.masterCache = null;
+    this.sessionKey = "fleet_admin_session_v1";
+    this.session = this._readSession();
+  }
+  _readSession(){try{return JSON.parse(sessionStorage.getItem(this.sessionKey))||null;}catch(_){return null;}}
+  _saveSession(value){this.session=value||null;if(value)sessionStorage.setItem(this.sessionKey,JSON.stringify(value));else sessionStorage.removeItem(this.sessionKey);}
+  async consumeAuthRedirect(){
+    const raw=String(location.hash||"").replace(/^#/,"");
+    if(!raw||!raw.includes("access_token="))return null;
+    const p=new URLSearchParams(raw),access=p.get("access_token"),refresh=p.get("refresh_token");
+    if(!access)return null;
+    const expiresIn=Number(p.get("expires_in")||3600);
+    this._saveSession({access_token:access,refresh_token:refresh||"",expires_at:Math.floor(Date.now()/1000)+expiresIn,user:{email:""}});
+    history.replaceState(null,"",location.pathname+location.search);
+    try{
+      const ok=await this._request("/rpc/is_admin",{method:"POST",body:"{}",auth:true});
+      if(ok!==true){this._saveSession(null);throw appError("NOT_ADMIN","この招待には管理者権限がありません");}
+      return{email:"管理者",needsPassword:true,authType:p.get("type")||"invite"};
+    }catch(err){this._saveSession(null);throw err;}
+  }
+  async _authRequest(path,payload){
+    const res=await fetch(this.authBase+path,{method:"POST",cache:"no-store",headers:{"apikey":this.key,"Content-Type":"application/json"},body:JSON.stringify(payload||{})});
+    const text=await res.text();let body=null;try{body=text?JSON.parse(text):null;}catch(_){body=text;}
+    if(!res.ok)throw appError("AUTH_ERROR",String(body&&(body.msg||body.message||body.error_description)||"認証に失敗しました"),body);
+    return body;
+  }
+  async _ensureToken(){
+    if(!this.session||!this.session.access_token)throw appError("ADMIN_LOGIN_REQUIRED","管理者ログインが必要です");
+    if(Number(this.session.expires_at||0)*1000>Date.now()+60000)return this.session.access_token;
+    if(!this.session.refresh_token)throw appError("ADMIN_LOGIN_REQUIRED","管理者セッションの有効期限が切れました");
+    const refreshed=await this._authRequest("/token?grant_type=refresh_token",{refresh_token:this.session.refresh_token});this._saveSession(refreshed);return refreshed.access_token;
+  }
+  async loginAdmin(email,password){
+    const session=await this._authRequest("/token?grant_type=password",{email:String(email||"").trim(),password:String(password||"")});this._saveSession(session);
+    try{const ok=await this._request("/rpc/is_admin",{method:"POST",body:"{}",auth:true});if(ok!==true){await this.logoutAdmin();throw appError("NOT_ADMIN","このアカウントには管理者権限がありません");}return{email:session.user&&session.user.email||email};}
+    catch(err){if(err.code!=="NOT_ADMIN")this._saveSession(null);throw err;}
+  }
+  async logoutAdmin(){if(this.session&&this.session.access_token){try{await fetch(this.authBase+"/logout",{method:"POST",headers:{"apikey":this.key,"Authorization":"Bearer "+this.session.access_token}});}catch(_){}}this._saveSession(null);}
+  async restoreAdmin(){if(!this.session)return null;try{const ok=await this._request("/rpc/is_admin",{method:"POST",body:"{}",auth:true});if(ok!==true){this._saveSession(null);return null;}return{email:this.session.user&&this.session.user.email||"管理者"};}catch(_){this._saveSession(null);return null;}}
+  async changeAdminPassword(password){
+    const token=await this._ensureToken();
+    const res=await fetch(this.authBase+"/user",{method:"PUT",headers:{"apikey":this.key,"Authorization":"Bearer "+token,"Content-Type":"application/json"},body:JSON.stringify({password:String(password||"")})});
+    const body=await res.json().catch(()=>null);if(!res.ok)throw appError("AUTH_ERROR",String(body&&(body.msg||body.message)||"パスワードを変更できませんでした"),body);return true;
   }
   async _request(path, options){
     if(!CFG.supabaseUrl || !this.key){
@@ -166,6 +209,7 @@ class SupabaseDataService {
     const timer = setTimeout(() => controller.abort(), CFG.requestTimeoutMs || 12000);
     try{
       const opts = options || {};
+      const token = opts.auth ? await this._ensureToken() : null;
       const res = await fetch(this.base + path, {
         method:opts.method || "GET",
         body:opts.body,
@@ -174,6 +218,7 @@ class SupabaseDataService {
         headers:{
           "apikey":this.key,
           "Content-Type":"application/json",
+          ...(token ? {"Authorization":"Bearer "+token} : {}),
           ...(opts.headers || {})
         }
       });
@@ -231,7 +276,7 @@ class SupabaseDataService {
     return clone(value);
   }
   async getVehicleState(vehicleId){
-    const rows = await this._request("/rpc/get_vehicle_state", {
+    const rows = await this._request("/rpc/get_vehicle_input_state", {
       method:"POST",
       body:JSON.stringify({p_vehicle_id:String(vehicleId)})
     });
@@ -241,10 +286,7 @@ class SupabaseDataService {
       vehicleId:row.vehicle_id,
       latestOdometer:asNumber(row.current_odometer),
       revision:Number(row.revision || 0),
-      lastReportId:row.last_report_id || null,
-      lastDriverName:row.last_driver_name || null,
-      lastUsedDate:row.last_used_date || null,
-      updatedAt:row.last_report_at || null
+      lastReportId:null,lastDriverName:null,lastUsedDate:null,updatedAt:null
     };
   }
   _mapReport(row, master, source){
@@ -333,7 +375,7 @@ class SupabaseDataService {
     }
     if(filters && filters.vehicleId) q.set("vehicle_id", "eq." + filters.vehicleId);
     const [rows, master] = await Promise.all([
-      this._request("/driving_reports?" + q.toString()),
+      this._request("/driving_reports?" + q.toString(),{auth:true}),
       this.getMaster()
     ]);
     return (rows || []).map(row => this._mapReport(row, master));
@@ -341,7 +383,7 @@ class SupabaseDataService {
   async monthlySummary(month){
     const rows = await this._request("/rpc/get_monthly_vehicle_summary", {
       method:"POST",
-      body:JSON.stringify({p_month:String(month) + "-01"})
+      body:JSON.stringify({p_month:String(month) + "-01"}),auth:true
     });
     return (rows || []).map(row => ({
       vehicleId:row.vehicle_id,
