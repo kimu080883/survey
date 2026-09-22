@@ -1,9 +1,9 @@
 /* 運転日報アプリ 環境設定
  * 試験運用は Supabase + 架空マスターです。
- * 実データ移行前に認証方式と管理者権限を追加してください。
+ * 日報入力は公開キー、履歴・月次集計は管理者認証で権限分離しています。
  */
 window.APP_CONFIG = Object.freeze({
-  appVersion: "5.1.3",
+  appVersion: "5.2.0",
   mode: "supabase", // "demo" | "supabase" | "api"
   apiBaseUrl: "",
   supabaseUrl: "https://ofrpludsknfvgdxrodfa.supabase.co",
