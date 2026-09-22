@@ -3,7 +3,7 @@
  * 日報入力は公開キー、履歴・月次集計は管理者認証で権限分離しています。
  */
 window.APP_CONFIG = Object.freeze({
-  appVersion: "5.2.0",
+  appVersion: "5.2.1",
   mode: "supabase", // "demo" | "supabase" | "api"
   apiBaseUrl: "",
   supabaseUrl: "https://ofrpludsknfvgdxrodfa.supabase.co",
