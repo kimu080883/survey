@@ -32,17 +32,17 @@ nav button{flex:1;border:0;background:#fff;color:var(--muted);padding:9px 2px 10
 .table-wrap{overflow:auto;border:1px solid var(--line);border-radius:11px}table{border-collapse:collapse;width:100%;min-width:650px;background:#fff}th,td{padding:9px 10px;border-bottom:1px solid var(--line);font-size:.76rem;text-align:left;white-space:nowrap}th{background:#eef2f7;color:var(--navy);font-weight:900}tr:last-child td{border-bottom:0}.num{text-align:right;font-variant-numeric:tabular-nums}
 .kpis{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-bottom:12px}.kpi{background:#f2f5f9;border-radius:10px;padding:11px;text-align:center}.kpi b{display:block;font-size:1.15rem;color:var(--navy)}.kpi span{font-size:.68rem;color:var(--muted)}
 .report{border:1px solid var(--line);border-radius:11px;padding:11px;margin-bottom:8px}.report-head{font-weight:900;color:var(--navy)}.report-meta{font-size:.75rem;color:var(--muted);line-height:1.6;margin-top:4px}
+.admin-head{display:flex;justify-content:space-between;align-items:center;gap:10px}.admin-head .btn{width:auto;min-height:40px}.subtabs{display:flex;gap:6px;overflow:auto;margin:12px 0}.subtabs button{white-space:nowrap;border:1px solid var(--line);background:#fff;color:var(--navy);border-radius:20px;padding:8px 12px;font-size:.75rem;font-weight:800}.subtabs button.active{background:var(--navy);color:#fff}.admin-panel{display:none}.admin-panel.active{display:block}.judge{border-radius:10px;padding:10px 12px;font-weight:900;font-size:.82rem;background:#eef2f7;color:var(--muted)}.judge.ok{background:#ecfdf3;color:var(--ok)}.judge.ng{background:#fee4e2;color:var(--ng)}.status-ng{color:var(--ng);font-weight:900}.status-warn{color:var(--warn);font-weight:900}.privacy-note{border-left:4px solid var(--navy);padding-left:10px}
 #toast{position:fixed;left:50%;bottom:90px;transform:translate(-50%,20px);background:var(--navy);color:#fff;padding:11px 18px;border-radius:30px;font-size:.82rem;font-weight:800;opacity:0;transition:.2s;z-index:50;max-width:92%;text-align:center;pointer-events:none}#toast.show{opacity:1;transform:translate(-50%,0)}
 @media(max-width:520px){.grid2,.grid3{grid-template-columns:1fr}.grid2.compact{grid-template-columns:1fr 1fr}.kpis{grid-template-columns:1fr 1fr 1fr}.mode{display:none}}
 @media print{header,nav,.no-print,#toast{display:none!important}body{padding:0;background:#fff}.tab{display:none!important}#tab-admin{display:block!important}.card{box-shadow:none;border:0;padding:0}main{max-width:none}.table-wrap{overflow:visible}table{min-width:0}th,td{font-size:9pt}}
 </style>
-<script src="./app-config.js?v=5.1.3"></script>
-<script src="./data-service.js?v=5.1.3"></script>
+<script src="./app-config.js?v=5.2.0"></script><script src="./data-service.js?v=5.2.0"></script><script src="./admin-analytics.js?v=5.2.0"></script>
 </head>
 <body>
 <header>
   <div class="logo">🚙</div>
-  <div><h1>運転日報・車両距離管理</h1><div class="sub">車両別の距離引継ぎ・所属履歴・月次集計｜v5.1.3</div></div>
+  <div><h1>運転日報・車両距離管理</h1><div class="sub">車両別の距離引継ぎ・所属履歴・月次集計｜v5.2.0</div></div>
   <div class="mode" id="mode-badge"></div>
 </header>
 
@@ -81,16 +81,16 @@ nav button{flex:1;border:0;background:#fff;color:var(--muted);padding:9px 2px 10
         <div class="field"><label class="req" for="pre-time">運転前・確認時刻</label><input id="pre-time" type="time"></div>
         <div class="field"><label class="req" for="pre-value">運転前・測定値</label><input id="pre-value" type="number" min="0" step="0.01" inputmode="decimal" placeholder="0.00"></div>
         <div class="field"><label class="req" for="pre-checker">運転前・確認者</label><select id="pre-checker"></select></div>
-        <div class="field"><label class="req" for="pre-judge">運転前・判定</label><select id="pre-judge"><option value="">選択</option><option>OK</option><option>NG</option></select></div>
+        <div class="field"><label>運転前・自動判定</label><input id="pre-judge" type="hidden"><div id="pre-judge-view" class="judge">測定値を入力してください</div></div>
       </div>
       <div>
         <div class="field"><label class="req" for="post-time">運転後・確認時刻</label><input id="post-time" type="time"></div>
         <div class="field"><label class="req" for="post-value">運転後・測定値</label><input id="post-value" type="number" min="0" step="0.01" inputmode="decimal" placeholder="0.00"></div>
         <div class="field"><label class="req" for="post-checker">運転後・確認者</label><select id="post-checker"></select></div>
-        <div class="field"><label class="req" for="post-judge">運転後・判定</label><select id="post-judge"><option value="">選択</option><option>OK</option><option>NG</option></select></div>
+        <div class="field"><label>運転後・自動判定</label><input id="post-judge" type="hidden"><div id="post-judge-view" class="judge">測定値を入力してください</div></div>
       </div>
     </div>
-    <div id="ng-warning" class="alert alert-ng hidden">NG判定です。運転は禁止し、直ちに安全運転管理者へ連絡してください。</div>
+    <div id="ng-warning" class="alert alert-ng hidden">アルコールが検知されています。正式な確認・対応は専用のアルコールチェック管理ツールで行ってください。</div><p class="hint privacy-note">この欄は運転日報上の補助記録です。正式なアルコール確認記録は専用ツールで管理します。</p>
   </div>
 
   <div class="card">
@@ -107,40 +107,18 @@ nav button{flex:1;border:0;background:#fff;color:var(--muted);padding:9px 2px 10
   <p class="hint">保存時に車両の最新距離を再確認します。別の社員が先に同じ車両の日報を保存した場合は、上書きせず警告します。</p>
 </section>
 
-<section class="tab" id="tab-history">
-  <div class="card">
-    <h2>日報履歴</h2>
-    <div class="toolbar no-print">
-      <div class="field"><label for="history-month">対象月</label><input id="history-month" type="month"></div>
-      <button class="btn btn-navy btn-sm" id="reload-history">更新</button>
-    </div>
-    <div id="history-list"></div>
-    <p id="history-updated" class="hint"></p>
-  </div>
-</section>
-
 <section class="tab" id="tab-admin">
-  <div class="card">
-    <h2>管理者・車両月次集計</h2>
-    <div class="toolbar no-print">
-      <div class="field"><label for="admin-month">対象月</label><input id="admin-month" type="month"></div>
-      <button class="btn btn-navy btn-sm" id="reload-admin">集計</button>
-    </div>
-    <div class="kpis">
-      <div class="kpi"><b id="kpi-vehicles">0</b><span>稼働車両</span></div>
-      <div class="kpi"><b id="kpi-reports">0</b><span>日報件数</span></div>
-      <div class="kpi"><b id="kpi-distance">0</b><span>総走行km</span></div>
-    </div>
-    <div class="table-wrap"><table>
-      <thead><tr><th>車両番号</th><th>車名</th><th class="num">月初</th><th class="num">月末</th><th class="num">月間距離</th><th class="num">日報</th><th class="num">運転者</th><th class="num">距離修正</th></tr></thead>
-      <tbody id="summary-body"></tbody>
-    </table></div>
-    <p id="summary-empty" class="hint hidden">対象月の日報はありません。</p>
-    <p id="admin-updated" class="hint"></p>
-  </div>
-  <div class="grid2 no-print">
-    <button class="btn btn-primary" id="download-csv">月次明細CSVを出力</button>
-    <button class="btn btn-outline" id="print-summary">月次表を印刷・PDF化</button>
+  <div id="admin-login" class="card"><h2>管理者ログイン</h2><div class="alert alert-info">日報履歴と月次集計は管理者だけが閲覧できます。</div><div class="field"><label class="req" for="admin-email">管理者ID（メールアドレス）</label><input id="admin-email" type="email" autocomplete="username"></div><div class="field"><label class="req" for="admin-password">パスワード</label><input id="admin-password" type="password" autocomplete="current-password"></div><button class="btn btn-navy" id="admin-login-button" type="button">ログイン</button><div id="admin-login-error" class="alert alert-ng hidden" style="margin-top:10px"></div></div>
+  <div id="admin-dashboard" class="hidden"><div id="admin-invite-message" class="alert alert-info hidden">招待を確認しました。画面下の「パスワード変更」で、管理者パスワードを設定してください。</div><div class="card"><div class="admin-head"><h2>管理者・月次管理</h2><button class="btn btn-outline btn-sm" id="admin-logout" type="button">ログアウト</button></div><div class="toolbar no-print"><div class="field"><label for="admin-month">対象月</label><input id="admin-month" type="month"></div><button class="btn btn-navy btn-sm" id="reload-admin" type="button">更新</button></div>
+    <div class="kpis"><div class="kpi"><b id="kpi-vehicles">0</b><span>稼働車両</span></div><div class="kpi"><b id="kpi-days">0</b><span>延べ稼働日数</span></div><div class="kpi"><b id="kpi-reports">0</b><span>日報件数</span></div><div class="kpi"><b id="kpi-distance">0</b><span>総走行km</span></div><div class="kpi"><b id="kpi-alcohol">0</b><span>検知あり</span></div><div class="kpi"><b id="kpi-missing">0</b><span>確認未入力</span></div></div>
+    <div class="subtabs no-print"><button class="active" data-admin-panel="vehicle-panel">車両別</button><button data-admin-panel="driver-panel">運転者別</button><button data-admin-panel="alcohol-panel">アルコール</button><button data-admin-panel="detail-panel">日報明細</button></div>
+    <div id="vehicle-panel" class="admin-panel active table-wrap"><table><thead><tr><th>車両番号</th><th>車名</th><th>稼働日数</th><th>日報</th><th>運転者</th><th>月初</th><th>月末</th><th>月間距離</th><th>日平均</th><th>最終使用</th><th>最終運転者</th><th>修正</th><th>検知</th><th>未入力</th></tr></thead><tbody id="vehicle-summary-body"></tbody></table></div>
+    <div id="driver-panel" class="admin-panel table-wrap"><table><thead><tr><th>運転者</th><th>所属</th><th>運転日数</th><th>日報</th><th>走行距離</th><th>車両数</th><th>使用車両</th><th>最終運転日</th><th>検知</th><th>未入力</th></tr></thead><tbody id="driver-summary-body"></tbody></table></div>
+    <div id="alcohol-panel" class="admin-panel table-wrap"><table><thead><tr><th>日付</th><th>運転者</th><th>所属</th><th>車両</th><th>前時刻</th><th>前数値</th><th>前確認者</th><th>後時刻</th><th>後数値</th><th>後確認者</th><th>判定</th></tr></thead><tbody id="alcohol-body"></tbody></table></div>
+    <div id="detail-panel" class="admin-panel table-wrap"><table><thead><tr><th>日付</th><th>車両</th><th>運転者</th><th>所属</th><th>開始</th><th>終了</th><th>走行</th><th>目的地</th><th>保存日時</th></tr></thead><tbody id="detail-body"></tbody></table></div>
+    <p id="admin-updated" class="hint"></p><p class="hint privacy-note">アルコール欄は日報上の補助記録です。正式記録は専用のアルコールチェック管理ツールで確認してください。</p></div>
+    <div class="grid2 no-print"><button class="btn btn-primary" id="download-excel" type="button">管理者Excelを出力</button><button class="btn btn-outline" id="print-summary" type="button">表示中の月次表を印刷</button></div>
+    <div class="card"><h2>パスワード変更</h2><div class="field"><label for="new-admin-password">新しいパスワード（12文字以上）</label><input id="new-admin-password" type="password" autocomplete="new-password"></div><button class="btn btn-outline" id="change-admin-password" type="button">パスワードを変更</button></div>
   </div>
 </section>
 
@@ -157,15 +135,14 @@ nav button{flex:1;border:0;background:#fff;color:var(--muted);padding:9px 2px 10
   </div>
   <div class="card">
     <h2>運用上の注意</h2>
-    <p class="hint">入力途中の内容はまだ保存されません。入力後は必ず「日報を保存」を押し、「保存完了」を確認してください。保存した終了距離は、次に同じ車両を使う社員の開始距離へ自動で引き継がれます。実データ運用を始める前に、社員認証と管理者権限を設定します。</p>
+    <p class="hint">入力途中の内容はまだ保存されません。入力後は必ず「日報を確定保存」を押し、「サーバー保存完了」を確認してください。保存した終了距離は、次に同じ車両を使う社員の開始距離へ自動で引き継がれます。日報履歴・月次集計・Excel出力は、管理者ログイン後だけ閲覧できます。</p>
   </div>
 </section>
 </main>
 
 <nav>
   <button class="active" data-tab="tab-input"><b>📝</b>日報入力</button>
-  <button data-tab="tab-history"><b>📚</b>履歴</button>
-  <button data-tab="tab-admin"><b>📊</b>月次管理</button>
+  <button data-tab="tab-admin"><b>🔐</b>管理者</button>
   <button data-tab="tab-settings"><b>⚙️</b>設定</button>
 </nav>
 <div id="toast"></div>
@@ -178,6 +155,7 @@ const $ = function(s){ return document.querySelector(s); };
 const $$ = function(s){ return document.querySelectorAll(s); };
 let master = {departments:[], employees:[], vehicles:[]};
 let vehicleState = null;
+let adminUser = null, adminData = null;
 
 function updatedTime(){
   return new Date().toLocaleTimeString("ja-JP",{hour:"2-digit",minute:"2-digit",second:"2-digit"});
@@ -220,8 +198,7 @@ $$("nav button").forEach(function(button){
     $$(".tab").forEach(function(t){t.classList.remove("active");});
     button.classList.add("active");
     $("#"+button.dataset.tab).classList.add("active");
-    if(button.dataset.tab==="tab-history") loadHistory();
-    if(button.dataset.tab==="tab-admin") loadAdmin();
+    if(button.dataset.tab==="tab-admin"&&adminUser) loadAdmin();
     window.scrollTo(0,0);
   });
 });
@@ -299,9 +276,7 @@ async function loadVehicleState(){
       $("#correct-start").classList.add("hidden");
     }else{
       $("#vehicle-state-main").textContent="引継ぎ開始距離："+Number(latest).toLocaleString()+" km";
-      $("#vehicle-state-sub").textContent=state.lastUsedDate
-        ? "前回："+state.lastUsedDate+"／"+(state.lastDriverName||"運転者不明")+"　更新番号："+state.revision
-        : "車両マスタの初期距離を使用します。";
+      $("#vehicle-state-sub").textContent="中央データベースの最新距離です。更新番号："+state.revision;
       $("#start-odo").value=latest;
       $("#start-odo").readOnly=true;
       $("#correct-start").classList.remove("hidden");
@@ -321,12 +296,8 @@ $("#correct-start").addEventListener("click",function(){
   if(input.readOnly && vehicleState) input.value=vehicleState.latestOdometer;
   calcDistance();
 });
-["pre-judge","post-judge"].forEach(function(id){
-  $("#"+id).addEventListener("change",function(){
-    var ng=$("#pre-judge").value==="NG"||$("#post-judge").value==="NG";
-    $("#ng-warning").classList.toggle("hidden",!ng);
-  });
-});
+function updateAlcoholJudge(phase){var raw=$("#"+phase+"-value").value,hidden=$("#"+phase+"-judge"),view=$("#"+phase+"-judge-view");view.className="judge";if(raw===""){hidden.value="";view.textContent="測定値を入力してください";}else if(Number(raw)>0){hidden.value="NG";view.textContent="検知あり";view.classList.add("ng");}else{hidden.value="OK";view.textContent="異常なし";view.classList.add("ok");}$("#ng-warning").classList.toggle("hidden",!($("#pre-judge").value==="NG"||$("#post-judge").value==="NG"));}
+["pre","post"].forEach(function(p){$("#"+p+"-value").addEventListener("input",function(){updateAlcoholJudge(p);});});
 
 function requiredValue(id,label){
   var value=$("#"+id).value;
@@ -344,10 +315,10 @@ function buildReport(){
   if(end<start) throw new Error("終了距離は開始距離以上にしてください");
   var correctionReason=$("#correction-reason").value.trim();
   if(!$("#correction-box").classList.contains("hidden")&&!correctionReason) throw new Error("開始距離の修正理由を入力してください");
-  ["pre-time","pre-value","pre-checker","pre-judge","post-time","post-value","post-checker","post-judge"].forEach(function(id){
+  ["pre-time","pre-value","pre-checker","post-time","post-value","post-checker"].forEach(function(id){
     requiredValue(id,document.querySelector('label[for="'+id+'"]').textContent.replace("必須",""));
   });
-  if($("#pre-judge").value==="NG"||$("#post-judge").value==="NG") throw new Error("NG判定のため日報を確定できません。管理者へ連絡してください");
+  requiredValue("pre-judge","運転前の測定値");requiredValue("post-judge","運転後の測定値");
   return {
     date:requiredValue("date","日付"),
     employeeId:employeeId,employeeName:employee.name,
@@ -369,6 +340,7 @@ function clearAfterSave(){
   ["etc","highway","parking"].forEach(function(id){$("#"+id).value="なし";});
   $("#vehicle-state").classList.add("hidden");$("#correction-box").classList.add("hidden");
   $("#ng-warning").classList.add("hidden");$("#distance").textContent="--";vehicleState=null;
+  updateAlcoholJudge("pre");updateAlcoholJudge("post");
 }
 $("#save-report").addEventListener("click",async function(){
   var button=this;clearGlobal();
@@ -379,16 +351,7 @@ $("#save-report").addEventListener("click",async function(){
     var report=buildReport();
     var saved=await service.saveReport(report,{expectedRevision:vehicleState.revision});
     clearAfterSave();
-    var refreshed=await refreshReportViews(report.date.slice(0,7),saved&&saved.id);
-    if(refreshed){
-      showSaveStatus("✅ サーバー保存完了：履歴に反映しました","ok");
-      toast("✅ 保存完了　履歴に反映しました");
-      document.querySelector('nav button[data-tab="tab-history"]').click();
-    }else{
-      showSaveStatus("✅ 日報はサーバーへ保存済みです。表示の再確認を続けます。","ok");
-      toast("✅ 日報は保存済みです");
-      showGlobal("日報はサーバーへ保存済みですが、履歴または月次表示の再読込に失敗しました。各画面の更新ボタンを押してください。");
-    }
+    showSaveStatus("✅ サーバー保存完了","ok");toast("✅ 日報を保存しました");if(adminUser){$("#admin-month").value=report.date.slice(0,7);loadAdmin();}
   }catch(err){
     if(err.code==="REVISION_CONFLICT"){
       showGlobal("別の社員が先にこの車両の日報を保存しました。最新距離を再取得します。");
@@ -402,112 +365,36 @@ $("#save-report").addEventListener("click",async function(){
   }finally{setBusy(button,false);}
 });
 
-function reportHtml(r){
-  return '<div class="report"><div class="report-head">'+esc(r.date)+'　'+esc(r.vehicleNo)+'　'+esc(r.employeeName)+'</div>'+
-    '<div class="report-meta">開始 '+Number(r.startOdometer).toLocaleString()+' → 終了 '+Number(r.endOdometer).toLocaleString()+
-    ' km　／　走行 <strong>'+Number(r.distance).toLocaleString()+' km</strong><br>'+
-    (r.departmentName?'所属：'+esc(r.departmentName)+'<br>':'')+esc(r.destination||"目的地なし")+(r.correctionReason?'<br>⚠ 距離修正理由：'+esc(r.correctionReason):'')+'</div></div>';
-}
-async function loadHistory(expectedId){
-  var list=$("#history-list");list.innerHTML='<p class="hint">読み込み中…</p>';
-  try{
-    var rows=[];
-    for(var attempt=0;attempt<4;attempt++){
-      rows=await service.listReports({month:$("#history-month").value});
-      if(!expectedId||rows.some(function(r){return r.id===expectedId;})) break;
-      await new Promise(function(resolve){setTimeout(resolve,400*(attempt+1));});
-    }
-    list.innerHTML=rows.length?rows.map(reportHtml).join(""):'<p class="hint">対象月の日報はありません。</p>';
-    $("#history-updated").textContent="サーバーから更新："+updatedTime()+"（"+rows.length+"件）";
-    return !expectedId||rows.some(function(r){return r.id===expectedId;});
-  }catch(err){
-    list.innerHTML='<div class="alert alert-ng">'+esc(err.message)+'</div>';
-    $("#history-updated").textContent="更新失敗："+updatedTime();
-    return false;
-  }
-}
-$("#reload-history").addEventListener("click",async function(){
-  setBusy(this,true,"更新中…");
-  await loadHistory();
-  setBusy(this,false);
-});
-$("#history-month").addEventListener("change",loadHistory);
-
-async function loadAdmin(){
-  var month=$("#admin-month").value, body=$("#summary-body");
-  body.innerHTML='<tr><td colspan="8">集計中…</td></tr>';
-  try{
-    var rows=await service.monthlySummary(month);
-    var activeRows=rows.filter(function(r){return r.reportCount>0;});
-    var reportCount=activeRows.reduce(function(n,r){return n+r.reportCount;},0);
-    var total=activeRows.reduce(function(n,r){return n+r.totalDistance;},0);
-    $("#kpi-vehicles").textContent=activeRows.length;
-    $("#kpi-reports").textContent=reportCount;
-    $("#kpi-distance").textContent=Math.round(total*10)/10;
-    body.innerHTML=activeRows.map(function(r){
-      return '<tr><td>'+esc(r.vehicleNo)+'</td><td>'+esc(r.vehicleName)+'</td>'+
-      '<td class="num">'+Number(r.openingOdometer).toLocaleString()+'</td>'+
-      '<td class="num">'+Number(r.closingOdometer).toLocaleString()+'</td>'+
-      '<td class="num">'+Number(r.totalDistance).toLocaleString()+'</td>'+
-      '<td class="num">'+r.reportCount+'</td><td class="num">'+r.driverCount+'</td>'+
-      '<td class="num">'+r.anomalyCount+'</td></tr>';
-    }).join("");
-    $("#summary-empty").classList.toggle("hidden",activeRows.length>0);
-    $("#admin-updated").textContent="サーバーから更新："+updatedTime()+"（日報 "+reportCount+"件）";
-    return true;
-  }catch(err){
-    body.innerHTML='<tr><td colspan="8">'+esc(err.message)+'</td></tr>';
-    $("#admin-updated").textContent="更新失敗："+updatedTime();
-    return false;
-  }
-}
-$("#reload-admin").addEventListener("click",async function(){
-  setBusy(this,true,"集計中…");
-  await loadAdmin();
-  setBusy(this,false);
-});
-$("#admin-month").addEventListener("change",loadAdmin);
-
-async function refreshReportViews(month,expectedId){
-  if(month){
-    $("#history-month").value=month;
-    $("#admin-month").value=month;
-  }
-  var results=await Promise.all([loadHistory(expectedId),loadAdmin()]);
-  return results.every(function(ok){return ok;});
-}
-
-async function refreshActiveView(){
-  if(document.hidden) return;
-  if($("#tab-history").classList.contains("active")) await loadHistory();
-  if($("#tab-admin").classList.contains("active")) await loadAdmin();
-}
-setInterval(refreshActiveView,15000);
-document.addEventListener("visibilitychange",function(){if(!document.hidden) refreshActiveView();});
-window.addEventListener("focus",refreshActiveView);
-$("#print-summary").addEventListener("click",function(){window.print();});
-
-function csvCell(value){return '"'+String(value==null?"":value).replace(/"/g,'""')+'"';}
-$("#download-csv").addEventListener("click",async function(){
-  try{
-    var month=$("#admin-month").value;
-    var rows=await service.listReports({month:month});
-    if(!rows.length){toast("対象月の日報がありません");return;}
-    var header=["日付","車両番号","車名","社員ID","運転者","所属","開始距離","終了距離","走行距離","開始時刻","終了時刻","目的地","ETC","高速道路","有料駐車場","距離修正理由","保存日時"];
-    var lines=[header].concat(rows.map(function(r){return [r.date,r.vehicleNo,r.vehicleName,r.employeeId,r.employeeName,r.departmentName,r.startOdometer,r.endOdometer,r.distance,r.startTime,r.endTime,r.destination,r.etc,r.highway,r.parking,r.correctionReason,r.savedAt];}));
-    var csv="\ufeff"+lines.map(function(row){return row.map(csvCell).join(",");}).join("\r\n");
-    var blob=new Blob([csv],{type:"text/csv;charset=utf-8"});
-    var a=document.createElement("a");a.href=URL.createObjectURL(blob);a.download="車両運転日報_"+month+".csv";a.click();
-    setTimeout(function(){URL.revokeObjectURL(a.href);},1000);
-  }catch(err){toast("CSV出力失敗："+err.message);}
-});
+function fmt(v){return v==null||v===""?"－":Number(v).toLocaleString();}function sh(v){var c=v==="検知あり"?"status-ng":(v==="未入力"?"status-warn":"");return'<span class="'+c+'">'+esc(v)+'</span>';}function setAdminView(on){$("#admin-login").classList.toggle("hidden",on);$("#admin-dashboard").classList.toggle("hidden",!on);}
+$("#admin-login-button").addEventListener("click",async function(){var b=this,e=$("#admin-login-error");e.classList.add("hidden");setBusy(b,true,"確認しています…");try{adminUser=await service.loginAdmin($("#admin-email").value,$("#admin-password").value);$("#admin-password").value="";setAdminView(true);await loadAdmin();toast("✅ 管理者としてログインしました");}catch(x){e.textContent=x.message||"ログインできませんでした";e.classList.remove("hidden");}finally{setBusy(b,false);}});
+$("#admin-password").addEventListener("keydown",function(e){if(e.key==="Enter")$("#admin-login-button").click();});$("#admin-logout").addEventListener("click",async function(){await service.logoutAdmin();adminUser=null;adminData=null;setAdminView(false);toast("ログアウトしました");});
+async function loadAdmin(){if(!adminUser)return false;var month=$("#admin-month").value;$("#admin-updated").textContent="サーバーから集計しています…";try{var reports=await service.listReports({month:month});adminData=FleetAdmin.build(month,reports,master);var t=adminData.totals;$("#kpi-vehicles").textContent=t.activeVehicles;$("#kpi-days").textContent=t.operatingDays;$("#kpi-reports").textContent=t.reportCount;$("#kpi-distance").textContent=t.totalDistance.toLocaleString();$("#kpi-alcohol").textContent=t.alcoholIssues;$("#kpi-missing").textContent=t.alcoholMissing;
+$("#vehicle-summary-body").innerHTML=adminData.vehicleRows.map(v=>'<tr><td>'+esc(v.vehicleNo)+'</td><td>'+esc(v.vehicleName)+'</td><td>'+v.operatingDays+'</td><td>'+v.reportCount+'</td><td>'+v.driverCount+'</td><td>'+fmt(v.openingOdometer)+'</td><td>'+fmt(v.closingOdometer)+'</td><td>'+fmt(v.totalDistance)+'</td><td>'+fmt(v.averagePerDay)+'</td><td>'+esc(v.lastUsedDate||"－")+'</td><td>'+esc(v.lastDriverName||"－")+'</td><td>'+v.correctionCount+'</td><td>'+v.alcoholIssueCount+'</td><td>'+v.alcoholMissingCount+'</td></tr>').join("");
+$("#driver-summary-body").innerHTML=adminData.driverRows.map(v=>'<tr><td>'+esc(v.employeeName)+'</td><td>'+esc(v.departmentName)+'</td><td>'+v.operatingDays+'</td><td>'+v.reportCount+'</td><td>'+fmt(v.totalDistance)+'</td><td>'+v.vehicleCount+'</td><td>'+esc(v.vehicles||"－")+'</td><td>'+esc(v.lastDriveDate||"－")+'</td><td>'+v.alcoholIssueCount+'</td><td>'+v.alcoholMissingCount+'</td></tr>').join("");
+$("#alcohol-body").innerHTML=adminData.alcoholRows.map(v=>'<tr><td>'+esc(v.date)+'</td><td>'+esc(v.employeeName)+'</td><td>'+esc(v.departmentName)+'</td><td>'+esc(v.vehicleNo)+'</td><td>'+esc(v.preTime||"－")+'</td><td>'+fmt(v.preValue)+'</td><td>'+esc(v.preChecker||"－")+'</td><td>'+esc(v.postTime||"－")+'</td><td>'+fmt(v.postValue)+'</td><td>'+esc(v.postChecker||"－")+'</td><td>'+sh(v.status)+'</td></tr>').join("");
+$("#detail-body").innerHTML=adminData.reports.map(r=>'<tr><td>'+esc(r.date)+'</td><td>'+esc(r.vehicleNo)+'</td><td>'+esc(r.employeeName)+'</td><td>'+esc(r.departmentName)+'</td><td>'+fmt(r.startOdometer)+'</td><td>'+fmt(r.endOdometer)+'</td><td>'+fmt(r.distance)+'</td><td>'+esc(r.destination||"－")+'</td><td>'+esc(r.savedAt||"－")+'</td></tr>').join("");$("#admin-updated").textContent="サーバーから更新："+updatedTime()+"（日報 "+t.reportCount+"件／登録車両 "+t.registeredVehicles+"台）";return true;}catch(e){$("#admin-updated").textContent="更新失敗："+(e.message||"取得できません");if(e.code==="ADMIN_LOGIN_REQUIRED"||e.code==="AUTH_ERROR"){adminUser=null;setAdminView(false);}return false;}}
+$("#reload-admin").addEventListener("click",async function(){setBusy(this,true,"更新中…");await loadAdmin();setBusy(this,false);});$("#admin-month").addEventListener("change",loadAdmin);$$('[data-admin-panel]').forEach(b=>b.addEventListener("click",function(){$$('[data-admin-panel]').forEach(x=>x.classList.remove("active"));$$('.admin-panel').forEach(x=>x.classList.remove("active"));b.classList.add("active");$("#"+b.dataset.adminPanel).classList.add("active");}));
+$("#download-excel").addEventListener("click",function(){if(!adminData)return toast("先に集計を更新してください");FleetAdmin.exportExcel(adminData);});$("#print-summary").addEventListener("click",()=>window.print());
+$("#change-admin-password").addEventListener("click",async function(){var p=$("#new-admin-password").value;if(p.length<12)return toast("12文字以上で入力してください");if(!confirm("管理者パスワードを変更しますか？"))return;try{await service.changeAdminPassword(p);$("#new-admin-password").value="";toast("✅ パスワードを変更しました");}catch(e){toast("変更失敗："+e.message);}});
+async function refreshActiveView(){if(!document.hidden&&adminUser&&$("#tab-admin").classList.contains("active"))await loadAdmin();}setInterval(refreshActiveView,30000);document.addEventListener("visibilitychange",function(){if(!document.hidden)refreshActiveView();});window.addEventListener("focus",refreshActiveView);
 
 $("#sync-master").addEventListener("click",async function(){if(await loadMaster())toast("✅ マスタを同期しました");});
 async function init(){
-  $("#date").value=today();$("#history-month").value=thisMonth();$("#admin-month").value=thisMonth();
+  $("#date").value=today();$("#admin-month").value=thisMonth();
   $("#mode-badge").textContent=CFG.mode==="demo"?"端末内デモ":(CFG.mode==="supabase"?"中央試験DB":"本番DB");
   if(CFG.mode==="demo") showGlobal("現在は試験DBモードです。データはこの端末内だけに保存されます。");
   await loadMaster();
+  if(CFG.mode==="supabase"){
+    var invited=null;
+    try{invited=await service.consumeAuthRedirect();}catch(e){showGlobal("管理者招待を確認できませんでした："+(e.message||"認証エラー"));}
+    adminUser=invited||await service.restoreAdmin();setAdminView(!!adminUser);
+    if(adminUser)await loadAdmin();
+    if(invited){
+      $("#admin-invite-message").classList.remove("hidden");
+      var adminButton=document.querySelector('nav button[data-tab="tab-admin"]');if(adminButton)adminButton.click();
+      setTimeout(function(){$("#new-admin-password").scrollIntoView({behavior:"smooth",block:"center"});},300);
+    }
+  }
 }
 init();
 </script>
