@@ -396,15 +396,6 @@ class SupabaseDataService {
       body:JSON.stringify({month:month+"-01",business_days:businessDays})
     });
   }
-  async saveVehicleOwner(vehicleId,departmentId){
-    const result=await this._request("/vehicles?id=eq."+encodeURIComponent(vehicleId),{
-      method:"PATCH",auth:true,headers:{"Prefer":"return=representation"},
-      body:JSON.stringify({owner_department_id:departmentId || null})
-    });
-    if(!Array.isArray(result)||result.length!==1) throw appError("VEHICLE_UPDATE_FAILED","保有部署を保存できませんでした");
-    this.masterCache=null;
-    return result[0];
-  }
   async monthlySummary(month){
     const rows = await this._request("/rpc/get_monthly_vehicle_summary", {
       method:"POST",
