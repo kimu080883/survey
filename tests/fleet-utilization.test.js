@@ -19,14 +19,19 @@ const data=app.build('2026-09',[
   report('1','2026-09-01','11:00','13:00'),
   report('2','2026-09-02','23:00','01:00'),
   report('3','2026-09-03','','')
-],master,{businessDays:20,hoursPerDay:8});
+],master,{businessDays:20});
 assert.equal(data.vehicleRows[0].usageHours,4,'同じ車両の重複時刻は合算しない');
 assert.equal(data.vehicleRows[1].usageHours,2,'日付をまたぐ使用を計算する');
-assert.equal(data.vehicleRows[2].utilizationRate,null,'時刻未入力は算出しない');
-assert.equal(data.totals.capacityHours,480,'全車の分母は保有台数×営業日×基準時間');
-assert.equal(data.totals.utilizationRate,null,'未入力がある月は全体も未算出');
-assert.equal(data.departmentRows.find(r=>r.departmentId==='A').utilizationRate,2.5);
-assert.equal(data.departmentRows.find(r=>r.departmentId==='B').utilizationRate,1.3);
+assert.equal(data.vehicleRows[0].operatingDays,1,'同じ車両・同じ日付は1日');
+assert.equal(data.vehicleRows[1].operatingDays,1,'夜間の日報はその日付に計上');
+assert.equal(data.vehicleRows[2].utilizationRate,5,'時刻未入力でも稼働日率は計算できる');
+assert.equal(data.totals.capacityDays,60,'全車の分母は保有台数×営業日数');
+assert.equal(data.totals.operatingDays,3);
+assert.equal(data.totals.utilizationRate,5);
+assert.equal(data.totals.missingTimeReports,1);
+assert.equal(data.departmentRows.find(r=>r.departmentId==='A').utilizationRate,5);
+assert.equal(data.departmentRows.find(r=>r.departmentId==='B').utilizationRate,5);
 assert.equal(data.totals.unassignedVehicles,1);
 assert.equal(app.businessWeekdays('2026-09'),22);
+assert.equal(app.build('2026-09',[],master,{businessDays:0}).totals.utilizationRate,null);
 console.log('fleet utilization: OK');
