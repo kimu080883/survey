@@ -41,14 +41,13 @@ function duration(reports){
   });
   return {hours:round(total/60),missing};
 }
-function rate(hours,missing,capacity){return capacity>0&&missing===0?round(hours/capacity*100,1):null;}
+function rate(days,capacity){return capacity>0?round(days/capacity*100,1):null;}
 function build(month,reports,master,config){
   const result=base.build(month,reports,master);
   const businessDays=config&&config.businessDays!=null?Number(config.businessDays):weekdays(month);
-  const hoursPerDay=config&&config.hoursPerDay!=null?Number(config.hoursPerDay):8;
   const byId=new Map((master.vehicles||[]).map(v=>[v.id,v]));
-  const groups=new Map((master.departments||[]).map(d=>[d.id,{departmentId:d.id,departmentName:d.name,vehicleCount:0,hours:0,capacity:0,missing:0,operatingDays:0}]));
-  groups.set("",{departmentId:"",departmentName:"未割当",vehicleCount:0,hours:0,capacity:0,missing:0,operatingDays:0});
+  const groups=new Map((master.departments||[]).map(d=>[d.id,{departmentId:d.id,departmentName:d.name,vehicleCount:0,hours:0,capacityDays:0,missing:0,operatingDays:0}]));
+  groups.set("",{departmentId:"",departmentName:"未割当",vehicleCount:0,hours:0,capacityDays:0,missing:0,operatingDays:0});
   result.vehicleRows.forEach(row=>{
     const vehicle=byId.get(row.vehicleId),mine=reports.filter(r=>r.vehicleId===row.vehicleId);
     const used=duration(mine);
@@ -56,24 +55,25 @@ function build(month,reports,master,config){
     row.active=Boolean(vehicle&&vehicle.active!==false);
     row.usageHours=used.hours;
     row.missingTimeReports=used.missing;
-    row.capacityHours=row.active?businessDays*hoursPerDay:0;
-    row.utilizationRate=rate(row.usageHours,row.missingTimeReports,row.capacityHours);
+    row.capacityDays=row.active?businessDays:0;
+    row.utilizationRate=row.active?rate(row.operatingDays,row.capacityDays):null;
     if(row.active){
       const group=groups.get(row.ownerDepartmentId)||groups.get("");
-      group.vehicleCount++;group.hours+=row.usageHours;group.capacity+=row.capacityHours;
+      group.vehicleCount++;group.hours+=row.usageHours;group.capacityDays+=row.capacityDays;
       group.missing+=row.missingTimeReports;group.operatingDays+=row.operatingDays;
     }
   });
   result.departmentRows=[...groups.values()].map(g=>({
-    ...g,hours:round(g.hours),utilizationRate:rate(g.hours,g.missing,g.capacity)
+    ...g,hours:round(g.hours),utilizationRate:rate(g.operatingDays,g.capacityDays)
   }));
   const eligible=result.vehicleRows.filter(v=>v.active);
   const totalHours=round(eligible.reduce((n,v)=>n+v.usageHours,0));
   const missing=eligible.reduce((n,v)=>n+v.missingTimeReports,0);
-  const capacity=eligible.length*businessDays*hoursPerDay;
-  Object.assign(result,{businessDays,hoursPerDay});
+  const capacityDays=eligible.length*businessDays;
+  const operatingDays=eligible.reduce((n,v)=>n+v.operatingDays,0);
+  Object.assign(result,{businessDays});
   Object.assign(result.totals,{registeredVehicles:eligible.length,usageHours:totalHours,
-    capacityHours:capacity,missingTimeReports:missing,utilizationRate:rate(totalHours,missing,capacity),
+    operatingDays,capacityDays,missingTimeReports:missing,utilizationRate:rate(operatingDays,capacityDays),
     unassignedVehicles:groups.get("").vehicleCount});
   return result;
 }
@@ -81,11 +81,11 @@ function escape(v){return String(v==null?"":v).replace(/[&<>\"]/g,c=>({"&":"&amp
 function cell(v){return '<Cell><Data ss:Type="'+(typeof v==="number"&&Number.isFinite(v)?"Number":"String")+'">'+escape(v)+'</Data></Cell>';}
 function sheet(name,rows){return '<Worksheet ss:Name="'+escape(name)+'"><Table>'+rows.map(r=>'<Row>'+r.map(cell).join("")+'</Row>').join("")+'</Table></Worksheet>';}
 function exportExcel(d){
-  const pct=v=>v==null?"時刻未入力または分母なし":v;
-  const company=[["対象月","営業日数","1日あたり基準時間(h)","保有台数","使用時間(h)","利用可能時間(h)","稼働率(%)","時刻未入力件数","保有部署未割当台数"],
-    [d.month,d.businessDays,d.hoursPerDay,d.totals.registeredVehicles,d.totals.usageHours,d.totals.capacityHours,pct(d.totals.utilizationRate),d.totals.missingTimeReports,d.totals.unassignedVehicles]];
-  const dept=[["保有部署","保有台数","使用時間(h)","利用可能時間(h)","稼働率(%)","時刻未入力件数","延べ稼働日数"]].concat(d.departmentRows.map(r=>[r.departmentName,r.vehicleCount,r.hours,r.capacity,pct(r.utilizationRate),r.missing,r.operatingDays]));
-  const vehicles=[["車両番号","車名","保有部署","稼働対象","使用時間(h)","利用可能時間(h)","稼働率(%)","時刻未入力件数","稼働日数","日報件数","月間距離"]].concat(d.vehicleRows.map(r=>[r.vehicleNo,r.vehicleName,d.departmentRows.find(x=>x.departmentId===r.ownerDepartmentId)?.departmentName||"未割当",r.active?"対象":"対象外",r.usageHours,r.capacityHours,pct(r.utilizationRate),r.missingTimeReports,r.operatingDays,r.reportCount,r.totalDistance]));
+  const pct=v=>v==null?"分母なし・対象外":v;
+  const company=[["対象月","営業日数","保有台数","延べ稼働日数(車両日)","稼働可能日数(車両日)","稼働日率(%)","確認できた使用時間(h)","時刻未入力件数","保有部署未割当台数"],
+    [d.month,d.businessDays,d.totals.registeredVehicles,d.totals.operatingDays,d.totals.capacityDays,pct(d.totals.utilizationRate),d.totals.usageHours,d.totals.missingTimeReports,d.totals.unassignedVehicles]];
+  const dept=[["保有部署","保有台数","延べ稼働日数(車両日)","稼働可能日数(車両日)","稼働日率(%)","確認できた使用時間(h)","時刻未入力件数"]].concat(d.departmentRows.map(r=>[r.departmentName,r.vehicleCount,r.operatingDays,r.capacityDays,pct(r.utilizationRate),r.hours,r.missing]));
+  const vehicles=[["車両番号","車名","保有部署","稼働対象","稼働日数","稼働可能日数","稼働日率(%)","確認できた使用時間(h)","時刻未入力件数","日報件数","月間距離"]].concat(d.vehicleRows.map(r=>[r.vehicleNo,r.vehicleName,d.departmentRows.find(x=>x.departmentId===r.ownerDepartmentId)?.departmentName||"未割当",r.active?"対象":"対象外",r.operatingDays,r.capacityDays,pct(r.utilizationRate),r.usageHours,r.missingTimeReports,r.reportCount,r.totalDistance]));
   const byDriver=[["運転者","所属","運転日数","日報件数","走行距離","使用車両"]].concat(d.driverRows.map(r=>[r.employeeName,r.departmentName,r.operatingDays,r.reportCount,r.totalDistance,r.vehicles]));
   const alcohol=[["日付","運転者","所属","車両","前時刻","前数値","前確認者","後時刻","後数値","後確認者","判定"]].concat(d.alcoholRows.map(r=>[r.date,r.employeeName,r.departmentName,r.vehicleNo,r.preTime,r.preValue,r.preChecker,r.postTime,r.postValue,r.postChecker,r.status]));
   const detail=[["日付","車両番号","社員ID","運転者","所属","開始距離","終了距離","走行距離","開始時刻","終了時刻","目的地","保存日時"]].concat(d.reports.map(r=>[r.date,r.vehicleNo,r.employeeId,r.employeeName,r.departmentName,r.startOdometer,r.endOdometer,r.distance,r.startTime,r.endTime,r.destination,r.savedAt]));
