@@ -20,7 +20,7 @@ apiBaseUrl: "https://社内APIのURL"
 ```json
 {
   "employees": [{"id":"E001","name":"社員名","active":true}],
-  "vehicles": [{"id":"V001","no":"車両番号","name":"車名","active":true,"initialOdometer":10000}]
+  "vehicles": [{"id":"V001","no":"車両番号","name":"車名","active":true,"ownerDepartmentId":"DEP-004","initialOdometer":10000}]
 }
 ```
 
