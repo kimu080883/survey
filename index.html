@@ -33,16 +33,17 @@ nav button{flex:1;border:0;background:#fff;color:var(--muted);padding:9px 2px 10
 .kpis{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-bottom:12px}.kpi{background:#f2f5f9;border-radius:10px;padding:11px;text-align:center}.kpi b{display:block;font-size:1.15rem;color:var(--navy)}.kpi span{font-size:.68rem;color:var(--muted)}
 .report{border:1px solid var(--line);border-radius:11px;padding:11px;margin-bottom:8px}.report-head{font-weight:900;color:var(--navy)}.report-meta{font-size:.75rem;color:var(--muted);line-height:1.6;margin-top:4px}
 .admin-head{display:flex;justify-content:space-between;align-items:center;gap:10px}.admin-head .btn{width:auto;min-height:40px}.subtabs{display:flex;gap:6px;overflow:auto;margin:12px 0}.subtabs button{white-space:nowrap;border:1px solid var(--line);background:#fff;color:var(--navy);border-radius:20px;padding:8px 12px;font-size:.75rem;font-weight:800}.subtabs button.active{background:var(--navy);color:#fff}.admin-panel{display:none}.admin-panel.active{display:block}.judge{border-radius:10px;padding:10px 12px;font-weight:900;font-size:.82rem;background:#eef2f7;color:var(--muted)}.judge.ok{background:#ecfdf3;color:var(--ok)}.judge.ng{background:#fee4e2;color:var(--ng)}.status-ng{color:var(--ng);font-weight:900}.status-warn{color:var(--warn);font-weight:900}.privacy-note{border-left:4px solid var(--navy);padding-left:10px}.print-only{display:none}
+.qr-share{display:flex;align-items:center;gap:18px}.qr-share a.qr-image-link{display:block;flex:0 0 168px;border:1px solid var(--line);border-radius:14px;padding:10px;background:#fff}.qr-share img{display:block;width:100%;height:auto}.qr-share-body{flex:1}.qr-share-body .btn{display:flex;align-items:center;justify-content:center;text-decoration:none;margin-top:12px}.app-url{font-size:.68rem;color:var(--muted);overflow-wrap:anywhere;margin-top:8px}
 #toast{position:fixed;left:50%;bottom:90px;transform:translate(-50%,20px);background:var(--navy);color:#fff;padding:11px 18px;border-radius:30px;font-size:.82rem;font-weight:800;opacity:0;transition:.2s;z-index:50;max-width:92%;text-align:center;pointer-events:none}#toast.show{opacity:1;transform:translate(-50%,0)}
-@media(max-width:520px){.grid2,.grid3{grid-template-columns:1fr}.grid2.compact{grid-template-columns:1fr 1fr}.kpis{grid-template-columns:1fr 1fr 1fr}.mode{display:none}}
+@media(max-width:520px){.grid2,.grid3{grid-template-columns:1fr}.grid2.compact{grid-template-columns:1fr 1fr}.kpis{grid-template-columns:1fr 1fr 1fr}.mode{display:none}.qr-share{display:block;text-align:center}.qr-share a.qr-image-link{width:190px;margin:0 auto 12px}.qr-share-body{text-align:left}}
 @media print{@page{size:landscape;margin:10mm}header,nav,.no-print,#toast,#admin-login{display:none!important}.print-only{display:block!important}body{padding:0;background:#fff;color:#111}.tab{display:none!important}#tab-admin,#admin-dashboard{display:block!important}.card{box-shadow:none;border:0;padding:0;margin:0}main{max-width:none}.kpis{grid-template-columns:repeat(6,1fr);gap:4px}.kpi{border:1px solid #bbb;padding:6px;background:#fff}.table-wrap{overflow:visible;border-color:#999}table{min-width:0;table-layout:auto}th,td{font-size:7.5pt;padding:5px 4px;color:#111}th{background:#eee!important}.admin-panel{display:none!important}.admin-panel.active{display:block!important}.privacy-note,#admin-updated{font-size:8pt}.print-heading{margin:0 0 4px;font-size:18pt}.print-meta{margin:0 0 10px;font-size:10pt}}
 </style>
-<script src="./app-config.js?v=5.2.1"></script><script src="./data-service.js?v=5.2.1"></script><script src="./admin-analytics.js?v=5.2.1"></script>
+<script src="./app-config.js?v=5.2.2"></script><script src="./data-service.js?v=5.2.2"></script><script src="./admin-analytics.js?v=5.2.2"></script>
 </head>
 <body>
 <header>
   <div class="logo">🚙</div>
-  <div><h1>運転日報・車両距離管理</h1><div class="sub">車両別の距離引継ぎ・所属履歴・月次集計｜v5.2.1</div></div>
+  <div><h1>運転日報・車両距離管理</h1><div class="sub">車両別の距離引継ぎ・所属履歴・月次集計｜v5.2.2</div></div>
   <div class="mode" id="mode-badge"></div>
 </header>
 
@@ -124,6 +125,19 @@ nav button{flex:1;border:0;background:#fff;color:var(--muted);padding:9px 2px 10
 
 <section class="tab" id="tab-settings">
   <div class="card">
+    <h2>アプリを開くQRコード</h2>
+    <div class="qr-share">
+      <a class="qr-image-link" id="app-qr-link" href="https://kimu080883.github.io/survey/index.html" target="_blank" rel="noopener noreferrer" aria-label="運転日報アプリを開く">
+        <img src="./app-qr.svg?v=5.2.2" alt="運転日報アプリを開くQRコード" width="168" height="168">
+      </a>
+      <div class="qr-share-body">
+        <p class="hint">別のスマートフォンで読み取ると、この運転日報アプリを直接開けます。QRコードをタップして開くこともできます。</p>
+        <a class="btn btn-outline" id="app-public-link" href="https://kimu080883.github.io/survey/index.html" target="_blank" rel="noopener noreferrer">運転日報アプリを開く</a>
+        <p class="app-url" id="app-public-url">https://kimu080883.github.io/survey/index.html</p>
+      </div>
+    </div>
+  </div>
+  <div class="card">
     <h2>システム状態</h2>
     <div id="system-status" class="alert alert-info"></div>
     <button class="btn btn-navy" id="sync-master">社員・車両マスタを再同期</button>
@@ -156,6 +170,11 @@ const $$ = function(s){ return document.querySelectorAll(s); };
 let master = {departments:[], employees:[], vehicles:[]};
 let vehicleState = null;
 let adminUser = null, adminData = null;
+
+var publicAppUrl=CFG.publicAppUrl||"https://kimu080883.github.io/survey/index.html";
+$("#app-qr-link").href=publicAppUrl;
+$("#app-public-link").href=publicAppUrl;
+$("#app-public-url").textContent=publicAppUrl;
 
 function updatedTime(){
   return new Date().toLocaleTimeString("ja-JP",{hour:"2-digit",minute:"2-digit",second:"2-digit"});
