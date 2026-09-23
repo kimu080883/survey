@@ -33,6 +33,7 @@ const normalizeMaster = data => ({
     no: String(v.no || ""),
     name: String(v.name || ""),
     active: v.active !== false,
+    ownerDepartmentId: String(v.ownerDepartmentId || v.owner_department_id || ""),
     initialOdometer: asNumber(v.initialOdometer)
   }))
 });
@@ -259,7 +260,7 @@ class SupabaseDataService {
     const [departments, employees, vehicles] = await Promise.all([
       this._request("/departments?select=id,name,active,display_order&active=eq.true&order=display_order.asc"),
       this._request("/employees?select=id,name,department,current_department_id,active,display_order&active=eq.true&order=display_order.asc"),
-      this._request("/vehicles?select=id,vehicle_no,vehicle_name,active,current_odometer,revision,display_order&active=eq.true&order=display_order.asc")
+      this._request("/vehicles?select=id,vehicle_no,vehicle_name,owner_department_id,active,current_odometer,revision,display_order&active=eq.true&order=display_order.asc")
     ]);
     const value = normalizeMaster({
       departments:(departments || []).map(v => ({id:v.id, name:v.name, active:v.active})),
@@ -269,7 +270,7 @@ class SupabaseDataService {
       })),
       vehicles:(vehicles || []).map(v => ({
         id:v.id, no:v.vehicle_no, name:v.vehicle_name,
-        active:v.active, initialOdometer:v.current_odometer
+        active:v.active, initialOdometer:v.current_odometer, ownerDepartmentId:v.owner_department_id
       }))
     });
     this.masterCache = {at:Date.now(), value};
@@ -379,6 +380,30 @@ class SupabaseDataService {
       this.getMaster()
     ]);
     return (rows || []).map(row => this._mapReport(row, master));
+  }
+  async getFleetAdministration(month){
+    const [vehicles, settings] = await Promise.all([
+      this._request("/vehicles?select=id,vehicle_no,vehicle_name,owner_department_id,active&order=display_order.asc", {auth:true}),
+      this._request("/fleet_month_settings?select=business_days,hours_per_day&month=eq." + encodeURIComponent(month + "-01"), {auth:true})
+    ]);
+    return {vehicles:(vehicles || []).map(v => ({
+      id:v.id,no:v.vehicle_no,name:v.vehicle_name,active:v.active,ownerDepartmentId:v.owner_department_id || ""
+    })),settings:settings && settings[0] || null};
+  }
+  async saveFleetMonthSettings(month,businessDays,hoursPerDay){
+    return this._request("/fleet_month_settings?on_conflict=month",{
+      method:"POST",auth:true,headers:{"Prefer":"resolution=merge-duplicates,return=representation"},
+      body:JSON.stringify({month:month+"-01",business_days:businessDays,hours_per_day:hoursPerDay})
+    });
+  }
+  async saveVehicleOwner(vehicleId,departmentId){
+    const result=await this._request("/vehicles?id=eq."+encodeURIComponent(vehicleId),{
+      method:"PATCH",auth:true,headers:{"Prefer":"return=representation"},
+      body:JSON.stringify({owner_department_id:departmentId || null})
+    });
+    if(!Array.isArray(result)||result.length!==1) throw appError("VEHICLE_UPDATE_FAILED","保有部署を保存できませんでした");
+    this.masterCache=null;
+    return result[0];
   }
   async monthlySummary(month){
     const rows = await this._request("/rpc/get_monthly_vehicle_summary", {
