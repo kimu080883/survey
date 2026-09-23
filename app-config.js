@@ -3,7 +3,7 @@
  * 日報入力は公開キー、履歴・月次集計は管理者認証で権限分離しています。
  */
 window.APP_CONFIG = Object.freeze({
-  appVersion: "5.3.1",
+  appVersion: "5.3.2",
   mode: "supabase", // "demo" | "supabase" | "api"
   apiBaseUrl: "",
   publicAppUrl: "https://kimu080883.github.io/survey/index.html",
