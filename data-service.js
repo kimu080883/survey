@@ -384,16 +384,16 @@ class SupabaseDataService {
   async getFleetAdministration(month){
     const [vehicles, settings] = await Promise.all([
       this._request("/vehicles?select=id,vehicle_no,vehicle_name,owner_department_id,active&order=display_order.asc", {auth:true}),
-      this._request("/fleet_month_settings?select=business_days,hours_per_day&month=eq." + encodeURIComponent(month + "-01"), {auth:true})
+      this._request("/fleet_month_settings?select=business_days&month=eq." + encodeURIComponent(month + "-01"), {auth:true})
     ]);
     return {vehicles:(vehicles || []).map(v => ({
       id:v.id,no:v.vehicle_no,name:v.vehicle_name,active:v.active,ownerDepartmentId:v.owner_department_id || ""
     })),settings:settings && settings[0] || null};
   }
-  async saveFleetMonthSettings(month,businessDays,hoursPerDay){
+  async saveFleetMonthSettings(month,businessDays){
     return this._request("/fleet_month_settings?on_conflict=month",{
       method:"POST",auth:true,headers:{"Prefer":"resolution=merge-duplicates,return=representation"},
-      body:JSON.stringify({month:month+"-01",business_days:businessDays,hours_per_day:hoursPerDay})
+      body:JSON.stringify({month:month+"-01",business_days:businessDays})
     });
   }
   async saveVehicleOwner(vehicleId,departmentId){
