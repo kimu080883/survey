@@ -297,13 +297,24 @@ input[type=number]{ -moz-appearance:textfield; }
       <p id="allErr" class="hidden mt-2 text-xs text-red-600"></p>
     </section>
 
+    <section class="rounded-xl bg-white border border-slate-200 shadow-sm p-4 mb-4">
+      <h2 class="text-sm font-bold text-slate-900 mb-1">クラウドに送信</h2>
+      <p class="text-xs text-slate-400 mb-3">全点をクラウド(Neon)に送ります。同じ現場名で送り直すと、その現場の点は最新の内容に置き換わります。</p>
+      <label class="block text-xs text-slate-500 mb-1">現場名</label>
+      <input id="cloudSite" type="text" placeholder="例:〇〇駅構内 軌道整備" class="w-full mb-3 px-3 py-2 rounded-lg border border-slate-200 text-sm">
+      <label class="block text-xs text-slate-500 mb-1">送信キー(最初の1回だけ入力。この端末に記憶します)</label>
+      <input id="cloudKey" type="password" autocomplete="off" placeholder="送信キー" class="w-full mb-3 px-3 py-2 rounded-lg border border-slate-200 text-sm">
+      <button id="btnCloud" class="w-full py-3 rounded-xl bg-indigo-600 text-white font-bold shadow-sm active:bg-indigo-700">クラウドに送信</button>
+      <p id="cloudMsg" class="hidden mt-2 text-xs"></p>
+    </section>
+
     <section id="plotSec" class="rounded-xl bg-white border border-slate-200 shadow-sm p-4 mb-4">
       <h2 class="text-sm font-bold text-slate-900 mb-2">全点プロット(北が上)</h2>
       <svg id="plot" viewBox="0 0 400 400" class="w-full border border-slate-100 rounded-lg bg-slate-50" style="aspect-ratio:1/1"></svg>
     </section>
   </div>
 
-  <footer class="text-center text-xs text-slate-400 mt-6">トラバース＆細部測量 ・ データは端末内に保存</footer>
+  <footer class="text-center text-xs text-slate-400 mt-6">トラバース＆細部測量 ・ データは端末内に保存(クラウド送信は任意)</footer>
 </div>
 <script>
 /* ===== 共通ユーティリティ ===== */
@@ -706,6 +717,34 @@ $('exShare').onclick=async()=>{
   if(navigator.canShare&&navigator.canShare({files})){try{await navigator.share({files,title:'測量結果(全点)',text:'基準点＋細部点(Excel＋DXF)'});}catch(e){}}
   else{files.forEach(f=>downloadBlob(f,f.name));alert('共有未対応の環境のため個別ダウンロードしました。メールに添付してください。');}
 };
+
+/* ===== クラウド送信(Neon) ===== */
+const CLOUD_URL='https://br-orange-sun-b3oljicw-survey.compute.c-4.ap-southeast-1.aws.neon.tech/';
+const CLOUD_KEY='hosen_cloud_v1';
+function cloudLoad(){try{const v=JSON.parse(localStorage.getItem(CLOUD_KEY)||'{}');if(v.site)$('cloudSite').value=v.site;if(v.key)$('cloudKey').value=v.key;}catch(e){}}
+function cloudSave(){try{localStorage.setItem(CLOUD_KEY,JSON.stringify({site:$('cloudSite').value.trim(),key:$('cloudKey').value.trim()}));}catch(e){}}
+function cloudMsg(t,ok){const m=$('cloudMsg');m.textContent=t;m.className='mt-2 text-xs '+(ok?'text-teal-700':'text-red-600');}
+async function sendCloud(){
+  if(!needPts())return;
+  const site=$('cloudSite').value.trim(),key=$('cloudKey').value.trim();
+  if(!site){cloudMsg('現場名を入力してください。',false);return;}
+  if(!key){cloudMsg('送信キーを入力してください。',false);return;}
+  cloudSave();
+  const points=[];
+  control.forEach(c=>points.push({name:c.name,x:c.x,y:c.y,kind:'control'}));
+  detail.forEach(d=>points.push({name:d.name,x:d.x,y:d.y,kind:'detail',inst:d.inst||''}));
+  const btn=$('btnCloud');btn.disabled=true;btn.textContent='送信中…';cloudMsg('送信しています(初回は数秒かかることがあります)',true);
+  try{
+    const r=await fetch(CLOUD_URL,{method:'POST',headers:{'Content-Type':'application/json','X-Send-Key':key},body:JSON.stringify({site,points})});
+    const j=await r.json().catch(()=>({}));
+    if(r.ok&&j.ok)cloudMsg(`送信しました:${j.site}(${j.count}点)`,true);
+    else cloudMsg('送信できませんでした:'+(j.error||('エラー '+r.status)),false);
+  }catch(e){cloudMsg('送信できませんでした。電波の良い場所でもう一度押してください。(データは端末に残っています)',false);}
+  finally{btn.disabled=false;btn.textContent='クラウドに送信';}
+}
+$('btnCloud').onclick=sendCloud;
+$('cloudSite').onchange=cloudSave;
+cloudLoad();
 
 /* ===== 初期化 ===== */
 loadAll();
