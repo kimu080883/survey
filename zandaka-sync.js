@@ -8,7 +8,7 @@
   document.head.appendChild(style);
   var gate = document.createElement("div");
   gate.id = "zandakaAuth";
-  gate.innerHTML = '<div class="auth-card"><h2>残高くん</h2><p id="zaIntro">専用サーバーに保存するため、メールアドレスでログインしてください。初回はアカウント作成後、メールの確認リンクを開き、この画面に戻ってログインします。</p><div id="zaLogin"><input id="zaEmail" type="email" autocomplete="email" placeholder="メールアドレス"><input id="zaPassword" type="password" autocomplete="current-password" placeholder="パスワード（12文字以上）"><button id="zaSignIn">ログイン</button><button id="zaSignUp" class="alt">初回登録</button></div><div id="zaClaim" hidden><p>預けたデータを取り込むため、引継ぎコードを入力してください。一度取り込むと、次回からは自動で読み込みます。</p><input id="zaCode" type="text" autocomplete="off" placeholder="引継ぎコード"><button id="zaClaimButton">7か月分を取り込む</button><button id="zaClaimLogout" class="alt">別アカウントでログイン</button></div><p class="message" id="zaMessage" role="status"></p></div>';
+  gate.innerHTML = '<div class="auth-card"><h2>残高くん</h2><p id="zaIntro">専用サーバーに保存するため、メールアドレスでログインしてください。初回はアカウント作成後、メールの確認リンクを開き、この画面に戻ってログインします。</p><div id="zaLogin"><input id="zaEmail" type="email" autocomplete="email" placeholder="メールアドレス"><input id="zaPassword" type="password" autocomplete="current-password" placeholder="パスワード（8文字以上）"><button id="zaSignIn">ログイン</button><button id="zaSignUp" class="alt">初回登録</button></div><div id="zaClaim" hidden><p>預けたデータを取り込むため、引継ぎコードを入力してください。一度取り込むと、次回からは自動で読み込みます。</p><input id="zaCode" type="text" autocomplete="off" placeholder="引継ぎコード"><button id="zaClaimButton">7か月分を取り込む</button><button id="zaClaimLogout" class="alt">別アカウントでログイン</button></div><p class="message" id="zaMessage" role="status"></p></div>';
   document.body.appendChild(gate);
   var badge = document.createElement("div");
   badge.id = "zandakaSync"; badge.hidden = true;
@@ -81,7 +81,7 @@
   }
   async function authAction(kind) {
     var email = el("zaEmail").value.trim(), password = el("zaPassword").value;
-    if (!email || password.length < 12) { msg("メールアドレスと12文字以上のパスワードを入力してください。"); return; }
+    if (!email || password.length < 8) { msg("メールアドレスと8文字以上のパスワードを入力してください。"); return; }
     msg("確認中…");
     var result = kind === "signup"
       ? await client.auth.signUp({ email: email, password: password, options: { emailRedirectTo: location.origin + location.pathname } })
