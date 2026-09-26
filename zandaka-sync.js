@@ -88,7 +88,7 @@
       : await client.auth.signInWithPassword({ email: email, password: password });
     if (result.error) { msg(result.error.message); return; }
     if (result.data.session) await loadRemote(result.data.session.user);
-    else msg("確認メールを開いて登録を完了し、この画面からログインしてください。");
+    else msg("確認メールを開いた後は、この残高くんのページに戻ってログインしてください。localhostのエラー画面が出ても、メール確認が済んでいればログインできます。");
   }
   el("zaSignUp").onclick = function () { authAction("signup"); };
   el("zaSignIn").onclick = function () { authAction("signin"); };
