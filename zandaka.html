@@ -298,7 +298,7 @@
 <div class="modal-bg" id="backupModal">
   <div class="modal">
     <h3>バックアップ / 復元</h3>
-    <p>データはこの端末内だけに保存されます。機種変更や別端末で使うときに使います。</p>
+    <p>データはログイン中に専用サーバーへ保存されます。ここから控えをコピーできます。</p>
     <div class="bk-label">① 今のデータ（保存用）</div>
     <textarea id="backupText" readonly style="height:110px"></textarea>
     <div class="m-actions"><button class="primary" id="btnCopy">コピー</button></div>
@@ -744,6 +744,6 @@ function shortMonth(l){var m=/(\d{4})-(\d{1,2})/.exec(l||"");return m?m[1].slice
 render();
 </script>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.117.1"></script>
-<script src="./zandaka-sync.js"></script>
+<script src="./zandaka-sync.js?v=20260926b"></script>
 </body>
 </html>
