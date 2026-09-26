@@ -20,6 +20,7 @@
   if (!window.supabase) { msg("サーバー接続の読み込みに失敗しました。通信を確認して再読み込みしてください。"); return; }
   var client = window.supabase.createClient(url, key, { auth: { persistSession: true, autoRefreshToken: true, detectSessionInUrl: true } });
   var localSave = window.save, activeUser = null, loadingUser = null, dirty = false, flushing = false, timer = null;
+  var pendingKey = "zandaka_pending_v1";
   function cleanState() {
     return JSON.parse(JSON.stringify(window.state, function (k, v) {
       return k && k.charAt(0) === "_" ? undefined : v;
@@ -28,6 +29,7 @@
   function queueSave() {
     if (!activeUser) return;
     dirty = true; status("保存中…");
+    try { localStorage.setItem(pendingKey, JSON.stringify({ userId: activeUser, payload: cleanState(), at: Date.now() })); } catch (e) {}
     clearTimeout(timer); timer = setTimeout(flush, 750);
   }
   async function flush() {
@@ -42,7 +44,7 @@
         break;
       }
     } while (dirty && activeUser);
-    if (!dirty) status("サーバー保存済");
+    if (!dirty) { localStorage.removeItem(pendingKey); status("サーバー保存済"); }
     flushing = false;
   }
   window.save = function () { localSave(); queueSave(); };
@@ -52,7 +54,7 @@
     activeUser = null; dirty = false; clearTimeout(timer);
     document.body.classList.add("zandaka-lock"); gate.hidden = false; badge.hidden = true;
     msg("サーバーのデータを確認中…");
-    var result = await client.from("zandaka_state").select("payload").eq("user_id", user.id).maybeSingle();
+    var result = await client.from("zandaka_state").select("payload,updated_at").eq("user_id", user.id).maybeSingle();
     if (result.error) { loadingUser = null; msg("読み込み失敗: " + result.error.message); return; }
     if (!result.data) {
       el("zaLogin").hidden = true; el("zaClaim").hidden = false;
@@ -60,7 +62,10 @@
       msg("初回の引継ぎコードを入力してください。");
       return;
     }
-    var payload = result.data.payload;
+    var pending = null;
+    try { pending = JSON.parse(localStorage.getItem(pendingKey)); } catch (e) {}
+    var recover = pending && pending.userId === user.id && pending.at > Date.parse(result.data.updated_at);
+    var payload = recover ? pending.payload : result.data.payload;
     if (!payload || !Array.isArray(payload.months) || !payload.months.length) {
       loadingUser = null; msg("保存データの形式を確認できませんでした。"); return;
     }
@@ -68,6 +73,8 @@
     if (!window.state.current) window.state.current = window.state.months[0].id;
     window.migrate(window.state); localSave(); window.render();
     activeUser = user.id; loadingUser = null;
+    if (recover) { dirty = true; flush(); }
+    else localStorage.removeItem(pendingKey);
     gate.hidden = true; badge.hidden = false;
     document.body.classList.remove("zandaka-lock");
     status("サーバー保存済"); msg("");
@@ -96,6 +103,8 @@
     if (session.data.user) await loadRemote(session.data.user);
   };
   async function signOut() {
+    clearTimeout(timer);
+    if (dirty) { await flush(); if (dirty) { msg("サーバー保存に失敗したため、ログアウトを中止しました。"); return; } }
     activeUser = null; dirty = false; clearTimeout(timer);
     localStorage.removeItem(window.KEY);
     el("main").replaceChildren(); el("switch").replaceChildren(); el("hBalance").textContent = "";
