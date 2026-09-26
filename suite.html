@@ -50,6 +50,7 @@ input[type=number]{ -moz-appearance:textfield; }
       <li><b>② 細部測量</b>タブで器械点を選ぶ。基準点があれば選ぶだけ、無ければ2点標定でもOK。</li>
       <li>細部点を「水平角＋距離」で追加。点名は器械点ごとに自動連番(T1-1, T1-2…)。</li>
       <li><b>③ 全点・出力</b>タブで、基準点＋細部点を<b>まとめて1つのDXF</b>に。CADで全部いっぺんに開けます。</li>
+      <li><b>④ TS取込</b>:自動追尾TSで測ったSIMA/CSVを読み込み、そのままクラウドへ送信。基準点をSIMAで書き出してTSに入れることもできます。</li>
     </ol>
     <p class="mt-2 text-xs text-slate-500">※CADの点名は数字・英字のみ。日本語名はExcelに保存されます。データは端末内に自動保存。</p>
   </div>
@@ -59,6 +60,7 @@ input[type=number]{ -moz-appearance:textfield; }
     <button data-tab="trav" class="tab-btn active flex-1 py-2.5 text-center text-slate-500">① 基準点</button>
     <button data-tab="detail" class="tab-btn flex-1 py-2.5 text-center text-slate-500">② 細部測量</button>
     <button data-tab="all" class="tab-btn flex-1 py-2.5 text-center text-slate-500">③ 全点・出力</button>
+    <button data-tab="ts" class="tab-btn flex-1 py-2.5 text-center text-slate-500">④ TS取込</button>
   </div>
 
   <!-- ============ タブ1: 基準点(トラバース) ============ -->
@@ -314,6 +316,59 @@ input[type=number]{ -moz-appearance:textfield; }
     </section>
   </div>
 
+  <!-- ============ タブ4: TS取込 ============ -->
+  <div id="tab-ts" class="hidden">
+    <section class="rounded-xl bg-white border border-slate-200 shadow-sm p-4 mb-4 text-sm text-slate-700">
+      <h2 class="text-sm font-bold text-slate-900 mb-2">TS測量の流れ</h2>
+      <ol class="list-decimal pl-5 space-y-1 text-xs leading-relaxed">
+        <li>①でトラバース計算 → 基準点に登録 → 下の<b>「基準点をSIMAで書き出す」</b>でTSに入れる</li>
+        <li>TSを見通しの良い位置に据え、<b>後方交会</b>(基準点3点)で器械点を確定</li>
+        <li><b>チェック</b>:別の基準点を1点測って座標が合うか確認</li>
+        <li>締結装置を自動追尾で測る。点名は<b>数字の連番</b>、順番は<b>いつも 左→右</b></li>
+        <li><b>チェック</b>:最後にもう一度基準点を測る(三脚の沈下確認)</li>
+        <li>データコレクタから<b>SIMA(座標データ)</b>をUSBメモリに出力 → このタブで読み込み → 送信</li>
+      </ol>
+    </section>
+
+    <section class="rounded-xl bg-white border border-slate-200 shadow-sm p-4 mb-4">
+      <h2 class="text-sm font-bold text-slate-900 mb-1">基準点をSIMAで書き出す(TSに読み込む用)</h2>
+      <p class="text-xs text-slate-400 mb-3">①で登録した基準点を、TSのデータコレクタに読み込めるSIMA座標データにします。点名は英数字にしてください。</p>
+      <button id="btnCtrlSima" class="w-full py-2.5 rounded-lg bg-white text-slate-700 border border-slate-200 text-sm">基準点をSIMAで書き出す</button>
+      <p id="ctrlSimaMsg" class="hidden mt-2 text-xs"></p>
+    </section>
+
+    <section class="rounded-xl bg-white border border-slate-200 shadow-sm p-4 mb-4">
+      <h2 class="text-sm font-bold text-slate-900 mb-1">TSデータを読み込む</h2>
+      <p class="text-xs text-slate-400 mb-3">SIMA(.sim)またはCSVを選んでください。USBメモリの中のファイルも選べます。</p>
+      <input id="tsFile" type="file" accept=".sim,.SIM,.csv,.CSV,.txt,.TXT,text/plain,text/csv" class="block w-full text-sm mb-3">
+      <label class="flex items-center gap-1.5 text-sm text-slate-600 mb-2"><input id="tsCtrlAuto" type="checkbox" checked class="accent-teal-600"> 数字だけでない点名(K1・T1など)は基準点として扱う</label>
+      <div class="flex items-center gap-2 text-sm text-slate-600 mb-3">
+        <label for="tsStart">締結装置の最初の点番号</label>
+        <input id="tsStart" type="number" inputmode="numeric" placeholder="例 1001" class="w-28 px-2 py-1.5 rounded-lg border border-slate-200 mono">
+        <span class="text-xs text-slate-400">(左→右の順で読み替え)</span>
+      </div>
+      <p id="tsInfo" class="hidden mb-2 text-xs"></p>
+      <div class="tbl-wrap overflow-x-auto -mx-1 px-1 max-h-72 overflow-y-auto mb-3">
+        <table class="w-full text-sm border-collapse">
+          <thead class="sticky top-0 bg-white"><tr class="text-xs text-slate-500 border-b border-slate-200">
+            <th class="py-2 px-2 text-left font-medium">点名</th>
+            <th class="py-2 px-2 text-right font-medium">X(北)</th>
+            <th class="py-2 px-2 text-right font-medium">Y(東)</th>
+            <th class="py-2 px-2 text-right font-medium">標高</th>
+            <th class="py-2 px-2 text-left font-medium">読み替え</th>
+          </tr></thead>
+          <tbody id="tsRows" class="mono"></tbody>
+        </table>
+      </div>
+      <label class="block text-xs text-slate-500 mb-1">現場名</label>
+      <input id="tsSite" type="text" placeholder="例:〇〇駅構内 まくらぎ出来形" class="w-full mb-3 px-3 py-2 rounded-lg border border-slate-200 text-sm">
+      <label class="block text-xs text-slate-500 mb-1">送信キー(③と共通。この端末に記憶します)</label>
+      <input id="tsKey" type="password" autocomplete="off" placeholder="送信キー" class="w-full mb-3 px-3 py-2 rounded-lg border border-slate-200 text-sm">
+      <button id="btnTsSend" class="w-full py-3 rounded-xl bg-indigo-600 text-white font-bold shadow-sm active:bg-indigo-700">読み込んだ点をクラウドに送信</button>
+      <p id="tsMsg" class="hidden mt-2 text-xs"></p>
+    </section>
+  </div>
+
   <footer class="text-center text-xs text-slate-400 mt-6">トラバース＆細部測量 ・ データは端末内に保存(クラウド送信は任意)</footer>
 </div>
 <script>
@@ -363,7 +418,7 @@ function loadAll(){
 
 /* ===== タブ切替 ===== */
 function switchTab(name){
-  ['trav','detail','all'].forEach(t=>{
+  ['trav','detail','all','ts'].forEach(t=>{
     $('tab-'+t).classList.toggle('hidden', t!==name);
   });
   document.querySelectorAll('.tab-btn').forEach(b=>b.classList.toggle('active', b.dataset.tab===name));
@@ -745,6 +800,108 @@ async function sendCloud(){
 $('btnCloud').onclick=sendCloud;
 $('cloudSite').onchange=cloudSave;
 cloudLoad();
+
+/* ===== タブ4: TS取込(SIMA/CSV) ===== */
+let tsPts=[];
+const isNum=v=>v!==''&&v!=null&&isFinite(Number(v));
+function decodeText(buf){
+  const u8=new Uint8Array(buf);
+  try{return new TextDecoder('utf-8',{fatal:true}).decode(u8);}catch(e){}
+  try{return new TextDecoder('shift_jis').decode(u8);}catch(e){return new TextDecoder().decode(u8);}
+}
+function parseSima(text){
+  const out=[];
+  text.split(/\r?\n/).forEach(line=>{
+    const c=line.split(',').map(v=>v.trim());
+    if(c[0]==='A01'&&isNum(c[3])&&isNum(c[4])){
+      out.push({name:c[2]||c[1],x:+c[3],y:+c[4],z:isNum(c[5])?+c[5]:null});
+    }
+  });
+  return out;
+}
+function parseCsv(text){
+  const out=[];
+  text.split(/\r?\n/).forEach(line=>{
+    const c=line.split(/[,\t]/).map(v=>v.trim().replace(/^"|"$/g,''));
+    if(c.length<3)return;
+    let ni=c.findIndex(v=>v!==''&&!isNum(v));
+    let rest;
+    if(ni>=0){rest=c.slice(ni+1).filter(isNum);}else{ni=0;rest=c.slice(1).filter(isNum);}
+    if(rest.length<2)return;
+    const name=c[ni];if(!name||/^(点名|点番号|name|no|x|y)$/i.test(name))return;
+    out.push({name,x:+rest[0],y:+rest[1],z:rest.length>2?+rest[2]:null});
+  });
+  return out;
+}
+function tsKind(p){return $('tsCtrlAuto').checked&&!/^\d+$/.test(p.name)?'control':'detail';}
+function tsLabel(p){
+  if(tsKind(p)==='control')return '基準点';
+  const st=parseInt($('tsStart').value,10);const n=parseInt(p.name,10);
+  if(!Number.isFinite(st)||!Number.isFinite(n)||n<st)return '';
+  const k=n-st;return `まくらぎ${Math.floor(k/2)+1} ${k%2===0?'左':'右'}`;
+}
+function tsMsg(id,t,ok){const m=$(id);m.textContent=t;m.className='mt-2 text-xs '+(ok?'text-teal-700':'text-red-600');}
+function renderTs(){
+  const tb=$('tsRows');tb.innerHTML='';
+  tsPts.forEach(p=>{
+    const tr=document.createElement('tr');tr.className='border-b border-slate-50';
+    const lb=tsLabel(p);
+    const cls=tsKind(p)==='control'?'text-red-600':'text-emerald-700';
+    tr.innerHTML=`<td class="py-1.5 px-2 text-left"></td><td class="py-1.5 px-2 text-right">${p.x.toFixed(3)}</td><td class="py-1.5 px-2 text-right">${p.y.toFixed(3)}</td><td class="py-1.5 px-2 text-right">${p.z==null?'':p.z.toFixed(3)}</td><td class="py-1.5 px-2 text-left text-xs ${cls}"></td>`;
+    tr.children[0].textContent=p.name;tr.children[4].textContent=lb;
+    tb.appendChild(tr);
+  });
+  const nc=tsPts.filter(p=>tsKind(p)==='control').length,nd=tsPts.length-nc;
+  const info=$('tsInfo');info.classList.remove('hidden');
+  let t=`読み込み:${tsPts.length}点(基準点${nc}・その他${nd})`;let ok=true;
+  if(nd%2===1&&$('tsStart').value){t+=' ※締結装置の点数が奇数です。飛ばし・測り直しがないか確認してください';ok=false;}
+  info.textContent=t;info.className='mb-2 text-xs '+(ok?'text-teal-700':'text-amber-600');
+}
+$('tsFile').onchange=async e=>{
+  const f=e.target.files[0];if(!f)return;
+  try{
+    const text=decodeText(await f.arrayBuffer());
+    let pts=/(^|\n)\s*A01\s*,/.test(text)?parseSima(text):parseCsv(text);
+    if(pts.length===0){tsPts=[];renderTs();tsMsg('tsMsg','座標の行が見つかりません。SIMAは「座標データ」で出力してください。',false);return;}
+    tsPts=pts;
+    if(!$('tsStart').value){const f1=pts.find(p=>/^\d+$/.test(p.name));if(f1)$('tsStart').value=f1.name;}
+    if(!$('tsSite').value)$('tsSite').value=f.name.replace(/\.[^.]+$/,'');
+    $('tsMsg').classList.add('hidden');renderTs();
+  }catch(err){tsMsg('tsMsg','ファイルを読めませんでした。',false);}
+};
+$('tsStart').oninput=()=>{if(tsPts.length)renderTs();};
+$('tsCtrlAuto').onchange=()=>{if(tsPts.length)renderTs();};
+async function sendTs(){
+  if(tsPts.length===0){tsMsg('tsMsg','先にファイルを読み込んでください。',false);return;}
+  const site=$('tsSite').value.trim(),key=$('tsKey').value.trim();
+  if(!site){tsMsg('tsMsg','現場名を入力してください。',false);return;}
+  if(!key){tsMsg('tsMsg','送信キーを入力してください。',false);return;}
+  try{const v=JSON.parse(localStorage.getItem(CLOUD_KEY)||'{}');v.key=key;localStorage.setItem(CLOUD_KEY,JSON.stringify(v));}catch(e){}
+  const st=parseInt($('tsStart').value,10);
+  const points=tsPts.map(p=>({name:p.name,x:p.x,y:p.y,z:p.z,kind:tsKind(p)}));
+  const btn=$('btnTsSend');btn.disabled=true;btn.textContent='送信中…';tsMsg('tsMsg','送信しています(初回は数秒かかることがあります)',true);
+  try{
+    const r=await fetch(CLOUD_URL,{method:'POST',headers:{'Content-Type':'application/json','X-Send-Key':key},body:JSON.stringify({site,points,memo:Number.isFinite(st)?`締結連番開始=${st};順序=左右`:'' ,source:'ts'})});
+    const j=await r.json().catch(()=>({}));
+    if(r.ok&&j.ok)tsMsg('tsMsg',`送信しました:${j.site}(${j.count}点)。翌朝に図面がBoxに入ります。`,true);
+    else tsMsg('tsMsg','送信できませんでした:'+(j.error||('エラー '+r.status)),false);
+  }catch(e){tsMsg('tsMsg','送信できませんでした。電波の良い場所でもう一度押してください。',false);}
+  finally{btn.disabled=false;btn.textContent='読み込んだ点をクラウドに送信';}
+}
+$('btnTsSend').onclick=sendTs;
+$('btnCtrlSima').onclick=()=>{
+  if(control.length===0){tsMsg('ctrlSimaMsg','基準点がありません。①で計算して登録してください。',false);return;}
+  const bad=control.filter(c=>!/^[\x20-\x7e]+$/.test(c.name));
+  // SIMAはShift_JIS。日本語は固定の見出しだけなのでバイト列で直接書く
+  const SJ_KIJUN=[138, 238, 143, 128, 147, 95],SJ_ZAHYO=[141, 192, 149, 87, 195, 222, 176, 192];
+  const asc=t=>[...t].map(ch=>{const c=ch.charCodeAt(0);return c<128?c:63;});
+  const bytes=[...asc('G00,01,'),...SJ_KIJUN,...asc(',\r\nZ00,'),...SJ_ZAHYO,...asc(',\r\nA00,\r\n')];
+  control.forEach((c,i)=>bytes.push(...asc(`A01,${i+1},${c.name},${c.x.toFixed(3)},${c.y.toFixed(3)},,\r\n`)));
+  bytes.push(...asc('A99,\r\n'));
+  downloadBlob(new Blob([new Uint8Array(bytes)],{type:'application/octet-stream'}),'control.sim');
+  tsMsg('ctrlSimaMsg',bad.length?`書き出しました。※日本語の点名(${bad.map(b=>b.name).join('・')})はTSで読めない場合があります`:`書き出しました(${control.length}点)。USBメモリ経由でTSに読み込んでください。`,bad.length===0);
+};
+(function(){try{const v=JSON.parse(localStorage.getItem(CLOUD_KEY)||'{}');if(v.key)$('tsKey').value=v.key;}catch(e){}})();
 
 /* ===== 初期化 ===== */
 loadAll();
