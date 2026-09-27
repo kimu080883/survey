@@ -1,0 +1,434 @@
+<!doctype html>
+<html lang="ja">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<title>軌道検測ノート</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=BIZ+UDPGothic:wght@400;700&family=IBM+Plex+Mono:wght@400;600&display=swap">
+<style>
+:root{
+  --bg:#EEF1EF; --surface:#FFFFFF; --surface2:#F6F8F7; --line:#D5DBD8; --ink:#1B2421; --ink2:#55615C; --ink3:#8A9591;
+  --steel:#2F5D8A; --steel-soft:#E3ECF5; --cursor:#F2C230; --cursor-soft:#FFF6D6;
+  --ok:#2E7D4F; --ok-soft:#E3F2E8; --warn:#B86E00; --warn-soft:#FFF0D9; --bad:#C23B22; --bad-soft:#FBE4DF;
+  --key:#FFFFFF; --key-ink:#1B2421; --key-shadow:#C7CFCB; --on-steel:#fff;
+  --sans:"BIZ UDPGothic","Hiragino Sans","Noto Sans JP",system-ui,sans-serif;
+  --mono:"IBM Plex Mono",ui-monospace,Menlo,Consolas,monospace;
+  color-scheme:light;
+}
+@media (prefers-color-scheme: dark){
+  :root:not([data-theme="light"]){
+    color-scheme:dark;
+    --bg:#121715; --surface:#1A211E; --surface2:#202825; --line:#303A36; --ink:#E6ECE9; --ink2:#A7B3AE; --ink3:#77837E;
+    --steel:#8DB6E0; --steel-soft:#1F2F40; --cursor:#E5B82A; --cursor-soft:#3A3219;
+    --ok:#6CC08F; --ok-soft:#1C3326; --warn:#E6A444; --warn-soft:#3A2B14; --bad:#F07A62; --bad-soft:#3D1F19;
+    --key:#26302C; --key-ink:#E6ECE9; --key-shadow:#0C100E; --on-steel:#0E1A26;
+  }
+}
+:root[data-theme="dark"]{
+  color-scheme:dark;
+  --bg:#121715; --surface:#1A211E; --surface2:#202825; --line:#303A36; --ink:#E6ECE9; --ink2:#A7B3AE; --ink3:#77837E;
+  --steel:#8DB6E0; --steel-soft:#1F2F40; --cursor:#E5B82A; --cursor-soft:#3A3219;
+  --ok:#6CC08F; --ok-soft:#1C3326; --warn:#E6A444; --warn-soft:#3A2B14; --bad:#F07A62; --bad-soft:#3D1F19;
+  --key:#26302C; --key-ink:#E6ECE9; --key-shadow:#0C100E; --on-steel:#0E1A26;
+}
+*{box-sizing:border-box}
+html{scroll-padding-top:env(safe-area-inset-top,0px)}
+body{margin:0;background:var(--bg);color:var(--ink);font-family:var(--sans);font-size:14px;line-height:1.5;padding:0 16px 300px;padding-top:env(safe-area-inset-top,0px)}
+.wrap{max-width:720px;margin:0 auto}
+.num{font-family:var(--mono);font-variant-numeric:tabular-nums}
+header.top{position:sticky;top:0;z-index:20;background:var(--bg);padding-block:calc(env(safe-area-inset-top,0px) + 10px) 8px;display:flex;flex-direction:column;gap:8px}
+.brand{display:flex;align-items:baseline;justify-content:space-between;gap:8px}
+.brand h1{font-size:17px;margin:0;letter-spacing:.02em}
+.status{font-size:11px;color:var(--ink3);display:flex;align-items:center;gap:5px}
+.status i{width:8px;height:8px;border-radius:50%;background:var(--ink3);display:inline-block}
+.status.on i{background:var(--ok)} .status.off i{background:var(--warn)}
+.tabs{display:flex;gap:4px;background:var(--surface2);border:1px solid var(--line);border-radius:10px;padding:3px}
+.tabs button{flex:1;border:0;background:transparent;color:var(--ink2);font:inherit;font-size:13px;padding:7px 4px;border-radius:7px;cursor:pointer}
+.tabs button[aria-selected="true"]{background:var(--surface);color:var(--ink);font-weight:700;box-shadow:0 1px 2px var(--key-shadow)}
+.ctx{display:grid;grid-template-columns:1fr 1fr;gap:6px;margin-top:10px}
+.ctx label{display:flex;flex-direction:column;gap:2px;font-size:10.5px;color:var(--ink3);letter-spacing:.04em}
+.ctx select,.ctx input,.field{font:inherit;font-size:14px;color:var(--ink);background:var(--surface);border:1px solid var(--line);border-radius:8px;padding:7px 8px;width:100%}
+.rangebar{display:flex;gap:6px;grid-column:1/-1;align-items:end}
+.rangebar label{flex:1}
+.seg{display:flex;border:1px solid var(--line);border-radius:8px;overflow:hidden;background:var(--surface)}
+.seg button{flex:1;border:0;background:transparent;font:inherit;font-size:13px;padding:6px 0;color:var(--ink2);cursor:pointer}
+.seg button[aria-pressed="true"]{background:var(--steel);color:var(--on-steel);font-weight:700}
+.panel{background:var(--surface);border:1px solid var(--line);border-radius:12px;padding:12px}
+.mode{display:flex;flex-direction:column;gap:8px;margin-block:10px}
+.mode-row{display:flex;gap:6px;align-items:center;flex-wrap:wrap}
+.mode-row .lbl{font-size:11px;color:var(--ink3);min-width:56px}
+.chips{display:flex;gap:4px;flex-wrap:wrap;align-items:center}
+.chip{font-size:12px;padding:3px 8px;border-radius:999px;background:var(--surface2);color:var(--ink);border:1px solid var(--line)}
+.arrow{color:var(--ink3);font-size:12px}
+.small-btn{font:inherit;font-size:12px;border:1px solid var(--line);background:var(--surface);color:var(--ink2);border-radius:7px;padding:5px 9px;cursor:pointer}
+.small-btn:focus-visible,.tabs button:focus-visible,.seg button:focus-visible,.key:focus-visible,td.cell:focus-visible,.btn:focus-visible{outline:2px solid var(--steel);outline-offset:1px}
+.builder{display:none;flex-direction:column;gap:6px;border-top:1px dashed var(--line);padding-top:8px}
+.builder.open{display:flex}
+.now{display:flex;align-items:center;justify-content:space-between;gap:10px;background:var(--cursor-soft);border:1px solid var(--cursor);border-radius:12px;padding:10px 12px}
+.now .km{font-size:24px;font-weight:600;letter-spacing:.01em}
+.now .item{font-size:15px;font-weight:700}
+.now .sub{font-size:11.5px;color:var(--ink2)}
+.now .buf{font-size:26px;font-weight:600;min-width:84px;text-align:right}
+.tbl-wrap{background:var(--surface);border:1px solid var(--line);border-radius:12px}
+table{border-collapse:separate;border-spacing:0;width:100%}
+#grid thead th{position:sticky;top:var(--hh,160px);z-index:5;background:var(--surface2);font-size:11px;font-weight:700;color:var(--ink2);padding:6px 4px;border-bottom:1px solid var(--line);text-align:center}
+#grid thead th .u{font-weight:400;color:var(--ink3)}
+#grid tbody th{font-family:var(--mono);font-size:12px;font-weight:600;text-align:left;padding:4px 6px;white-space:nowrap;color:var(--ink);border-bottom:1px solid var(--line)}
+#grid tbody th .kmk{color:var(--ink3);font-weight:400}
+#grid tbody th .pt{display:block;font-size:10px;color:var(--ink3);font-weight:400}
+tr.blk-a th{background:var(--surface)} tr.blk-b th{background:var(--surface2)}
+tr.inblock th{box-shadow:inset 3px 0 0 var(--cursor)}
+td.cell{border-bottom:1px solid var(--line);border-left:1px solid var(--line);padding:3px 4px;text-align:center;cursor:pointer;min-width:66px}
+td.cell .v{font-family:var(--mono);font-size:16px;font-weight:600;line-height:1.2;min-height:19px}
+td.cell .v.empty{color:var(--ink3);font-weight:400}
+td.cell .v.saved{color:var(--steel)}
+td.cell .meta{font-family:var(--mono);font-size:10px;color:var(--ink3);line-height:1.25}
+.d{display:inline-block;font-family:var(--mono);font-size:10.5px;padding:0 5px;border-radius:5px;margin-top:1px}
+.d.ok{background:var(--ok-soft);color:var(--ok)} .d.warn{background:var(--warn-soft);color:var(--warn)} .d.bad{background:var(--bad-soft);color:var(--bad)}
+td.cell.cur{background:var(--cursor-soft);box-shadow:inset 0 0 0 2px var(--cursor)}
+td.cell.next{box-shadow:inset 0 0 0 1px var(--cursor)}
+.legend{display:flex;gap:10px;flex-wrap:wrap;font-size:11px;color:var(--ink2);margin-block:8px}
+.legend span{display:inline-flex;align-items:center;gap:4px}
+.dot{width:9px;height:9px;border-radius:3px;display:inline-block}
+.actions{display:flex;gap:8px;flex-wrap:wrap;margin-block:10px}
+.btn{font:inherit;font-size:14px;border-radius:9px;padding:10px 14px;border:1px solid var(--line);background:var(--surface);color:var(--ink);cursor:pointer}
+.btn.primary{background:var(--steel);border-color:var(--steel);color:var(--on-steel);font-weight:700}
+.btn:disabled{opacity:.5}
+.note{font-size:12px;color:var(--ink2)}
+.msg{font-size:13px;padding:8px 10px;border-radius:8px;background:var(--surface2);border:1px solid var(--line)}
+.msg.ok{background:var(--ok-soft);color:var(--ok);border-color:transparent}
+.msg.err{background:var(--bad-soft);color:var(--bad);border-color:transparent}
+.pad{position:fixed;left:0;right:0;bottom:0;z-index:30;background:var(--surface2);border-top:1px solid var(--line);padding:8px 10px calc(8px + env(safe-area-inset-bottom,0px))}
+.pad-in{max-width:520px;margin:0 auto;display:grid;grid-template-columns:repeat(4,1fr);gap:6px}
+.key{font:inherit;font-family:var(--mono);font-size:20px;font-weight:600;background:var(--key);color:var(--key-ink);border:1px solid var(--line);border-radius:10px;padding:9px 0;box-shadow:0 2px 0 var(--key-shadow);cursor:pointer;touch-action:manipulation}
+.key:active{transform:translateY(1px);box-shadow:0 1px 0 var(--key-shadow)}
+.key.fn{font-family:var(--sans);font-size:13px;font-weight:700;color:var(--ink2)}
+.key.go{background:var(--steel);border-color:var(--steel);color:var(--on-steel);font-family:var(--sans);font-size:15px;grid-row:span 2}
+.hidden{display:none!important}
+.sys h2{font-size:15px;margin:16px 0 6px}
+.sys p,.sys li{font-size:13px;color:var(--ink2);max-width:65ch}
+.sys ol{padding-left:20px;margin:0}
+.tbl-s{overflow-x:auto;-webkit-overflow-scrolling:touch}
+.tbl-s table{min-width:520px;background:var(--surface);border:1px solid var(--line);border-radius:10px}
+.tbl-s td,.tbl-s th{font-size:12px;padding:4px 6px;border-bottom:1px solid var(--line);text-align:right;white-space:nowrap}
+.tbl-s th{background:var(--surface2);color:var(--ink2);text-align:center;position:sticky;top:0}
+.tbl-s td:first-child{text-align:left}
+.tbl-s td.today{font-weight:700;color:var(--steel)}
+.tbl-s td.none{color:var(--ink3)}
+.login{display:flex;flex-direction:column;gap:8px;margin-top:12px}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header class="top">
+    <div class="brand"><h1>軌道検測ノート</h1><span class="status" id="stat"><i></i><span id="statTxt">未接続</span></span></div>
+    <div class="tabs" role="tablist">
+      <button id="tabInput" role="tab" aria-selected="true">入力</button>
+      <button id="tabOut" role="tab" aria-selected="false">検査用紙</button>
+      <button id="tabSys" role="tab" aria-selected="false">設定・仕組み</button>
+    </div>
+    <div class="now" id="nowBar" aria-live="polite">
+      <div>
+        <div class="km num" id="nowKm">—</div>
+        <div class="item" id="nowItem">—</div>
+        <div class="sub num" id="nowSub"></div>
+      </div>
+      <div class="buf num" id="nowBuf">—</div>
+    </div>
+  </header>
+
+  <section id="pInput">
+    <div class="ctx">
+      <label style="grid-column:1/-1">線区（会社・線名・上下）<select id="selSec"></select></label>
+      <label>測定日<input id="inDate" type="date"></label>
+      <label>1画面の地点数<select id="selPage"><option value="10">10地点（50m）</option><option value="20" selected>20地点（100m）</option><option value="40">40地点（200m）</option></select></label>
+      <div class="rangebar">
+        <button class="small-btn" id="pgPrev" aria-label="前の区間">◀</button>
+        <label>区間（キロ程）<select id="selRange" class="num"></select></label>
+        <button class="small-btn" id="pgNext" aria-label="次の区間">▶</button>
+      </div>
+    </div>
+
+    <div class="panel mode">
+      <div class="mode-row"><span class="lbl">入力順</span>
+        <div class="seg" style="flex:1">
+          <button id="mRow" aria-pressed="false">地点ごと</button>
+          <button id="mCol" aria-pressed="false">項目ごと</button>
+          <button id="mPat" aria-pressed="true">パターン</button>
+        </div>
+      </div>
+      <div class="mode-row" id="patView"><span class="lbl">パターン</span><div class="chips" id="patChips"></div><button class="small-btn" id="btnEditPat">変更</button></div>
+      <div class="builder" id="builder">
+        <div class="mode-row"><span class="lbl">ひな形</span><select id="selPreset" class="small-btn" style="flex:1"></select></div>
+        <div class="mode-row"><span class="lbl">まとめ数</span><div class="seg" id="segN" style="flex:1"></div></div>
+        <p class="note" style="margin:0">まとめ数の地点ぶん（3なら15m）を1項目ずつ入れてから、次の項目へ進みます。</p>
+      </div>
+    </div>
+
+    <div class="tbl-wrap"><table id="grid"></table></div>
+    <div class="legend">
+      <span><i class="dot" style="background:var(--ok)"></i>基準との差 小</span>
+      <span><i class="dot" style="background:var(--warn)"></i>注意</span>
+      <span><i class="dot" style="background:var(--bad)"></i>要整備（仮の値）</span>
+      <span id="progress" class="num"></span>
+    </div>
+    <div class="actions">
+      <button class="btn primary" id="btnSend">この日の測定を送信</button>
+    </div>
+    <div class="msg" id="sendMsg">入力した値はこの端末に自動で残ります。電波が戻ったら送信してください。</div>
+  </section>
+
+  <section id="pOut" class="hidden">
+    <div class="panel" style="margin-top:10px">
+      <p class="note" style="margin-top:0">測定日の検査用紙に載る値です。<b style="color:var(--steel)">青字</b>＝その日の修正値、黒字＝前日までの測定値。（ ）内は基準との差（狂量）。</p>
+      <div class="tbl-s" style="max-height:60vh"><table id="outTbl"></table></div>
+      <div class="actions"><button class="btn" id="btnCsv">CSVを保存</button><button class="btn" id="btnReload">最新に更新</button></div>
+      <p class="note">所定のExcel様式への転記は、このデータを使って作成します。</p>
+    </div>
+  </section>
+
+  <section id="pSys" class="hidden sys">
+    <div class="panel" style="margin-top:10px">
+      <h2 style="margin-top:0">接続</h2>
+      <div class="login">
+        <label class="note">合言葉<input class="field num" id="inKey" type="password" autocomplete="off" placeholder="合言葉を入力"></label>
+        <div class="actions" style="margin:0"><button class="btn primary" id="btnKey">接続する</button><button class="btn" id="btnOffline">オフラインで試す</button></div>
+        <div class="msg" id="keyMsg">合言葉は一度入れればこの端末に保存されます。</div>
+      </div>
+    </div>
+    <h2>データの流れ</h2>
+    <ol>
+      <li>基準値：会社の資料（Excel・PDF）から Claude が読み取り、キロ程ごとに登録</li>
+      <li>入力：線区と区間を選ぶと、基準値と前回値が並ぶ。その横に実測値を入れる</li>
+      <li>送信：測定日つきで保存。上書きせず全部残し、その地点の最新になる</li>
+      <li>検査用紙：測定日より前で最新の値＝前日までの測定値、当日の値＝修正値として転記</li>
+    </ol>
+    <h2>この線区の設定</h2>
+    <p id="secInfo">—</p>
+    <h2>まだ決めること</h2>
+    <ol><li>要整備の判定に使う管理値（今の色分けは仮の値）</li></ol>
+  </section>
+</div>
+
+<div class="pad" id="pad">
+  <div class="pad-in">
+    <button class="key" data-k="7">7</button><button class="key" data-k="8">8</button><button class="key" data-k="9">9</button><button class="key fn" data-k="back">戻る</button>
+    <button class="key" data-k="4">4</button><button class="key" data-k="5">5</button><button class="key" data-k="6">6</button><button class="key go" data-k="next">確定<br>次へ</button>
+    <button class="key" data-k="1">1</button><button class="key" data-k="2">2</button><button class="key" data-k="3">3</button>
+    <button class="key fn" data-k="pm">＋/−</button><button class="key" data-k="0">0</button><button class="key fn" data-k="del">⌫</button><button class="key fn" data-k="skip">空欄</button>
+  </div>
+</div>
+
+<script>
+(function(){
+'use strict';
+const API='https://br-broad-union-b30y8eje-kensoku.compute.c-4.ap-southeast-1.aws.neon.tech';
+const DEMO=[[16750,150,0,null,null,18,null,null,4,null,null,0,null,null],[16755,151,0,null,null,24,null,null,5,null,null,0,null,null],[16760,152,0,null,null,31,null,null,6,null,null,0,null,null],[16765,153,0,null,null,37,null,null,8,null,null,0,null,null],[16770,154,0,null,null,44,null,null,9,null,null,0,null,null],[16775,155,0,null,null,51,null,null,11,null,null,0,null,null],[16780,156,0,null,null,57,null,null,12,null,null,0,null,null],[16785,157,0,null,null,64,null,null,13,null,null,0,null,null],[16790,158,0,null,null,70,null,null,15,null,null,0,null,null],[16795,159,0,null,null,75,null,null,16,null,null,0,null,null],[16800,160,0,null,null,75,null,null,16,null,null,0,null,null],[16805,161,0,null,null,75,null,null,16,null,null,0,null,null],[16810,162,0,null,null,75,null,null,16,null,null,0,null,null],[16815,163,0,null,null,75,null,null,16,null,null,0,null,null],[16820,164,0,null,null,75,null,null,16,null,null,0,null,null],[16825,165,0,null,null,75,null,null,16,null,null,0,null,null],[16830,166,0,null,null,75,null,null,16,null,null,0,null,null],[16835,167,0,null,null,75,null,null,16,null,null,0,null,null],[16840,168,0,0,"09-09",75,76,"09-09",16,16,"09-09",0,1,"09-09"],[16845,169,0,0,"09-24",75,74,"09-24",16,14,"09-24",0,0,"09-24"],[16850,170,0,0,"09-24",75,77,"09-24",16,15,"09-24",0,1,"09-24"],[16855,171,0,1,"09-24",75,75,"09-24",16,14,"09-24",0,0,"09-24"],[16860,172,0,-1,"09-24",75,76,"09-24",16,15,"09-24",0,1,"09-24"],[16865,173,0,1,"09-24",75,76,"09-24",16,15,"09-24",1,2,"09-24"],[16870,174,0,0,"09-24",75,75,"09-24",16,15,"09-24",4,5,"09-24"],[16875,175,0,1,"09-24",75,76,"09-24",16,15,"09-24",4,4,"09-24"],[16880,176,0,2,"09-24",75,75,"09-24",16,16,"09-24",4,5,"09-24"],[16885,177,0,0,"09-24",75,76,"09-24",16,15,"09-24",4,4,"09-24"],[16890,178,0,1,"09-24",75,75,"09-24",16,15,"09-24",4,4,"09-24"],[16895,179,0,1,"09-24",75,74,"09-24",16,15,"09-24",4,5,"09-24"],[16900,180,0,0,"09-24",75,76,"09-24",16,16,"09-24",4,4,"09-24"],[16905,181,0,1,"09-24",75,76,"09-24",16,16,"09-24",4,5,"09-24"],[16910,182,0,1,"09-24",75,76,"09-24",16,15,"09-24",4,4,"09-24"],[16915,183,0,1,"09-24",75,74,"09-24",16,16,"09-24",4,5,"09-24"],[16920,184,0,2,"09-24",75,75,"09-24",16,16,"09-24",4,4,"09-24"],[16925,185,0,1,"09-24",75,76,"09-24",16,16,"09-24",4,4,"09-24"],[16930,186,0,1,"09-24",75,76,"09-24",16,14,"09-24",4,4,"09-24"],[16935,187,0,1,"09-24",75,74,"09-24",16,17,"09-24",4,4,"09-24"],[16940,188,0,1,"09-24",75,75,"09-24",16,15,"09-24",4,5,"09-24"],[16945,189,0,1,"09-24",75,76,"09-24",16,16,"09-24",4,5,"09-24"],[16950,190,0,1,"09-24",75,76,"09-24",16,15,"09-24",4,3,"09-24"],[16955,191,0,1,"09-24",75,75,"09-24",16,16,"09-24",4,5,"09-24"],[16960,192,0,1,"09-24",75,76,"09-24",16,15,"09-24",4,4,"09-24"],[16965,193,0,1,"09-24",75,75,"09-24",16,15,"09-24",4,5,"09-24"],[16970,194,0,1,"09-24",75,76,"09-24",16,15,"09-24",4,4,"09-24"],[16975,195,0,1,"09-24",75,75,"09-24",16,16,"09-24",1,2,"09-24"],[16980,196,0,0,"09-24",75,74,"09-24",16,14,"09-24",0,1,"09-24"],[16985,197,0,0,"09-24",75,74,"09-24",16,16,"09-24",0,1,"09-24"],[16990,198,0,0,"09-24",75,74,"09-24",16,15,"09-24",0,0,"09-24"],[16995,199,0,1,"09-24",75,73,"09-24",16,15,"09-24",0,1,"09-24"],[17000,0,0,1,"09-24",75,76,"09-24",16,14,"09-24",0,-1,"09-24"],[17005,1,0,1,"09-24",75,75,"09-24",16,15,"09-24",0,2,"09-24"],[17010,2,0,1,"09-18",75,75,"09-18",16,15,"09-18",0,0,"09-18"],[17015,3,0,0,"09-18",75,75,"09-18",16,16,"09-18",0,0,"09-18"],[17020,4,0,0,"09-18",75,77,"09-18",16,15,"09-18",0,2,"09-18"],[17025,5,0,1,"09-18",75,76,"09-18",16,15,"09-18",0,1,"09-18"],[17030,6,0,1,"09-18",75,76,"09-18",16,14,"09-18",0,0,"09-18"],[17035,7,0,1,"09-18",75,77,"09-18",16,15,"09-18",0,1,"09-18"],[17040,8,0,1,"09-18",75,75,"09-18",16,15,"09-18",0,1,"09-18"],[17045,9,0,0,"09-18",75,75,"09-18",16,14,"09-18",0,0,"09-18"],[17050,10,0,1,"09-18",75,76,"09-18",16,16,"09-18",0,0,"09-18"],[17055,11,0,0,"09-18",75,74,"09-18",16,14,"09-18",0,1,"09-18"],[17060,12,0,1,"09-18",75,75,"09-18",16,16,"09-18",0,0,"09-18"],[17065,13,0,1,"09-18",75,75,"09-18",16,15,"09-18",0,0,"09-18"],[17070,14,0,-1,"09-18",75,75,"09-18",16,16,"09-18",0,0,"09-18"],[17075,15,0,1,"09-18",75,75,"09-18",16,15,"09-18",0,2,"09-18"],[17080,16,0,0,"09-18",75,75,"09-18",16,16,"09-18",0,1,"09-18"],[17085,17,0,0,"09-18",75,76,"09-18",16,15,"09-18",0,0,"09-18"],[17090,18,0,1,"09-18",75,75,"09-18",16,14,"09-18",0,0,"09-18"],[17095,19,0,2,"09-18",75,74,"09-18",16,15,"09-18",0,0,"09-18"],[17100,20,0,-1,"09-18",75,76,"09-18",16,15,"09-18",0,1,"09-18"],[17105,21,0,1,"09-18",75,76,"09-18",16,16,"09-18",0,0,"09-18"],[17110,22,0,0,"09-18",75,75,"09-18",16,15,"09-18",0,1,"09-18"],[17115,23,0,-1,"09-18",75,75,"09-18",16,16,"09-18",0,1,"09-18"],[17120,24,0,3,"09-18",75,74,"09-18",16,15,"09-18",0,0,"09-18"],[17125,25,0,5,"09-18",75,75,"09-18",16,14,"09-18",0,0,"09-18"],[17130,26,0,2,"09-18",75,75,"09-18",16,16,"09-18",0,0,"09-18"],[17135,27,0,1,"09-18",75,75,"09-18",16,14,"09-18",0,0,"09-18"],[17140,28,0,2,"09-18",75,75,"09-18",16,16,"09-18",0,1,"09-18"],[17145,29,0,0,"09-18",75,75,"09-18",16,16,"09-18",0,0,"09-18"],[17150,30,0,1,"09-18",75,75,"09-18",16,15,"09-18",0,1,"09-18"],[17155,31,0,1,"09-18",75,75,"09-18",16,15,"09-18",0,2,"09-18"],[17160,32,0,2,"09-18",75,75,"09-18",16,15,"09-18",0,1,"09-18"],[17165,33,0,0,"09-18",75,76,"09-18",16,15,"09-18",0,0,"09-18"],[17170,34,0,1,"09-18",75,73,"09-18",16,15,"09-18",0,0,"09-18"],[17175,35,0,1,"09-18",75,74,"09-18",16,15,"09-18",0,1,"09-18"],[17180,36,0,1,"09-18",75,76,"09-18",16,16,"09-18",0,1,"09-18"],[17185,37,0,2,"09-18",75,75,"09-18",16,15,"09-18",0,0,"09-18"],[17190,38,0,1,"09-18",75,76,"09-18",16,15,"09-18",0,2,"09-18"],[17195,39,0,1,"09-18",75,75,"09-18",16,15,"09-18",0,1,"09-18"],[17200,40,0,1,"09-18",75,75,"09-18",16,15,"09-18",0,0,"09-18"],[17205,41,0,3,"09-18",75,74,"09-18",16,15,"09-18",0,2,"09-18"],[17210,42,0,2,"09-18",75,75,"09-18",16,14,"09-18",0,1,"09-18"],[17215,43,0,2,"09-18",75,75,"09-18",16,15,"09-18",0,0,"09-18"],[17220,44,0,3,"09-18",75,76,"09-18",16,14,"09-18",0,0,"09-18"],[17225,45,0,3,"09-18",75,77,"09-18",16,17,"09-18",0,0,"09-18"],[17230,46,0,2,"09-17",75,76,"09-17",16,14,"09-17",0,-1,"09-17"],[17235,47,0,4,"09-17",75,75,"09-17",16,14,"09-17",0,0,"09-17"],[17240,48,0,2,"09-17",75,74,"09-17",16,14,"09-17",0,-1,"09-17"],[17245,49,0,2,"09-17",75,75,"09-17",16,15,"09-17",0,0,"09-17"],[17250,50,0,2,"09-17",75,75,"09-17",16,15,"09-17",0,0,"09-17"],[17255,51,0,1,"09-17",74,74,"09-17",16,14,"09-17",0,0,"09-17"],[17260,52,0,2,"09-17",72,72,"09-17",15,15,"09-17",0,1,"09-17"],[17265,53,0,2,"09-17",70,71,"09-17",15,14,"09-17",0,1,"09-17"],[17270,54,0,2,"09-17",68,68,"09-17",14,13,"09-17",0,0,"09-17"],[17275,55,0,1,"09-17",66,66,"09-17",14,13,"09-17",0,0,"09-17"],[17280,56,0,3,"09-17",64,64,"09-17",13,13,"09-17",0,1,"09-17"],[17285,57,0,1,"09-17",62,62,"09-17",13,12,"09-17",0,0,"09-17"],[17290,58,0,2,"09-17",60,60,"09-17",13,13,"09-17",0,1,"09-17"],[17295,59,0,1,"09-17",58,58,"09-17",12,11,"09-17",0,0,"09-17"],[17300,60,0,1,"09-17",56,56,"09-17",12,11,"09-17",0,1,"09-17"],[17305,61,0,1,"09-17",54,53,"09-17",11,12,"09-17",0,0,"09-17"],[17310,62,0,1,"09-17",52,52,"09-17",11,11,"09-17",0,-1,"09-17"],[17315,63,0,0,"09-17",49,49,"09-17",10,10,"09-17",0,0,"09-17"],[17320,64,0,1,"09-17",47,48,"09-17",10,10,"09-17",0,1,"09-17"],[17325,65,0,0,"09-17",45,46,"09-17",9,9,"09-17",0,0,"09-17"],[17330,66,0,0,"09-17",43,43,"09-17",9,8,"09-17",0,0,"09-17"],[17335,67,0,0,"09-17",41,42,"09-17",9,8,"09-17",0,0,"09-17"],[17340,68,0,1,"09-17",39,39,"09-17",8,8,"09-17",0,-1,"09-17"],[17345,69,0,1,"09-17",37,37,"09-17",8,8,"09-17",0,0,"09-17"],[17350,70,0,1,"09-17",35,36,"09-17",7,7,"09-17",0,1,"09-17"],[17355,71,0,0,"09-17",33,33,"09-17",7,7,"09-17",0,0,"09-17"],[17360,72,0,1,"09-17",31,31,"09-17",6,6,"09-17",0,0,"09-17"],[17365,73,0,1,"09-17",29,28,"09-17",6,5,"09-17",0,0,"09-17"],[17370,74,0,1,"09-17",27,27,"09-17",6,6,"09-17",0,0,"09-17"],[17375,75,0,2,"09-17",25,23,"09-17",5,4,"09-17",0,0,"09-17"],[17380,76,0,1,"09-17",22,22,"09-17",5,4,"09-17",0,1,"09-17"],[17385,77,0,1,"09-17",20,20,"09-17",4,4,"09-17",0,0,"09-17"],[17390,78,0,0,"09-17",18,18,"09-17",4,3,"09-17",0,0,"09-17"],[17395,79,0,1,"09-17",16,16,"09-17",3,3,"09-17",0,0,"09-17"],[17400,80,0,0,"09-17",14,14,"09-17",3,3,"09-17",0,1,"09-17"],[17405,81,0,1,"09-17",12,13,"09-17",3,2,"09-17",0,0,"09-17"],[17410,82,0,1,"09-17",10,10,"09-17",2,3,"09-17",0,1,"09-17"],[17415,83,0,1,"09-17",8,8,"09-17",2,3,"09-17",0,1,"09-17"],[17420,84,0,1,"09-17",6,6,"09-17",1,1,"09-17",0,0,"09-17"],[17425,85,0,0,"09-17",4,4,"09-17",1,0,"09-17",0,0,"09-17"],[17430,86,0,0,"09-17",2,1,"09-17",0,0,"09-17",0,0,"09-17"],[17435,87,0,0,"09-17",0,0,"09-17",0,0,"09-17",-1,-1,"09-17"],[17440,88,0,0,"09-17",0,0,"09-17",0,-1,"09-17",-3,-4,"09-17"],[17445,89,0,0,"09-17",0,0,"09-17",0,-1,"09-17",-4,-4,"09-17"],[17450,90,0,-1,"09-17",0,-1,"09-17",0,-1,"09-17",-4,-4,"09-17"],[17455,91,0,0,"09-17",0,0,"09-17",0,0,"09-17",-4,-3,"09-17"],[17460,92,0,0,"09-17",0,0,"09-17",0,0,"09-17",-4,-3,"09-17"],[17465,93,0,null,null,0,null,null,0,null,null,-4,null,null],[17470,94,0,null,null,0,null,null,0,null,null,-4,null,null],[17475,95,0,null,null,0,null,null,0,null,null,-4,null,null],[17480,96,0,null,null,0,null,null,0,null,null,-4,null,null],[17485,97,0,null,null,0,null,null,0,null,null,-4,null,null],[17490,98,0,null,null,0,null,null,0,null,null,-4,null,null],[17495,99,0,null,null,0,null,null,0,null,null,-4,null,null]]; // [km,pt, gauge base,prev,date, cross.., align.., surface..]
+const $=id=>document.getElementById(id);
+const ls={get(k){try{return localStorage.getItem(k)}catch(e){return null}},set(k,v){try{localStorage.setItem(k,v)}catch(e){}},del(k){try{localStorage.removeItem(k)}catch(e){}}};
+const ITEMS=[{k:'gauge',n:'軌間',tol:[3,5]},{k:'cross_level',n:'水準',tol:[4,7]},{k:'alignment',n:'通り',tol:[4,7]},{k:'surface',n:'高低',tol:[4,7]}];
+const fmtKm=m=>`${Math.floor(m/1000)}k${String(m%1000).padStart(3,'0')}m`;
+const today=()=>{const d=new Date();d.setMinutes(d.getMinutes()-d.getTimezoneOffset());return d.toISOString().slice(0,10);};
+
+let key=ls.get('kensoku:key')||'', online=false;
+let sections=[], sec=null, date=today();
+let sheet={}, KMS_ALL=[], pageSize=20, page=0, KMS=[];
+let mode='pat', patN=3, preset=0, seq=[], pos=0, buf='';
+let draft={};
+
+function setStat(kind,txt){const s=$('stat');s.className='status '+kind;$('statTxt').textContent=txt;}
+function draftKey(){return `kensoku:draft:${sec?sec.id:'x'}:${date}`;}
+function loadDraft(){try{draft=JSON.parse(ls.get(draftKey())||'{}')}catch(e){draft={}}}
+function saveDraft(){ls.set(draftKey(),JSON.stringify(draft));}
+
+async function api(path,opt={}){
+  const r=await fetch(API+path,{...opt,headers:{'x-app-key':key,'content-type':'application/json',...(opt.headers||{})}});
+  const j=await r.json().catch(()=>({error:'応答を読めません'}));
+  if(!r.ok)throw new Error(j.error||('HTTP '+r.status));
+  return j;
+}
+
+// ---- data loading
+function demoSections(){return [{id:1,company:'横浜市交通局',line_name:'1号線',direction:'上り',section_label:'立場～下飯田',alignment_side:'外軌',surface_side:'内軌',km_from:16750,km_to:17495,demo:true}];}
+function demoSheet(){const s={};DEMO.forEach(r=>{const km=r[0];s[km]={pt:r[1]};ITEMS.forEach((it,i)=>{const b=2+i*3;s[km][it.k]={base:r[b],prev:r[b+1],prevDate:r[b+2]?'2026-'+r[b+2]:null,today:null};});});return s;}
+
+async function connect(){
+  if(!key){online=false;setStat('off','オフライン試作');sections=demoSections();return;}
+  try{setStat('','接続中…');sections=await api('/sections');online=true;setStat('on','サーバー接続');}
+  catch(e){online=false;setStat('off',e.message.includes('合言葉')?'合言葉が違います':'オフライン');sections=demoSections();$('keyMsg').textContent='接続できませんでした：'+e.message+'。オフライン試作で表示しています。';$('keyMsg').className='msg err';}
+}
+async function loadSheet(){
+  loadDraft();
+  if(online&&!sec.demo){
+    try{const rows=await api(`/sheet?section=${sec.id}&date=${date}`);const s={};
+      rows.forEach(r=>{(s[r.km]=s[r.km]||{pt:r.pt})[r.item]={base:r.base,prev:r.prev,prevDate:r.prevDate,today:r.today};});sheet=s;}
+    catch(e){$('sendMsg').textContent='読み込みに失敗：'+e.message;$('sendMsg').className='msg err';sheet={};}
+  } else sheet=demoSheet();
+  KMS_ALL=Object.keys(sheet).map(Number).sort((a,b)=>a-b);
+  buildRanges();
+}
+function fillSections(){
+  $('selSec').innerHTML=sections.map((s,i)=>`<option value="${i}">${s.company}・${s.line_name}・${s.direction}${s.section_label?`（${s.section_label}）`:''}${s.demo?' ※オフライン':''}</option>`).join('');
+  const saved=ls.get('kensoku:sec');const i=sections.findIndex(s=>String(s.id)===saved);
+  $('selSec').value=String(i>=0?i:0);sec=sections[i>=0?i:0];
+  $('secInfo').textContent=sec?`${sec.company} ${sec.line_name} ${sec.direction}：通り＝${sec.alignment_side}、高低＝${sec.surface_side}。基準値 ${fmtKm(sec.km_from)}〜${fmtKm(sec.km_to)}（5m毎）`:'—';
+}
+
+// ---- ranges / pages
+function buildRanges(){
+  const opts=[];for(let i=0;i<KMS_ALL.length;i+=pageSize){const a=KMS_ALL[i],b=KMS_ALL[Math.min(i+pageSize,KMS_ALL.length)-1];opts.push(`<option value="${i/pageSize}">${fmtKm(a)} 〜 ${fmtKm(b)}</option>`);}
+  $('selRange').innerHTML=opts.join('');
+  const savedKm=+ls.get('kensoku:km:'+(sec&&sec.id));let p=0;
+  if(savedKm){const idx=KMS_ALL.indexOf(savedKm);if(idx>=0)p=Math.floor(idx/pageSize);}
+  else{const idx=KMS_ALL.findIndex(k=>ITEMS.some(it=>sheet[k][it.k]&&sheet[k][it.k].prev!=null));if(idx>=0)p=Math.floor(idx/pageSize);}
+  setPage(p,true);
+}
+function setPage(p,keepPos){
+  const max=Math.max(0,Math.ceil(KMS_ALL.length/pageSize)-1);page=Math.min(Math.max(0,p),max);
+  $('selRange').value=String(page);KMS=KMS_ALL.slice(page*pageSize,page*pageSize+pageSize);
+  if(KMS[0]&&sec)ls.set('kensoku:km:'+sec.id,String(KMS[0]));
+  seq=order();pos=0;buf='';renderPat();renderGrid(true);
+}
+
+// ---- input order
+const PRESETS=[
+ {name:'軌間 → 水準 → 通り・高低',groups:[['gauge'],['cross_level'],['alignment','surface']]},
+ {name:'軌間 → 水準 → 通り → 高低（1項目ずつ）',groups:[['gauge'],['cross_level'],['alignment'],['surface']]},
+ {name:'軌間・水準 → 通り・高低',groups:[['gauge','cross_level'],['alignment','surface']]},
+];
+function order(){
+  const o=[];
+  if(mode==='row')KMS.forEach((m,r)=>ITEMS.forEach((it,c)=>o.push([r,c])));
+  else if(mode==='col')ITEMS.forEach((it,c)=>KMS.forEach((m,r)=>o.push([r,c])));
+  else{const g=PRESETS[preset].groups;for(let b=0;b<KMS.length;b+=patN){const rows=[];for(let r=b;r<Math.min(b+patN,KMS.length);r++)rows.push(r);
+    g.forEach(grp=>rows.forEach(r=>grp.forEach(k=>o.push([r,ITEMS.findIndex(i=>i.k===k)]))));}}
+  return o;
+}
+const curRC=()=>seq[pos]||seq[0]||[0,0];
+const cellKey=(m,k)=>m+'|'+k;
+function cellVal(m,k){const d=draft[cellKey(m,k)];if(d!==undefined)return {v:d,src:'draft'};const t=sheet[m]&&sheet[m][k]&&sheet[m][k].today;return t!=null?{v:t,src:'saved'}:{v:null};}
+function lvl(d,it){const a=Math.abs(d);return a<=it.tol[0]?'ok':a<=it.tol[1]?'warn':'bad';}
+const dtxt=d=>Math.abs(d)>40?'桁を確認':(d>0?'+':'')+d;
+const lbl=it=>it.k==='alignment'&&sec?`通り<span class="u">(${sec.alignment_side})</span>`:it.k==='surface'&&sec?`高低<span class="u">(${sec.surface_side})</span>`:it.n;
+
+function renderPat(){
+  const el=$('patChips');el.innerHTML='';
+  PRESETS[preset].groups.forEach((grp,i)=>{if(i)el.insertAdjacentHTML('beforeend','<span class="arrow">→</span>');
+    const s=document.createElement('span');s.className='chip';s.textContent=grp.map(k=>ITEMS.find(x=>x.k===k).n).join('・')+`×${patN}`;el.appendChild(s);});
+  $('patView').classList.toggle('hidden',mode!=='pat');if(mode!=='pat')$('builder').classList.remove('open');
+}
+function renderGrid(scroll){
+  if(!KMS.length){$('grid').innerHTML='<tbody><tr><td class="note" style="padding:12px">基準値がありません。</td></tr></tbody>';return;}
+  const [cr,cc]=curRC();const nx=seq[pos+1];const bStart=mode==='pat'?Math.floor(cr/patN)*patN:-1;
+  let h='<thead><tr><th style="text-align:left;padding-left:6px">キロ程</th>'+ITEMS.map(it=>`<th>${lbl(it)}<br><span class="u">基準/前回</span></th>`).join('')+'</tr></thead><tbody>';
+  KMS.forEach((m,r)=>{
+    const blk=mode==='pat'&&Math.floor(r/patN)%2?'blk-b':'blk-a';const inb=mode==='pat'&&r>=bStart&&r<bStart+patN?' inblock':'';
+    h+=`<tr class="${blk}${inb}" id="row${r}"><th><span class="kmk">${Math.floor(m/1000)}k</span>${String(m%1000).padStart(3,'0')}<span class="pt">測点${sheet[m].pt??''}</span></th>`;
+    ITEMS.forEach((it,c)=>{
+      const S=sheet[m][it.k]||{};const cv=cellVal(m,it.k);
+      const isCur=r===cr&&c===cc,isNext=nx&&nx[0]===r&&nx[1]===c;
+      let inner=cv.v==null?'<div class="v empty">·</div>':`<div class="v${cv.src==='saved'?' saved':''}">${cv.v}</div>`;
+      inner+=`<div class="meta">${S.base??'–'} / ${S.prev??'–'}</div>`;
+      if(cv.v!=null&&S.base!=null){const d=cv.v-S.base;inner+=`<span class="d ${lvl(d,it)}">${dtxt(d)}</span>`;}
+      h+=`<td class="cell${isCur?' cur':''}${isNext?' next':''}" tabindex="0" data-r="${r}" data-c="${c}" aria-label="${fmtKm(m)} ${it.n}">${inner}</td>`;
+    });h+='</tr>';
+  });
+  $('grid').innerHTML=h+'</tbody>';
+  const m=KMS[cr],it=ITEMS[cc],S=sheet[m][it.k]||{};const cv=cellVal(m,it.k);
+  $('nowKm').textContent=fmtKm(m);$('nowItem').textContent=it.n+(it.k==='alignment'&&sec?`（${sec.alignment_side}）`:it.k==='surface'&&sec?`（${sec.surface_side}）`:'');
+  $('nowSub').textContent=`基準 ${S.base??'–'} / 前回 ${S.prev??'–'}${S.prevDate?`（${S.prevDate.slice(5).replace('-','/')}）`:''}`;
+  $('nowBuf').textContent=buf!==''?buf:(cv.v??'—');
+  const nd=Object.keys(draft).length;const done=KMS.reduce((a,m)=>a+ITEMS.filter(it=>cellVal(m,it.k).v!=null).length,0);
+  $('progress').textContent=`この区間 ${done}/${KMS.length*ITEMS.length}・未送信 ${nd}件`;
+  const hdr=document.querySelector('header.top');const hh=hdr.getBoundingClientRect().height;document.documentElement.style.setProperty('--hh',(hh-2)+'px');
+  if(scroll===false)return;
+  const row=$('row'+cr);if(row){const rr=row.getBoundingClientRect();const padTop=$('pad').getBoundingClientRect().top;const thh=36;
+    if(rr.top<hh+thh||rr.bottom>padTop-8){const target=window.scrollY+rr.top-(hh+thh)-(padTop-hh-thh-rr.height)/2;window.scrollTo({top:Math.max(0,target),behavior:matchMedia('(prefers-reduced-motion: reduce)').matches?'auto':'smooth'});}}
+}
+function commit(){const [r,c]=curRC();if(!KMS[r])return;if(buf!==''&&buf!=='-'){draft[cellKey(KMS[r],ITEMS[c].k)]=parseInt(buf,10);saveDraft();}buf='';}
+function press(k){
+  if(!KMS.length)return;const [r,c]=curRC();
+  if(/^\d$/.test(k)){if(buf.replace('-','').length<4)buf+=k;}
+  else if(k==='pm')buf=buf.startsWith('-')?buf.slice(1):'-'+buf;
+  else if(k==='del')buf=buf.slice(0,-1);
+  else if(k==='next'){commit();if(pos<seq.length-1)pos++;else{$('sendMsg').textContent='この区間の最後です。▶で次の区間へ。';$('sendMsg').className='msg';}}
+  else if(k==='back'){buf='';if(pos>0)pos--;}
+  else if(k==='skip'){delete draft[cellKey(KMS[r],ITEMS[c].k)];saveDraft();buf='';if(pos<seq.length-1)pos++;}
+  renderGrid();
+}
+
+// ---- send
+async function send(){
+  commit();const entries=Object.entries(draft);
+  if(!entries.length){$('sendMsg').textContent='未送信の入力はありません。';$('sendMsg').className='msg';return;}
+  if(!online||sec.demo){$('sendMsg').textContent=`オフラインのため送信できません（${entries.length}件はこの端末に保存済み）。`;$('sendMsg').className='msg err';return;}
+  const rows=entries.map(([k,v])=>{const [km,item]=k.split('|');return {km:+km,item,value:v};});
+  $('btnSend').disabled=true;$('sendMsg').textContent='送信中…';$('sendMsg').className='msg';
+  try{const r=await api('/measurements',{method:'POST',body:JSON.stringify({section:sec.id,date,rows})});
+    draft={};ls.del(draftKey());await loadSheetKeepPage();
+    $('sendMsg').textContent=`${r.saved}件を ${date} の測定として保存しました。`;$('sendMsg').className='msg ok';}
+  catch(e){$('sendMsg').textContent='送信に失敗：'+e.message+'（入力は端末に残っています）';$('sendMsg').className='msg err';}
+  finally{$('btnSend').disabled=false;}
+}
+async function loadSheetKeepPage(){const p=page,ps=pos;await loadSheet();setPage(p);pos=Math.min(ps,seq.length-1);renderGrid(false);}
+
+// ---- output
+function sheetRowsForOut(){return KMS_ALL.map(m=>({m,pt:sheet[m].pt,cells:ITEMS.map(it=>{const S=sheet[m][it.k]||{};const dv=draft[cellKey(m,it.k)];const t=dv!==undefined?dv:S.today;const v=t!=null?t:S.prev;return {S,t,v,d:v!=null&&S.base!=null?v-S.base:null};})}));}
+function renderOut(){
+  const rows=sheetRowsForOut();
+  let h='<tr><th>キロ程</th><th>測点</th>'+ITEMS.map(it=>`<th>${it.n}</th>`).join('')+'</tr>';
+  rows.forEach(r=>{h+=`<tr><td class="num">${fmtKm(r.m)}</td><td class="num">${r.pt??''}</td>`+r.cells.map(c=>c.v==null?'<td class="none num">–</td>':`<td class="num${c.t!=null?' today':''}">${c.v} <span class="note">(${c.d>0?'+':''}${c.d})</span></td>`).join('')+'</tr>';});
+  $('outTbl').innerHTML=h;
+}
+function csv(){
+  const head=['会社','線名','上下','キロ程','測点','項目','基準値','前日までの測定値','前回測定日','修正値(当日)','検査用紙の値','狂量','測定日'];
+  const lines=[head.join(',')];
+  sheetRowsForOut().forEach(r=>r.cells.forEach((c,i)=>lines.push([sec.company,sec.line_name,sec.direction,fmtKm(r.m),r.pt??'',ITEMS[i].n,c.S.base??'',c.S.prev??'',c.S.prevDate??'',c.t??'',c.v??'',c.d??'',date].join(','))));
+  return '﻿'+lines.join('\r\n');
+}
+function saveCsv(){const b=new Blob([csv()],{type:'text/csv'});const a=document.createElement('a');a.href=URL.createObjectURL(b);a.download=`検測_${sec.line_name}${sec.direction}_${date}.csv`;document.body.appendChild(a);a.click();setTimeout(()=>{URL.revokeObjectURL(a.href);a.remove();},1000);}
+
+// ---- wiring
+document.querySelectorAll('.key').forEach(b=>b.addEventListener('click',()=>press(b.dataset.k)));
+$('grid').addEventListener('click',e=>{const td=e.target.closest('td.cell');if(!td)return;commit();const r=+td.dataset.r,c=+td.dataset.c;const i=seq.findIndex(([a,b])=>a===r&&b===c);if(i>=0)pos=i;renderGrid(false);});
+document.addEventListener('keydown',e=>{if(['INPUT','SELECT'].includes(e.target.tagName))return;if(/^\d$/.test(e.key))press(e.key);else if(e.key==='Enter')press('next');else if(e.key==='Backspace')press('del');else if(e.key==='-')press('pm');});
+function setMode(m){commit();const [r,c]=curRC();mode=m;seq=order();pos=Math.max(0,seq.findIndex(([a,b])=>a===r&&b===c));
+  ['Row','Col','Pat'].forEach(x=>$('m'+x).setAttribute('aria-pressed',m===x.toLowerCase()));ls.set('kensoku:mode',JSON.stringify({mode,patN,preset}));renderPat();renderGrid();}
+$('mRow').onclick=()=>setMode('row');$('mCol').onclick=()=>setMode('col');$('mPat').onclick=()=>setMode('pat');
+$('btnEditPat').onclick=()=>$('builder').classList.toggle('open');
+PRESETS.forEach((p,i)=>{const o=document.createElement('option');o.value=i;o.textContent=p.name;$('selPreset').appendChild(o);});
+$('selPreset').onchange=e=>{preset=+e.target.value;setMode('pat');};
+[1,2,3,4,5,6].forEach(n=>{const b=document.createElement('button');b.textContent=n;b.setAttribute('aria-pressed',n===patN);b.onclick=()=>{patN=n;[...$('segN').children].forEach(x=>x.setAttribute('aria-pressed',x===b));setMode('pat');};$('segN').appendChild(b);});
+$('selRange').onchange=e=>{commit();setPage(+e.target.value);};
+$('pgPrev').onclick=()=>{commit();setPage(page-1);};$('pgNext').onclick=()=>{commit();setPage(page+1);};
+$('selPage').onchange=e=>{commit();pageSize=+e.target.value;ls.set('kensoku:page',String(pageSize));buildRanges();};
+$('selSec').onchange=async e=>{commit();sec=sections[+e.target.value];ls.set('kensoku:sec',String(sec.id));fillSections();await loadSheet();};
+$('inDate').onchange=async e=>{commit();date=e.target.value||today();await loadSheetKeepPage();};
+$('btnSend').onclick=send;
+$('btnCsv').onclick=saveCsv;
+$('btnReload').onclick=async()=>{await loadSheetKeepPage();renderOut();};
+$('btnKey').onclick=async()=>{key=$('inKey').value.trim();ls.set('kensoku:key',key);$('keyMsg').className='msg';$('keyMsg').textContent='接続中…';await start();if(online){$('keyMsg').textContent='接続しました。';$('keyMsg').className='msg ok';tab('Input');}};
+$('btnOffline').onclick=async()=>{key='';ls.del('kensoku:key');await start();tab('Input');};
+function tab(n){['Input','Out','Sys'].forEach(x=>{$('p'+x).classList.toggle('hidden',x!==n);$('tab'+x).setAttribute('aria-selected',x===n);});
+  $('pad').classList.toggle('hidden',n!=='Input');$('nowBar').classList.toggle('hidden',n!=='Input');document.body.style.paddingBottom=n==='Input'?'300px':'40px';if(n==='Out'){commit();renderOut();}}
+$('tabInput').onclick=()=>tab('Input');$('tabOut').onclick=()=>tab('Out');$('tabSys').onclick=()=>tab('Sys');
+
+async function start(){
+  await connect();fillSections();await loadSheet();
+}
+(async()=>{
+  try{const m=JSON.parse(ls.get('kensoku:mode')||'null');if(m){mode=m.mode;patN=m.patN;preset=m.preset;}}catch(e){}
+  ['Row','Col','Pat'].forEach(x=>$('m'+x).setAttribute('aria-pressed',mode===x.toLowerCase()));
+  [...$('segN').children].forEach(x=>x.setAttribute('aria-pressed',+x.textContent===patN));$('selPreset').value=String(preset);
+  pageSize=+(ls.get('kensoku:page')||20);$('selPage').value=String(pageSize);
+  $('inDate').value=date;
+  await start();
+  if(!key)tab('Sys');
+})();
+})();
+</script>
+</body>
+</html>
