@@ -1,467 +1,434 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="ja">
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no">
-<meta name="theme-color" content="#162746">
-<title>運転日報・車両距離管理</title>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<title>軌道検測ノート</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=BIZ+UDPGothic:wght@400;700&family=IBM+Plex+Mono:wght@400;600&display=swap">
 <style>
-:root{--navy:#162746;--navy2:#28446f;--orange:#f2672e;--bg:#f2f5f9;--card:#fff;--line:#d8dfeb;--text:#20283a;--muted:#667085;--ok:#07875f;--ng:#d92d20;--warn:#b54708}
-*{box-sizing:border-box}html{font-size:16px}body{margin:0;background:var(--bg);color:var(--text);font-family:"Hiragino Sans","Yu Gothic",Meiryo,sans-serif;padding-bottom:84px}
-header{position:sticky;top:0;z-index:20;background:var(--navy);color:#fff;padding:12px 15px;display:flex;align-items:center;gap:10px;box-shadow:0 2px 8px #0002}
-.logo{width:42px;height:42px;border-radius:12px;background:var(--orange);display:grid;place-items:center;font-size:24px}
-header h1{font-size:1.02rem;margin:0}header .sub{font-size:.7rem;opacity:.78;margin-top:2px}
-.mode{margin-left:auto;font-size:.7rem;font-weight:800;padding:5px 8px;border-radius:20px;background:#fff2;color:#fff}
-main{max-width:760px;margin:auto;padding:14px}.tab{display:none}.tab.active{display:block}
-.card{background:var(--card);border-radius:14px;padding:15px;margin-bottom:13px;box-shadow:0 1px 4px #172b4d14}
-.card h2{font-size:.96rem;color:var(--navy);margin:0 0 13px;display:flex;align-items:center;gap:8px}.card h2:before{content:"";width:5px;height:18px;border-radius:3px;background:var(--orange)}
-.field{margin-bottom:12px}.field:last-child{margin-bottom:0}label{display:block;font-size:.78rem;font-weight:800;color:var(--muted);margin-bottom:5px}
-.req:after{content:" 必須";color:#fff;background:var(--ng);font-size:.61rem;border-radius:4px;padding:2px 5px;margin-left:5px}
-input,select,textarea,button{font:inherit}input,select,textarea{width:100%;min-height:48px;border:1.5px solid var(--line);border-radius:10px;background:#fff;color:var(--text);padding:11px 12px;font-size:1rem}
-input:focus,select:focus,textarea:focus{outline:none;border-color:var(--orange);box-shadow:0 0 0 3px #f2672e20}
-input[readonly]{background:#eef2f7;color:#344054;font-weight:800}textarea{min-height:72px;resize:vertical}
-.grid2{display:grid;grid-template-columns:1fr 1fr;gap:10px}.grid3{display:grid;grid-template-columns:repeat(3,1fr);gap:8px}
-.btn{border:0;border-radius:11px;min-height:50px;padding:10px 14px;font-weight:800;cursor:pointer}.btn:disabled{opacity:.45}.btn-primary{width:100%;background:var(--orange);color:#fff}.btn-navy{width:100%;background:var(--navy);color:#fff}.btn-outline{width:100%;background:#fff;color:var(--navy);border:1.5px solid var(--navy)}.btn-sm{min-height:40px;font-size:.82rem}
-.state{border:1.5px solid #b7c6dc;background:#f4f7fb;border-radius:12px;padding:12px;margin-bottom:12px}.state strong{display:block;color:var(--navy);font-size:1rem}.state span{display:block;color:var(--muted);font-size:.77rem;margin-top:4px;line-height:1.5}
-.distance{background:var(--navy);color:#fff;border-radius:12px;padding:13px;text-align:center;font-size:1.55rem;font-weight:900}.distance small{font-size:.75rem;font-weight:700;opacity:.8}
-.alert{border-radius:10px;padding:10px 12px;font-size:.8rem;font-weight:700;line-height:1.55;margin-bottom:12px}.alert-info{background:#eaf2ff;color:#175cd3}.alert-warn{background:#fff4e5;color:var(--warn)}.alert-ng{background:#fee4e2;color:var(--ng)}
-.hidden{display:none!important}.hint{font-size:.73rem;color:var(--muted);line-height:1.6;margin:7px 0 0}
-nav{position:fixed;bottom:0;left:0;right:0;z-index:30;background:#fff;border-top:1px solid var(--line);display:flex;padding-bottom:env(safe-area-inset-bottom)}
-nav button{flex:1;border:0;background:#fff;color:var(--muted);padding:9px 2px 10px;font-size:.7rem;font-weight:700}nav button b{display:block;font-size:1.3rem;margin-bottom:2px}nav button.active{color:var(--orange)}
-.toolbar{display:flex;gap:8px;align-items:end;margin-bottom:12px}.toolbar .field{flex:1;margin:0}.toolbar button{width:auto;min-width:84px}
-.table-wrap{overflow:auto;border:1px solid var(--line);border-radius:11px}table{border-collapse:collapse;width:100%;min-width:650px;background:#fff}th,td{padding:9px 10px;border-bottom:1px solid var(--line);font-size:.76rem;text-align:left;white-space:nowrap}th{background:#eef2f7;color:var(--navy);font-weight:900}tr:last-child td{border-bottom:0}.num{text-align:right;font-variant-numeric:tabular-nums}
-.kpis{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-bottom:12px}.kpi{background:#f2f5f9;border-radius:10px;padding:11px;text-align:center}.kpi b{display:block;font-size:1.15rem;color:var(--navy)}.kpi span{font-size:.68rem;color:var(--muted)}.util-summary{background:#eaf2ff;border-radius:10px;padding:12px;margin-bottom:12px}.util-summary strong{color:var(--navy);font-size:1.05rem}.owner-row{display:grid;grid-template-columns:minmax(100px,1fr) minmax(140px,1fr);align-items:center;gap:8px;padding:7px 0;border-bottom:1px solid var(--line)}
-.report{border:1px solid var(--line);border-radius:11px;padding:11px;margin-bottom:8px}.report-head{font-weight:900;color:var(--navy)}.report-meta{font-size:.75rem;color:var(--muted);line-height:1.6;margin-top:4px}
-.admin-head{display:flex;justify-content:space-between;align-items:center;gap:10px}.admin-head .btn{width:auto;min-height:40px}.subtabs{display:flex;gap:6px;overflow:auto;margin:12px 0}.subtabs button{white-space:nowrap;border:1px solid var(--line);background:#fff;color:var(--navy);border-radius:20px;padding:8px 12px;font-size:.75rem;font-weight:800}.subtabs button.active{background:var(--navy);color:#fff}.admin-panel{display:none}.admin-panel.active{display:block}.judge{border-radius:10px;padding:10px 12px;font-weight:900;font-size:.82rem;background:#eef2f7;color:var(--muted)}.judge.ok{background:#ecfdf3;color:var(--ok)}.judge.ng{background:#fee4e2;color:var(--ng)}.status-ng{color:var(--ng);font-weight:900}.status-warn{color:var(--warn);font-weight:900}.privacy-note{border-left:4px solid var(--navy);padding-left:10px}.print-only{display:none}
-.qr-share{display:flex;align-items:center;gap:18px}.qr-share a.qr-image-link{display:block;flex:0 0 168px;border:1px solid var(--line);border-radius:14px;padding:10px;background:#fff}.qr-share img{display:block;width:100%;height:auto}.qr-share-body{flex:1}.qr-share-body .btn{display:flex;align-items:center;justify-content:center;text-decoration:none;margin-top:12px}.app-url{font-size:.68rem;color:var(--muted);overflow-wrap:anywhere;margin-top:8px}
-#toast{position:fixed;left:50%;bottom:90px;transform:translate(-50%,20px);background:var(--navy);color:#fff;padding:11px 18px;border-radius:30px;font-size:.82rem;font-weight:800;opacity:0;transition:.2s;z-index:50;max-width:92%;text-align:center;pointer-events:none}#toast.show{opacity:1;transform:translate(-50%,0)}
-@media(max-width:520px){.grid2,.grid3{grid-template-columns:1fr}.grid2.compact{grid-template-columns:1fr 1fr}.kpis{grid-template-columns:1fr 1fr 1fr}.mode{display:none}.qr-share{display:block;text-align:center}.qr-share a.qr-image-link{width:190px;margin:0 auto 12px}.qr-share-body{text-align:left}}
-@media print{@page{size:landscape;margin:10mm}header,nav,.no-print,#toast,#admin-login{display:none!important}.print-only{display:block!important}body{padding:0;background:#fff;color:#111}.tab{display:none!important}#tab-admin,#admin-dashboard{display:block!important}.card{box-shadow:none;border:0;padding:0;margin:0}main{max-width:none}.kpis{grid-template-columns:repeat(6,1fr);gap:4px}.kpi{border:1px solid #bbb;padding:6px;background:#fff}.table-wrap{overflow:visible;border-color:#999}table{min-width:0;table-layout:auto}th,td{font-size:7.5pt;padding:5px 4px;color:#111}th{background:#eee!important}.admin-panel{display:none!important}.admin-panel.active{display:block!important}.privacy-note,#admin-updated{font-size:8pt}.print-heading{margin:0 0 4px;font-size:18pt}.print-meta{margin:0 0 10px;font-size:10pt}}
+:root{
+  --bg:#EEF1EF; --surface:#FFFFFF; --surface2:#F6F8F7; --line:#D5DBD8; --ink:#1B2421; --ink2:#55615C; --ink3:#8A9591;
+  --steel:#2F5D8A; --steel-soft:#E3ECF5; --cursor:#F2C230; --cursor-soft:#FFF6D6;
+  --ok:#2E7D4F; --ok-soft:#E3F2E8; --warn:#B86E00; --warn-soft:#FFF0D9; --bad:#C23B22; --bad-soft:#FBE4DF;
+  --key:#FFFFFF; --key-ink:#1B2421; --key-shadow:#C7CFCB; --on-steel:#fff;
+  --sans:"BIZ UDPGothic","Hiragino Sans","Noto Sans JP",system-ui,sans-serif;
+  --mono:"IBM Plex Mono",ui-monospace,Menlo,Consolas,monospace;
+  color-scheme:light;
+}
+@media (prefers-color-scheme: dark){
+  :root:not([data-theme="light"]){
+    color-scheme:dark;
+    --bg:#121715; --surface:#1A211E; --surface2:#202825; --line:#303A36; --ink:#E6ECE9; --ink2:#A7B3AE; --ink3:#77837E;
+    --steel:#8DB6E0; --steel-soft:#1F2F40; --cursor:#E5B82A; --cursor-soft:#3A3219;
+    --ok:#6CC08F; --ok-soft:#1C3326; --warn:#E6A444; --warn-soft:#3A2B14; --bad:#F07A62; --bad-soft:#3D1F19;
+    --key:#26302C; --key-ink:#E6ECE9; --key-shadow:#0C100E; --on-steel:#0E1A26;
+  }
+}
+:root[data-theme="dark"]{
+  color-scheme:dark;
+  --bg:#121715; --surface:#1A211E; --surface2:#202825; --line:#303A36; --ink:#E6ECE9; --ink2:#A7B3AE; --ink3:#77837E;
+  --steel:#8DB6E0; --steel-soft:#1F2F40; --cursor:#E5B82A; --cursor-soft:#3A3219;
+  --ok:#6CC08F; --ok-soft:#1C3326; --warn:#E6A444; --warn-soft:#3A2B14; --bad:#F07A62; --bad-soft:#3D1F19;
+  --key:#26302C; --key-ink:#E6ECE9; --key-shadow:#0C100E; --on-steel:#0E1A26;
+}
+*{box-sizing:border-box}
+html{scroll-padding-top:env(safe-area-inset-top,0px)}
+body{margin:0;background:var(--bg);color:var(--ink);font-family:var(--sans);font-size:14px;line-height:1.5;padding:0 16px 300px;padding-top:env(safe-area-inset-top,0px)}
+.wrap{max-width:720px;margin:0 auto}
+.num{font-family:var(--mono);font-variant-numeric:tabular-nums}
+header.top{position:sticky;top:0;z-index:20;background:var(--bg);padding-block:calc(env(safe-area-inset-top,0px) + 10px) 8px;display:flex;flex-direction:column;gap:8px}
+.brand{display:flex;align-items:baseline;justify-content:space-between;gap:8px}
+.brand h1{font-size:17px;margin:0;letter-spacing:.02em}
+.status{font-size:11px;color:var(--ink3);display:flex;align-items:center;gap:5px}
+.status i{width:8px;height:8px;border-radius:50%;background:var(--ink3);display:inline-block}
+.status.on i{background:var(--ok)} .status.off i{background:var(--warn)}
+.tabs{display:flex;gap:4px;background:var(--surface2);border:1px solid var(--line);border-radius:10px;padding:3px}
+.tabs button{flex:1;border:0;background:transparent;color:var(--ink2);font:inherit;font-size:13px;padding:7px 4px;border-radius:7px;cursor:pointer}
+.tabs button[aria-selected="true"]{background:var(--surface);color:var(--ink);font-weight:700;box-shadow:0 1px 2px var(--key-shadow)}
+.ctx{display:grid;grid-template-columns:1fr 1fr;gap:6px;margin-top:10px}
+.ctx label{display:flex;flex-direction:column;gap:2px;font-size:10.5px;color:var(--ink3);letter-spacing:.04em}
+.ctx select,.ctx input,.field{font:inherit;font-size:14px;color:var(--ink);background:var(--surface);border:1px solid var(--line);border-radius:8px;padding:7px 8px;width:100%}
+.rangebar{display:flex;gap:6px;grid-column:1/-1;align-items:end}
+.rangebar label{flex:1}
+.seg{display:flex;border:1px solid var(--line);border-radius:8px;overflow:hidden;background:var(--surface)}
+.seg button{flex:1;border:0;background:transparent;font:inherit;font-size:13px;padding:6px 0;color:var(--ink2);cursor:pointer}
+.seg button[aria-pressed="true"]{background:var(--steel);color:var(--on-steel);font-weight:700}
+.panel{background:var(--surface);border:1px solid var(--line);border-radius:12px;padding:12px}
+.mode{display:flex;flex-direction:column;gap:8px;margin-block:10px}
+.mode-row{display:flex;gap:6px;align-items:center;flex-wrap:wrap}
+.mode-row .lbl{font-size:11px;color:var(--ink3);min-width:56px}
+.chips{display:flex;gap:4px;flex-wrap:wrap;align-items:center}
+.chip{font-size:12px;padding:3px 8px;border-radius:999px;background:var(--surface2);color:var(--ink);border:1px solid var(--line)}
+.arrow{color:var(--ink3);font-size:12px}
+.small-btn{font:inherit;font-size:12px;border:1px solid var(--line);background:var(--surface);color:var(--ink2);border-radius:7px;padding:5px 9px;cursor:pointer}
+.small-btn:focus-visible,.tabs button:focus-visible,.seg button:focus-visible,.key:focus-visible,td.cell:focus-visible,.btn:focus-visible{outline:2px solid var(--steel);outline-offset:1px}
+.builder{display:none;flex-direction:column;gap:6px;border-top:1px dashed var(--line);padding-top:8px}
+.builder.open{display:flex}
+.now{display:flex;align-items:center;justify-content:space-between;gap:10px;background:var(--cursor-soft);border:1px solid var(--cursor);border-radius:12px;padding:10px 12px}
+.now .km{font-size:24px;font-weight:600;letter-spacing:.01em}
+.now .item{font-size:15px;font-weight:700}
+.now .sub{font-size:11.5px;color:var(--ink2)}
+.now .buf{font-size:26px;font-weight:600;min-width:84px;text-align:right}
+.tbl-wrap{background:var(--surface);border:1px solid var(--line);border-radius:12px}
+table{border-collapse:separate;border-spacing:0;width:100%}
+#grid thead th{position:sticky;top:var(--hh,160px);z-index:5;background:var(--surface2);font-size:11px;font-weight:700;color:var(--ink2);padding:6px 4px;border-bottom:1px solid var(--line);text-align:center}
+#grid thead th .u{font-weight:400;color:var(--ink3)}
+#grid tbody th{font-family:var(--mono);font-size:12px;font-weight:600;text-align:left;padding:4px 6px;white-space:nowrap;color:var(--ink);border-bottom:1px solid var(--line)}
+#grid tbody th .kmk{color:var(--ink3);font-weight:400}
+#grid tbody th .pt{display:block;font-size:10px;color:var(--ink3);font-weight:400}
+tr.blk-a th{background:var(--surface)} tr.blk-b th{background:var(--surface2)}
+tr.inblock th{box-shadow:inset 3px 0 0 var(--cursor)}
+td.cell{border-bottom:1px solid var(--line);border-left:1px solid var(--line);padding:3px 4px;text-align:center;cursor:pointer;min-width:66px}
+td.cell .v{font-family:var(--mono);font-size:16px;font-weight:600;line-height:1.2;min-height:19px}
+td.cell .v.empty{color:var(--ink3);font-weight:400}
+td.cell .v.saved{color:var(--steel)}
+td.cell .meta{font-family:var(--mono);font-size:10px;color:var(--ink3);line-height:1.25}
+.d{display:inline-block;font-family:var(--mono);font-size:10.5px;padding:0 5px;border-radius:5px;margin-top:1px}
+.d.ok{background:var(--ok-soft);color:var(--ok)} .d.warn{background:var(--warn-soft);color:var(--warn)} .d.bad{background:var(--bad-soft);color:var(--bad)}
+td.cell.cur{background:var(--cursor-soft);box-shadow:inset 0 0 0 2px var(--cursor)}
+td.cell.next{box-shadow:inset 0 0 0 1px var(--cursor)}
+.legend{display:flex;gap:10px;flex-wrap:wrap;font-size:11px;color:var(--ink2);margin-block:8px}
+.legend span{display:inline-flex;align-items:center;gap:4px}
+.dot{width:9px;height:9px;border-radius:3px;display:inline-block}
+.actions{display:flex;gap:8px;flex-wrap:wrap;margin-block:10px}
+.btn{font:inherit;font-size:14px;border-radius:9px;padding:10px 14px;border:1px solid var(--line);background:var(--surface);color:var(--ink);cursor:pointer}
+.btn.primary{background:var(--steel);border-color:var(--steel);color:var(--on-steel);font-weight:700}
+.btn:disabled{opacity:.5}
+.note{font-size:12px;color:var(--ink2)}
+.msg{font-size:13px;padding:8px 10px;border-radius:8px;background:var(--surface2);border:1px solid var(--line)}
+.msg.ok{background:var(--ok-soft);color:var(--ok);border-color:transparent}
+.msg.err{background:var(--bad-soft);color:var(--bad);border-color:transparent}
+.pad{position:fixed;left:0;right:0;bottom:0;z-index:30;background:var(--surface2);border-top:1px solid var(--line);padding:8px 10px calc(8px + env(safe-area-inset-bottom,0px))}
+.pad-in{max-width:520px;margin:0 auto;display:grid;grid-template-columns:repeat(4,1fr);gap:6px}
+.key{font:inherit;font-family:var(--mono);font-size:20px;font-weight:600;background:var(--key);color:var(--key-ink);border:1px solid var(--line);border-radius:10px;padding:9px 0;box-shadow:0 2px 0 var(--key-shadow);cursor:pointer;touch-action:manipulation}
+.key:active{transform:translateY(1px);box-shadow:0 1px 0 var(--key-shadow)}
+.key.fn{font-family:var(--sans);font-size:13px;font-weight:700;color:var(--ink2)}
+.key.go{background:var(--steel);border-color:var(--steel);color:var(--on-steel);font-family:var(--sans);font-size:15px;grid-row:span 2}
+.hidden{display:none!important}
+.sys h2{font-size:15px;margin:16px 0 6px}
+.sys p,.sys li{font-size:13px;color:var(--ink2);max-width:65ch}
+.sys ol{padding-left:20px;margin:0}
+.tbl-s{overflow-x:auto;-webkit-overflow-scrolling:touch}
+.tbl-s table{min-width:520px;background:var(--surface);border:1px solid var(--line);border-radius:10px}
+.tbl-s td,.tbl-s th{font-size:12px;padding:4px 6px;border-bottom:1px solid var(--line);text-align:right;white-space:nowrap}
+.tbl-s th{background:var(--surface2);color:var(--ink2);text-align:center;position:sticky;top:0}
+.tbl-s td:first-child{text-align:left}
+.tbl-s td.today{font-weight:700;color:var(--steel)}
+.tbl-s td.none{color:var(--ink3)}
+.login{display:flex;flex-direction:column;gap:8px;margin-top:12px}
 </style>
-<script src="./app-config.js?v=5.3.2"></script><script src="./data-service.js?v=5.3.2"></script><script src="./admin-analytics.js?v=5.3.2"></script><script src="./fleet-utilization.js?v=5.3.2"></script>
 </head>
 <body>
-<header>
-  <div class="logo">🚙</div>
-  <div><h1>運転日報・車両距離管理</h1><div class="sub">車両別の距離引継ぎ・所属履歴・月次集計｜v5.3.2</div></div>
-  <div class="mode" id="mode-badge"></div>
-</header>
-
-<main>
-<section class="tab active" id="tab-input">
-  <div id="global-alert" class="alert alert-warn hidden"></div>
-
-  <div class="card">
-    <h2>運転者・車両</h2>
-    <div class="field"><label class="req" for="date">日付</label><input id="date" type="date"></div>
-    <div class="field"><label class="req" for="department">所属</label><select id="department"><option value="">選択してください</option></select></div>
-    <div class="field"><label class="req" for="employee">運転者</label><select id="employee"><option value="">選択してください</option></select></div>
-    <div class="field"><label class="req" for="vehicle">車両番号</label><select id="vehicle"><option value="">選択してください</option></select></div>
-    <div id="vehicle-state" class="state hidden"><strong id="vehicle-state-main"></strong><span id="vehicle-state-sub"></span></div>
-    <div class="field"><label for="destination">目的地・使用目的</label><input id="destination" type="text" placeholder="例：元住吉検車区　現場巡回"></div>
-    <div class="grid2 compact">
-      <div class="field"><label for="start-time">使用開始（任意）</label><input id="start-time" type="time"></div>
-      <div class="field"><label for="end-time">使用終了（任意）</label><input id="end-time" type="time"></div>
+<div class="wrap">
+  <header class="top">
+    <div class="brand"><h1>軌道検測ノート</h1><span class="status" id="stat"><i></i><span id="statTxt">未接続</span></span></div>
+    <div class="tabs" role="tablist">
+      <button id="tabInput" role="tab" aria-selected="true">入力</button>
+      <button id="tabOut" role="tab" aria-selected="false">検査用紙</button>
+      <button id="tabSys" role="tab" aria-selected="false">設定・仕組み</button>
     </div>
-  </div>
-
-  <div class="card">
-    <h2>走行距離</h2>
-    <div class="field"><label class="req" for="start-odo">開始距離（km）</label><input id="start-odo" type="number" inputmode="decimal" step="0.1" readonly></div>
-    <button class="btn btn-outline btn-sm" id="correct-start" type="button">実際のメーターと違う場合</button>
-    <div id="correction-box" class="field hidden" style="margin-top:10px"><label class="req" for="correction-reason">開始距離の修正理由</label><input id="correction-reason" type="text" placeholder="例：前回入力誤りを実メーターで確認"></div>
-    <div class="field" style="margin-top:12px"><label class="req" for="end-odo">終了距離（km）</label><input id="end-odo" type="number" inputmode="decimal" step="0.1"></div>
-    <div class="distance">走行距離 <span id="distance">--</span> <small>km</small></div>
-  </div>
-
-  <div class="card">
-    <h2>アルコールチェック</h2>
-    <div class="alert alert-info">運転前・運転後の測定値と確認者を記録してください。</div>
-    <div class="grid2">
+    <div class="now" id="nowBar" aria-live="polite">
       <div>
-        <div class="field"><label class="req" for="pre-time">運転前・確認時刻</label><input id="pre-time" type="time"></div>
-        <div class="field"><label class="req" for="pre-value">運転前・測定値</label><input id="pre-value" type="number" min="0" step="0.01" inputmode="decimal" placeholder="0.00"></div>
-        <div class="field"><label class="req" for="pre-checker">運転前・確認者</label><select id="pre-checker"></select></div>
-        <div class="field"><label>運転前・自動判定</label><input id="pre-judge" type="hidden"><div id="pre-judge-view" class="judge">測定値を入力してください</div></div>
+        <div class="km num" id="nowKm">—</div>
+        <div class="item" id="nowItem">—</div>
+        <div class="sub num" id="nowSub"></div>
       </div>
-      <div>
-        <div class="field"><label class="req" for="post-time">運転後・確認時刻</label><input id="post-time" type="time"></div>
-        <div class="field"><label class="req" for="post-value">運転後・測定値</label><input id="post-value" type="number" min="0" step="0.01" inputmode="decimal" placeholder="0.00"></div>
-        <div class="field"><label class="req" for="post-checker">運転後・確認者</label><select id="post-checker"></select></div>
-        <div class="field"><label>運転後・自動判定</label><input id="post-judge" type="hidden"><div id="post-judge-view" class="judge">測定値を入力してください</div></div>
-      </div>
+      <div class="buf num" id="nowBuf">—</div>
     </div>
-    <div id="ng-warning" class="alert alert-ng hidden">アルコールが検知されています。正式な確認・対応は専用のアルコールチェック管理ツールで行ってください。</div><p class="hint privacy-note">この欄は運転日報上の補助記録です。正式なアルコール確認記録は専用ツールで管理します。</p>
-  </div>
+  </header>
 
-  <div class="card">
-    <h2>利用内容・備考</h2>
-    <div class="grid3">
-      <div class="field"><label for="etc">ETC</label><select id="etc"><option>なし</option><option>あり</option></select></div>
-      <div class="field"><label for="highway">高速道路</label><select id="highway"><option>なし</option><option>あり</option></select></div>
-      <div class="field"><label for="parking">有料駐車場</label><select id="parking"><option>なし</option><option>あり</option></select></div>
-    </div>
-    <div class="field"><label for="memo">備考</label><textarea id="memo" placeholder="給油、洗車、車両異常など"></textarea></div>
-  </div>
-  <button class="btn btn-primary" id="save-report" type="button">日報を確定保存</button>
-  <div id="save-status" class="alert hidden" style="margin-top:10px" role="status" aria-live="polite"></div>
-  <p class="hint">保存時に車両の最新距離を再確認します。別の社員が先に同じ車両の日報を保存した場合は、上書きせず警告します。</p>
-</section>
-
-<section class="tab" id="tab-admin">
-  <div id="admin-login" class="card"><h2>管理者ログイン</h2><div class="alert alert-info">日報履歴と月次集計は管理者だけが閲覧できます。</div><div class="field"><label class="req" for="admin-email">管理者ID（メールアドレス）</label><input id="admin-email" type="email" autocomplete="username"></div><div class="field"><label class="req" for="admin-password">パスワード</label><input id="admin-password" type="password" autocomplete="current-password"></div><button class="btn btn-navy" id="admin-login-button" type="button">ログイン</button><div id="admin-login-error" class="alert alert-ng hidden" style="margin-top:10px"></div></div>
-  <div id="admin-dashboard" class="hidden"><div id="admin-invite-message" class="alert alert-info hidden no-print">招待を確認しました。画面下の「パスワード変更」で、管理者パスワードを設定してください。</div><div class="card"><div class="admin-head no-print"><h2>管理者・月次管理</h2><button class="btn btn-outline btn-sm" id="admin-logout" type="button">ログアウト</button></div><div class="print-only"><h1 id="print-title" class="print-heading">運転日報 月次管理</h1><p id="print-meta" class="print-meta"></p></div><div class="toolbar no-print"><div class="field"><label for="admin-month">対象月</label><input id="admin-month" type="month"></div><button class="btn btn-navy btn-sm" id="reload-admin" type="button">更新</button></div>
-    <div class="kpis"><div class="kpi"><b id="kpi-vehicles">0</b><span>稼働車両</span></div><div class="kpi"><b id="kpi-days">0</b><span>延べ稼働日数</span></div><div class="kpi"><b id="kpi-reports">0</b><span>日報件数</span></div><div class="kpi"><b id="kpi-distance">0</b><span>総走行km</span></div><div class="kpi"><b id="kpi-alcohol">0</b><span>検知あり</span></div><div class="kpi"><b id="kpi-missing">0</b><span>確認未入力</span></div></div>
-    <div class="util-summary"><strong id="util-total-rate">全車両の稼働日率：－</strong><div id="util-total-detail" class="hint"></div><div id="util-warning" class="hint"></div></div>
-    <div class="subtabs no-print"><button class="active" data-admin-panel="vehicle-panel">車両別</button><button data-admin-panel="department-panel">部署別</button><button data-admin-panel="driver-panel">運転者別</button><button data-admin-panel="alcohol-panel">アルコール</button><button data-admin-panel="detail-panel">日報明細</button></div>
-    <div id="vehicle-panel" class="admin-panel active table-wrap"><table><thead><tr><th>車両番号</th><th>車名</th><th>保有部署</th><th>稼働日率</th><th>稼働日数</th><th>稼働可能日数</th><th>使用時間（確認分）</th><th>時刻未入力</th><th>日報</th><th>運転者</th><th>月初</th><th>月末</th><th>月間距離</th><th>日平均</th><th>最終使用</th><th>最終運転者</th><th>修正</th><th>検知</th><th>未入力</th></tr></thead><tbody id="vehicle-summary-body"></tbody></table></div>
-    <div id="department-panel" class="admin-panel table-wrap"><table><thead><tr><th>保有部署</th><th>保有台数</th><th>稼働日率</th><th>延べ稼働日数</th><th>稼働可能日数</th><th>使用時間（確認分）</th><th>時刻未入力</th></tr></thead><tbody id="department-summary-body"></tbody></table></div>
-    <div id="driver-panel" class="admin-panel table-wrap"><table><thead><tr><th>運転者</th><th>所属</th><th>運転日数</th><th>日報</th><th>走行距離</th><th>車両数</th><th>使用車両</th><th>最終運転日</th><th>検知</th><th>未入力</th></tr></thead><tbody id="driver-summary-body"></tbody></table></div>
-    <div id="alcohol-panel" class="admin-panel table-wrap"><table><thead><tr><th>日付</th><th>運転者</th><th>所属</th><th>車両</th><th>前時刻</th><th>前数値</th><th>前確認者</th><th>後時刻</th><th>後数値</th><th>後確認者</th><th>判定</th></tr></thead><tbody id="alcohol-body"></tbody></table></div>
-    <div id="detail-panel" class="admin-panel table-wrap"><table><thead><tr><th>日付</th><th>車両</th><th>運転者</th><th>所属</th><th>開始</th><th>終了</th><th>走行</th><th>目的地</th><th>保存日時</th></tr></thead><tbody id="detail-body"></tbody></table></div>
-    <p id="admin-updated" class="hint"></p><p class="hint privacy-note">アルコール欄は日報上の補助記録です。正式記録は専用のアルコールチェック管理ツールで確認してください。</p></div>
-    <div class="card no-print"><h2>稼働日率の基準・車両マスター</h2><p class="hint">保有台数は車両マスターの使用中の車両から数えます。部署別の稼働日数は運転者の所属ではなく車両の保有部署へ計上します。</p><div class="field"><label for="fleet-business-days">対象月の営業日数</label><input id="fleet-business-days" type="number" min="0" max="31" step="1"></div><button class="btn btn-outline btn-sm" id="save-fleet-settings" type="button">この月の集計基準を保存</button><p class="hint">初期値は土日を除いた日数です。会社休日を除く営業日数に直して保存できます。1日の長さや昼夜の勤務帯に関係なく、同じ車を使った日付を1日と数えます。使用時間は時刻がある日報から別に集計します。</p><h2 style="margin-top:18px">車両の保有部署</h2><div id="fleet-owner-list"></div><p class="hint">ここにはサーバーに反映済みの保有部署だけを表示します。変更はBoxのマスターExcelで行い、差分確認・承認後にサーバーへ反映します。Excelを編集しただけでは、この画面は変わりません。過去月の部署別集計も現在の保有部署で表示されます。</p></div>
-    <div class="grid2 no-print"><button class="btn btn-primary" id="download-excel" type="button">管理者Excelを出力</button><button class="btn btn-outline" id="print-summary" type="button">表示中の月次表を印刷</button></div>
-    <div class="card no-print"><h2>パスワード変更</h2><div class="field"><label for="new-admin-password">新しいパスワード（12文字以上）</label><input id="new-admin-password" type="password" autocomplete="new-password"></div><button class="btn btn-outline" id="change-admin-password" type="button">パスワードを変更</button></div>
-  </div>
-</section>
-
-<section class="tab" id="tab-settings">
-  <div class="card">
-    <h2>アプリを開くQRコード</h2>
-    <div class="qr-share">
-      <a class="qr-image-link" id="app-qr-link" href="https://kimu080883.github.io/survey/index.html" target="_blank" rel="noopener noreferrer" aria-label="運転日報アプリを開く">
-        <img src="./app-qr.svg?v=5.2.2" alt="運転日報アプリを開くQRコード" width="168" height="168">
-      </a>
-      <div class="qr-share-body">
-        <p class="hint">別のスマートフォンで読み取ると、この運転日報アプリを直接開けます。QRコードをタップして開くこともできます。</p>
-        <a class="btn btn-outline" id="app-public-link" href="https://kimu080883.github.io/survey/index.html" target="_blank" rel="noopener noreferrer">運転日報アプリを開く</a>
-        <p class="app-url" id="app-public-url">https://kimu080883.github.io/survey/index.html</p>
+  <section id="pInput">
+    <div class="ctx">
+      <label style="grid-column:1/-1">線区（会社・線名・上下）<select id="selSec"></select></label>
+      <label>測定日<input id="inDate" type="date"></label>
+      <label>1画面の地点数<select id="selPage"><option value="10">10地点（50m）</option><option value="20" selected>20地点（100m）</option><option value="40">40地点（200m）</option></select></label>
+      <div class="rangebar">
+        <button class="small-btn" id="pgPrev" aria-label="前の区間">◀</button>
+        <label>区間（キロ程）<select id="selRange" class="num"></select></label>
+        <button class="small-btn" id="pgNext" aria-label="次の区間">▶</button>
       </div>
     </div>
-  </div>
-  <div class="card">
-    <h2>システム状態</h2>
-    <div id="system-status" class="alert alert-info"></div>
-    <button class="btn btn-navy" id="sync-master">社員・車両マスタを再同期</button>
-    <p class="hint">現在はSupabaseの中央試験DBへ接続しています。保存済みの日報・車両距離・マスタはサーバーに保持され、各端末で同じデータを共有します。</p>
-  </div>
-  <div class="card">
-    <h2>日報データ管理</h2>
-    <p class="hint">「日報を確定保存」を押して「サーバー保存完了」と表示された日報は、中央試験DBに保存済みです。管理者画面の履歴・月次集計にも反映され、この画面から削除・初期化はできません。</p>
-  </div>
-  <div class="card">
-    <h2>運用上の注意</h2>
-    <p class="hint">入力途中の内容はまだ保存されません。入力後は必ず「日報を確定保存」を押し、「サーバー保存完了」を確認してください。保存した終了距離は、次に同じ車両を使う社員の開始距離へ自動で引き継がれます。日報履歴・月次集計・Excel出力は、管理者ログイン後だけ閲覧できます。</p>
-  </div>
-</section>
-</main>
 
-<nav>
-  <button class="active" data-tab="tab-input"><b>📝</b>日報入力</button>
-  <button data-tab="tab-admin"><b>🔐</b>管理者</button>
-  <button data-tab="tab-settings"><b>⚙️</b>設定</button>
-</nav>
-<div id="toast"></div>
+    <div class="panel mode">
+      <div class="mode-row"><span class="lbl">入力順</span>
+        <div class="seg" style="flex:1">
+          <button id="mRow" aria-pressed="false">地点ごと</button>
+          <button id="mCol" aria-pressed="false">項目ごと</button>
+          <button id="mPat" aria-pressed="true">パターン</button>
+        </div>
+      </div>
+      <div class="mode-row" id="patView"><span class="lbl">パターン</span><div class="chips" id="patChips"></div><button class="small-btn" id="btnEditPat">変更</button></div>
+      <div class="builder" id="builder">
+        <div class="mode-row"><span class="lbl">ひな形</span><select id="selPreset" class="small-btn" style="flex:1"></select></div>
+        <div class="mode-row"><span class="lbl">まとめ数</span><div class="seg" id="segN" style="flex:1"></div></div>
+        <p class="note" style="margin:0">まとめ数の地点ぶん（3なら15m）を1項目ずつ入れてから、次の項目へ進みます。</p>
+      </div>
+    </div>
+
+    <div class="tbl-wrap"><table id="grid"></table></div>
+    <div class="legend">
+      <span><i class="dot" style="background:var(--ok)"></i>基準との差 小</span>
+      <span><i class="dot" style="background:var(--warn)"></i>注意</span>
+      <span><i class="dot" style="background:var(--bad)"></i>要整備（仮の値）</span>
+      <span id="progress" class="num"></span>
+    </div>
+    <div class="actions">
+      <button class="btn primary" id="btnSend">この日の測定を送信</button>
+    </div>
+    <div class="msg" id="sendMsg">入力した値はこの端末に自動で残ります。電波が戻ったら送信してください。</div>
+  </section>
+
+  <section id="pOut" class="hidden">
+    <div class="panel" style="margin-top:10px">
+      <p class="note" style="margin-top:0">測定日の検査用紙に載る値です。<b style="color:var(--steel)">青字</b>＝その日の修正値、黒字＝前日までの測定値。（ ）内は基準との差（狂量）。</p>
+      <div class="tbl-s" style="max-height:60vh"><table id="outTbl"></table></div>
+      <div class="actions"><button class="btn" id="btnCsv">CSVを保存</button><button class="btn" id="btnReload">最新に更新</button></div>
+      <p class="note">所定のExcel様式への転記は、このデータを使って作成します。</p>
+    </div>
+  </section>
+
+  <section id="pSys" class="hidden sys">
+    <div class="panel" style="margin-top:10px">
+      <h2 style="margin-top:0">接続</h2>
+      <div class="login">
+        <label class="note">合言葉<input class="field num" id="inKey" type="password" autocomplete="off" placeholder="合言葉を入力"></label>
+        <div class="actions" style="margin:0"><button class="btn primary" id="btnKey">接続する</button><button class="btn" id="btnOffline">オフラインで試す</button></div>
+        <div class="msg" id="keyMsg">合言葉は一度入れればこの端末に保存されます。</div>
+      </div>
+    </div>
+    <h2>データの流れ</h2>
+    <ol>
+      <li>基準値：会社の資料（Excel・PDF）から Claude が読み取り、キロ程ごとに登録</li>
+      <li>入力：線区と区間を選ぶと、基準値と前回値が並ぶ。その横に実測値を入れる</li>
+      <li>送信：測定日つきで保存。上書きせず全部残し、その地点の最新になる</li>
+      <li>検査用紙：測定日より前で最新の値＝前日までの測定値、当日の値＝修正値として転記</li>
+    </ol>
+    <h2>この線区の設定</h2>
+    <p id="secInfo">—</p>
+    <h2>まだ決めること</h2>
+    <ol><li>要整備の判定に使う管理値（今の色分けは仮の値）</li></ol>
+  </section>
+</div>
+
+<div class="pad" id="pad">
+  <div class="pad-in">
+    <button class="key" data-k="7">7</button><button class="key" data-k="8">8</button><button class="key" data-k="9">9</button><button class="key fn" data-k="back">戻る</button>
+    <button class="key" data-k="4">4</button><button class="key" data-k="5">5</button><button class="key" data-k="6">6</button><button class="key go" data-k="next">確定<br>次へ</button>
+    <button class="key" data-k="1">1</button><button class="key" data-k="2">2</button><button class="key" data-k="3">3</button>
+    <button class="key fn" data-k="pm">＋/−</button><button class="key" data-k="0">0</button><button class="key fn" data-k="del">⌫</button><button class="key fn" data-k="skip">空欄</button>
+  </div>
+</div>
 
 <script>
-"use strict";
-const CFG = window.APP_CONFIG;
-const service = window.FleetData.service;
-const $ = function(s){ return document.querySelector(s); };
-const $$ = function(s){ return document.querySelectorAll(s); };
-let master = {departments:[], employees:[], vehicles:[]};
-let vehicleState = null;
-let adminUser = null, adminData = null;
+(function(){
+'use strict';
+const API='https://br-broad-union-b30y8eje-kensoku.compute.c-4.ap-southeast-1.aws.neon.tech';
+const DEMO=[[16750,150,0,null,null,18,null,null,4,null,null,0,null,null],[16755,151,0,null,null,24,null,null,5,null,null,0,null,null],[16760,152,0,null,null,31,null,null,6,null,null,0,null,null],[16765,153,0,null,null,37,null,null,8,null,null,0,null,null],[16770,154,0,null,null,44,null,null,9,null,null,0,null,null],[16775,155,0,null,null,51,null,null,11,null,null,0,null,null],[16780,156,0,null,null,57,null,null,12,null,null,0,null,null],[16785,157,0,null,null,64,null,null,13,null,null,0,null,null],[16790,158,0,null,null,70,null,null,15,null,null,0,null,null],[16795,159,0,null,null,75,null,null,16,null,null,0,null,null],[16800,160,0,null,null,75,null,null,16,null,null,0,null,null],[16805,161,0,null,null,75,null,null,16,null,null,0,null,null],[16810,162,0,null,null,75,null,null,16,null,null,0,null,null],[16815,163,0,null,null,75,null,null,16,null,null,0,null,null],[16820,164,0,null,null,75,null,null,16,null,null,0,null,null],[16825,165,0,null,null,75,null,null,16,null,null,0,null,null],[16830,166,0,null,null,75,null,null,16,null,null,0,null,null],[16835,167,0,null,null,75,null,null,16,null,null,0,null,null],[16840,168,0,0,"09-09",75,76,"09-09",16,16,"09-09",0,1,"09-09"],[16845,169,0,0,"09-24",75,74,"09-24",16,14,"09-24",0,0,"09-24"],[16850,170,0,0,"09-24",75,77,"09-24",16,15,"09-24",0,1,"09-24"],[16855,171,0,1,"09-24",75,75,"09-24",16,14,"09-24",0,0,"09-24"],[16860,172,0,-1,"09-24",75,76,"09-24",16,15,"09-24",0,1,"09-24"],[16865,173,0,1,"09-24",75,76,"09-24",16,15,"09-24",1,2,"09-24"],[16870,174,0,0,"09-24",75,75,"09-24",16,15,"09-24",4,5,"09-24"],[16875,175,0,1,"09-24",75,76,"09-24",16,15,"09-24",4,4,"09-24"],[16880,176,0,2,"09-24",75,75,"09-24",16,16,"09-24",4,5,"09-24"],[16885,177,0,0,"09-24",75,76,"09-24",16,15,"09-24",4,4,"09-24"],[16890,178,0,1,"09-24",75,75,"09-24",16,15,"09-24",4,4,"09-24"],[16895,179,0,1,"09-24",75,74,"09-24",16,15,"09-24",4,5,"09-24"],[16900,180,0,0,"09-24",75,76,"09-24",16,16,"09-24",4,4,"09-24"],[16905,181,0,1,"09-24",75,76,"09-24",16,16,"09-24",4,5,"09-24"],[16910,182,0,1,"09-24",75,76,"09-24",16,15,"09-24",4,4,"09-24"],[16915,183,0,1,"09-24",75,74,"09-24",16,16,"09-24",4,5,"09-24"],[16920,184,0,2,"09-24",75,75,"09-24",16,16,"09-24",4,4,"09-24"],[16925,185,0,1,"09-24",75,76,"09-24",16,16,"09-24",4,4,"09-24"],[16930,186,0,1,"09-24",75,76,"09-24",16,14,"09-24",4,4,"09-24"],[16935,187,0,1,"09-24",75,74,"09-24",16,17,"09-24",4,4,"09-24"],[16940,188,0,1,"09-24",75,75,"09-24",16,15,"09-24",4,5,"09-24"],[16945,189,0,1,"09-24",75,76,"09-24",16,16,"09-24",4,5,"09-24"],[16950,190,0,1,"09-24",75,76,"09-24",16,15,"09-24",4,3,"09-24"],[16955,191,0,1,"09-24",75,75,"09-24",16,16,"09-24",4,5,"09-24"],[16960,192,0,1,"09-24",75,76,"09-24",16,15,"09-24",4,4,"09-24"],[16965,193,0,1,"09-24",75,75,"09-24",16,15,"09-24",4,5,"09-24"],[16970,194,0,1,"09-24",75,76,"09-24",16,15,"09-24",4,4,"09-24"],[16975,195,0,1,"09-24",75,75,"09-24",16,16,"09-24",1,2,"09-24"],[16980,196,0,0,"09-24",75,74,"09-24",16,14,"09-24",0,1,"09-24"],[16985,197,0,0,"09-24",75,74,"09-24",16,16,"09-24",0,1,"09-24"],[16990,198,0,0,"09-24",75,74,"09-24",16,15,"09-24",0,0,"09-24"],[16995,199,0,1,"09-24",75,73,"09-24",16,15,"09-24",0,1,"09-24"],[17000,0,0,1,"09-24",75,76,"09-24",16,14,"09-24",0,-1,"09-24"],[17005,1,0,1,"09-24",75,75,"09-24",16,15,"09-24",0,2,"09-24"],[17010,2,0,1,"09-18",75,75,"09-18",16,15,"09-18",0,0,"09-18"],[17015,3,0,0,"09-18",75,75,"09-18",16,16,"09-18",0,0,"09-18"],[17020,4,0,0,"09-18",75,77,"09-18",16,15,"09-18",0,2,"09-18"],[17025,5,0,1,"09-18",75,76,"09-18",16,15,"09-18",0,1,"09-18"],[17030,6,0,1,"09-18",75,76,"09-18",16,14,"09-18",0,0,"09-18"],[17035,7,0,1,"09-18",75,77,"09-18",16,15,"09-18",0,1,"09-18"],[17040,8,0,1,"09-18",75,75,"09-18",16,15,"09-18",0,1,"09-18"],[17045,9,0,0,"09-18",75,75,"09-18",16,14,"09-18",0,0,"09-18"],[17050,10,0,1,"09-18",75,76,"09-18",16,16,"09-18",0,0,"09-18"],[17055,11,0,0,"09-18",75,74,"09-18",16,14,"09-18",0,1,"09-18"],[17060,12,0,1,"09-18",75,75,"09-18",16,16,"09-18",0,0,"09-18"],[17065,13,0,1,"09-18",75,75,"09-18",16,15,"09-18",0,0,"09-18"],[17070,14,0,-1,"09-18",75,75,"09-18",16,16,"09-18",0,0,"09-18"],[17075,15,0,1,"09-18",75,75,"09-18",16,15,"09-18",0,2,"09-18"],[17080,16,0,0,"09-18",75,75,"09-18",16,16,"09-18",0,1,"09-18"],[17085,17,0,0,"09-18",75,76,"09-18",16,15,"09-18",0,0,"09-18"],[17090,18,0,1,"09-18",75,75,"09-18",16,14,"09-18",0,0,"09-18"],[17095,19,0,2,"09-18",75,74,"09-18",16,15,"09-18",0,0,"09-18"],[17100,20,0,-1,"09-18",75,76,"09-18",16,15,"09-18",0,1,"09-18"],[17105,21,0,1,"09-18",75,76,"09-18",16,16,"09-18",0,0,"09-18"],[17110,22,0,0,"09-18",75,75,"09-18",16,15,"09-18",0,1,"09-18"],[17115,23,0,-1,"09-18",75,75,"09-18",16,16,"09-18",0,1,"09-18"],[17120,24,0,3,"09-18",75,74,"09-18",16,15,"09-18",0,0,"09-18"],[17125,25,0,5,"09-18",75,75,"09-18",16,14,"09-18",0,0,"09-18"],[17130,26,0,2,"09-18",75,75,"09-18",16,16,"09-18",0,0,"09-18"],[17135,27,0,1,"09-18",75,75,"09-18",16,14,"09-18",0,0,"09-18"],[17140,28,0,2,"09-18",75,75,"09-18",16,16,"09-18",0,1,"09-18"],[17145,29,0,0,"09-18",75,75,"09-18",16,16,"09-18",0,0,"09-18"],[17150,30,0,1,"09-18",75,75,"09-18",16,15,"09-18",0,1,"09-18"],[17155,31,0,1,"09-18",75,75,"09-18",16,15,"09-18",0,2,"09-18"],[17160,32,0,2,"09-18",75,75,"09-18",16,15,"09-18",0,1,"09-18"],[17165,33,0,0,"09-18",75,76,"09-18",16,15,"09-18",0,0,"09-18"],[17170,34,0,1,"09-18",75,73,"09-18",16,15,"09-18",0,0,"09-18"],[17175,35,0,1,"09-18",75,74,"09-18",16,15,"09-18",0,1,"09-18"],[17180,36,0,1,"09-18",75,76,"09-18",16,16,"09-18",0,1,"09-18"],[17185,37,0,2,"09-18",75,75,"09-18",16,15,"09-18",0,0,"09-18"],[17190,38,0,1,"09-18",75,76,"09-18",16,15,"09-18",0,2,"09-18"],[17195,39,0,1,"09-18",75,75,"09-18",16,15,"09-18",0,1,"09-18"],[17200,40,0,1,"09-18",75,75,"09-18",16,15,"09-18",0,0,"09-18"],[17205,41,0,3,"09-18",75,74,"09-18",16,15,"09-18",0,2,"09-18"],[17210,42,0,2,"09-18",75,75,"09-18",16,14,"09-18",0,1,"09-18"],[17215,43,0,2,"09-18",75,75,"09-18",16,15,"09-18",0,0,"09-18"],[17220,44,0,3,"09-18",75,76,"09-18",16,14,"09-18",0,0,"09-18"],[17225,45,0,3,"09-18",75,77,"09-18",16,17,"09-18",0,0,"09-18"],[17230,46,0,2,"09-17",75,76,"09-17",16,14,"09-17",0,-1,"09-17"],[17235,47,0,4,"09-17",75,75,"09-17",16,14,"09-17",0,0,"09-17"],[17240,48,0,2,"09-17",75,74,"09-17",16,14,"09-17",0,-1,"09-17"],[17245,49,0,2,"09-17",75,75,"09-17",16,15,"09-17",0,0,"09-17"],[17250,50,0,2,"09-17",75,75,"09-17",16,15,"09-17",0,0,"09-17"],[17255,51,0,1,"09-17",74,74,"09-17",16,14,"09-17",0,0,"09-17"],[17260,52,0,2,"09-17",72,72,"09-17",15,15,"09-17",0,1,"09-17"],[17265,53,0,2,"09-17",70,71,"09-17",15,14,"09-17",0,1,"09-17"],[17270,54,0,2,"09-17",68,68,"09-17",14,13,"09-17",0,0,"09-17"],[17275,55,0,1,"09-17",66,66,"09-17",14,13,"09-17",0,0,"09-17"],[17280,56,0,3,"09-17",64,64,"09-17",13,13,"09-17",0,1,"09-17"],[17285,57,0,1,"09-17",62,62,"09-17",13,12,"09-17",0,0,"09-17"],[17290,58,0,2,"09-17",60,60,"09-17",13,13,"09-17",0,1,"09-17"],[17295,59,0,1,"09-17",58,58,"09-17",12,11,"09-17",0,0,"09-17"],[17300,60,0,1,"09-17",56,56,"09-17",12,11,"09-17",0,1,"09-17"],[17305,61,0,1,"09-17",54,53,"09-17",11,12,"09-17",0,0,"09-17"],[17310,62,0,1,"09-17",52,52,"09-17",11,11,"09-17",0,-1,"09-17"],[17315,63,0,0,"09-17",49,49,"09-17",10,10,"09-17",0,0,"09-17"],[17320,64,0,1,"09-17",47,48,"09-17",10,10,"09-17",0,1,"09-17"],[17325,65,0,0,"09-17",45,46,"09-17",9,9,"09-17",0,0,"09-17"],[17330,66,0,0,"09-17",43,43,"09-17",9,8,"09-17",0,0,"09-17"],[17335,67,0,0,"09-17",41,42,"09-17",9,8,"09-17",0,0,"09-17"],[17340,68,0,1,"09-17",39,39,"09-17",8,8,"09-17",0,-1,"09-17"],[17345,69,0,1,"09-17",37,37,"09-17",8,8,"09-17",0,0,"09-17"],[17350,70,0,1,"09-17",35,36,"09-17",7,7,"09-17",0,1,"09-17"],[17355,71,0,0,"09-17",33,33,"09-17",7,7,"09-17",0,0,"09-17"],[17360,72,0,1,"09-17",31,31,"09-17",6,6,"09-17",0,0,"09-17"],[17365,73,0,1,"09-17",29,28,"09-17",6,5,"09-17",0,0,"09-17"],[17370,74,0,1,"09-17",27,27,"09-17",6,6,"09-17",0,0,"09-17"],[17375,75,0,2,"09-17",25,23,"09-17",5,4,"09-17",0,0,"09-17"],[17380,76,0,1,"09-17",22,22,"09-17",5,4,"09-17",0,1,"09-17"],[17385,77,0,1,"09-17",20,20,"09-17",4,4,"09-17",0,0,"09-17"],[17390,78,0,0,"09-17",18,18,"09-17",4,3,"09-17",0,0,"09-17"],[17395,79,0,1,"09-17",16,16,"09-17",3,3,"09-17",0,0,"09-17"],[17400,80,0,0,"09-17",14,14,"09-17",3,3,"09-17",0,1,"09-17"],[17405,81,0,1,"09-17",12,13,"09-17",3,2,"09-17",0,0,"09-17"],[17410,82,0,1,"09-17",10,10,"09-17",2,3,"09-17",0,1,"09-17"],[17415,83,0,1,"09-17",8,8,"09-17",2,3,"09-17",0,1,"09-17"],[17420,84,0,1,"09-17",6,6,"09-17",1,1,"09-17",0,0,"09-17"],[17425,85,0,0,"09-17",4,4,"09-17",1,0,"09-17",0,0,"09-17"],[17430,86,0,0,"09-17",2,1,"09-17",0,0,"09-17",0,0,"09-17"],[17435,87,0,0,"09-17",0,0,"09-17",0,0,"09-17",-1,-1,"09-17"],[17440,88,0,0,"09-17",0,0,"09-17",0,-1,"09-17",-3,-4,"09-17"],[17445,89,0,0,"09-17",0,0,"09-17",0,-1,"09-17",-4,-4,"09-17"],[17450,90,0,-1,"09-17",0,-1,"09-17",0,-1,"09-17",-4,-4,"09-17"],[17455,91,0,0,"09-17",0,0,"09-17",0,0,"09-17",-4,-3,"09-17"],[17460,92,0,0,"09-17",0,0,"09-17",0,0,"09-17",-4,-3,"09-17"],[17465,93,0,null,null,0,null,null,0,null,null,-4,null,null],[17470,94,0,null,null,0,null,null,0,null,null,-4,null,null],[17475,95,0,null,null,0,null,null,0,null,null,-4,null,null],[17480,96,0,null,null,0,null,null,0,null,null,-4,null,null],[17485,97,0,null,null,0,null,null,0,null,null,-4,null,null],[17490,98,0,null,null,0,null,null,0,null,null,-4,null,null],[17495,99,0,null,null,0,null,null,0,null,null,-4,null,null]]; // [km,pt, gauge base,prev,date, cross.., align.., surface..]
+const $=id=>document.getElementById(id);
+const ls={get(k){try{return localStorage.getItem(k)}catch(e){return null}},set(k,v){try{localStorage.setItem(k,v)}catch(e){}},del(k){try{localStorage.removeItem(k)}catch(e){}}};
+const ITEMS=[{k:'gauge',n:'軌間',tol:[3,5]},{k:'cross_level',n:'水準',tol:[4,7]},{k:'alignment',n:'通り',tol:[4,7]},{k:'surface',n:'高低',tol:[4,7]}];
+const fmtKm=m=>`${Math.floor(m/1000)}k${String(m%1000).padStart(3,'0')}m`;
+const today=()=>{const d=new Date();d.setMinutes(d.getMinutes()-d.getTimezoneOffset());return d.toISOString().slice(0,10);};
 
-var publicAppUrl=CFG.publicAppUrl||"https://kimu080883.github.io/survey/index.html";
-$("#app-qr-link").href=publicAppUrl;
-$("#app-public-link").href=publicAppUrl;
-$("#app-public-url").textContent=publicAppUrl;
+let key=ls.get('kensoku:key')||'', online=false;
+let sections=[], sec=null, date=today();
+let sheet={}, KMS_ALL=[], pageSize=20, page=0, KMS=[];
+let mode='pat', patN=3, preset=0, seq=[], pos=0, buf='';
+let draft={};
 
-function updatedTime(){
-  return new Date().toLocaleTimeString("ja-JP",{hour:"2-digit",minute:"2-digit",second:"2-digit"});
+function setStat(kind,txt){const s=$('stat');s.className='status '+kind;$('statTxt').textContent=txt;}
+function draftKey(){return `kensoku:draft:${sec?sec.id:'x'}:${date}`;}
+function loadDraft(){try{draft=JSON.parse(ls.get(draftKey())||'{}')}catch(e){draft={}}}
+function saveDraft(){ls.set(draftKey(),JSON.stringify(draft));}
+
+async function api(path,opt={}){
+  const r=await fetch(API+path,{...opt,headers:{'x-app-key':key,'content-type':'application/json',...(opt.headers||{})}});
+  const j=await r.json().catch(()=>({error:'応答を読めません'}));
+  if(!r.ok)throw new Error(j.error||('HTTP '+r.status));
+  return j;
 }
 
-function today(){
-  var d = new Date();
-  return d.getFullYear() + "-" + String(d.getMonth()+1).padStart(2,"0") + "-" + String(d.getDate()).padStart(2,"0");
+// ---- data loading
+function demoSections(){return [{id:1,company:'横浜市交通局',line_name:'1号線',direction:'上り',section_label:'立場～下飯田',alignment_side:'外軌',surface_side:'内軌',km_from:16750,km_to:17495,demo:true}];}
+function demoSheet(){const s={};DEMO.forEach(r=>{const km=r[0];s[km]={pt:r[1]};ITEMS.forEach((it,i)=>{const b=2+i*3;s[km][it.k]={base:r[b],prev:r[b+1],prevDate:r[b+2]?'2026-'+r[b+2]:null,today:null};});});return s;}
+
+async function connect(){
+  if(!key){online=false;setStat('off','オフライン試作');sections=demoSections();return;}
+  try{setStat('','接続中…');sections=await api('/sections');online=true;setStat('on','サーバー接続');}
+  catch(e){online=false;setStat('off',e.message.includes('合言葉')?'合言葉が違います':'オフライン');sections=demoSections();$('keyMsg').textContent='接続できませんでした：'+e.message+'。オフライン試作で表示しています。';$('keyMsg').className='msg err';}
 }
-function thisMonth(){ return today().slice(0,7); }
-function esc(value){
-  return String(value == null ? "" : value).replace(/[&<>"']/g,function(c){
-    return {"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c];
+async function loadSheet(){
+  loadDraft();
+  if(online&&!sec.demo){
+    try{const rows=await api(`/sheet?section=${sec.id}&date=${date}`);const s={};
+      rows.forEach(r=>{(s[r.km]=s[r.km]||{pt:r.pt})[r.item]={base:r.base,prev:r.prev,prevDate:r.prevDate,today:r.today};});sheet=s;}
+    catch(e){$('sendMsg').textContent='読み込みに失敗：'+e.message;$('sendMsg').className='msg err';sheet={};}
+  } else sheet=demoSheet();
+  KMS_ALL=Object.keys(sheet).map(Number).sort((a,b)=>a-b);
+  buildRanges();
+}
+function fillSections(){
+  $('selSec').innerHTML=sections.map((s,i)=>`<option value="${i}">${s.company}・${s.line_name}・${s.direction}${s.section_label?`（${s.section_label}）`:''}${s.demo?' ※オフライン':''}</option>`).join('');
+  const saved=ls.get('kensoku:sec');const i=sections.findIndex(s=>String(s.id)===saved);
+  $('selSec').value=String(i>=0?i:0);sec=sections[i>=0?i:0];
+  $('secInfo').textContent=sec?`${sec.company} ${sec.line_name} ${sec.direction}：通り＝${sec.alignment_side}、高低＝${sec.surface_side}。基準値 ${fmtKm(sec.km_from)}〜${fmtKm(sec.km_to)}（5m毎）`:'—';
+}
+
+// ---- ranges / pages
+function buildRanges(){
+  const opts=[];for(let i=0;i<KMS_ALL.length;i+=pageSize){const a=KMS_ALL[i],b=KMS_ALL[Math.min(i+pageSize,KMS_ALL.length)-1];opts.push(`<option value="${i/pageSize}">${fmtKm(a)} 〜 ${fmtKm(b)}</option>`);}
+  $('selRange').innerHTML=opts.join('');
+  const savedKm=+ls.get('kensoku:km:'+(sec&&sec.id));let p=0;
+  if(savedKm){const idx=KMS_ALL.indexOf(savedKm);if(idx>=0)p=Math.floor(idx/pageSize);}
+  else{const idx=KMS_ALL.findIndex(k=>ITEMS.some(it=>sheet[k][it.k]&&sheet[k][it.k].prev!=null));if(idx>=0)p=Math.floor(idx/pageSize);}
+  setPage(p,true);
+}
+function setPage(p,keepPos){
+  const max=Math.max(0,Math.ceil(KMS_ALL.length/pageSize)-1);page=Math.min(Math.max(0,p),max);
+  $('selRange').value=String(page);KMS=KMS_ALL.slice(page*pageSize,page*pageSize+pageSize);
+  if(KMS[0]&&sec)ls.set('kensoku:km:'+sec.id,String(KMS[0]));
+  seq=order();pos=0;buf='';renderPat();renderGrid(true);
+}
+
+// ---- input order
+const PRESETS=[
+ {name:'軌間 → 水準 → 通り・高低',groups:[['gauge'],['cross_level'],['alignment','surface']]},
+ {name:'軌間 → 水準 → 通り → 高低（1項目ずつ）',groups:[['gauge'],['cross_level'],['alignment'],['surface']]},
+ {name:'軌間・水準 → 通り・高低',groups:[['gauge','cross_level'],['alignment','surface']]},
+];
+function order(){
+  const o=[];
+  if(mode==='row')KMS.forEach((m,r)=>ITEMS.forEach((it,c)=>o.push([r,c])));
+  else if(mode==='col')ITEMS.forEach((it,c)=>KMS.forEach((m,r)=>o.push([r,c])));
+  else{const g=PRESETS[preset].groups;for(let b=0;b<KMS.length;b+=patN){const rows=[];for(let r=b;r<Math.min(b+patN,KMS.length);r++)rows.push(r);
+    g.forEach(grp=>rows.forEach(r=>grp.forEach(k=>o.push([r,ITEMS.findIndex(i=>i.k===k)]))));}}
+  return o;
+}
+const curRC=()=>seq[pos]||seq[0]||[0,0];
+const cellKey=(m,k)=>m+'|'+k;
+function cellVal(m,k){const d=draft[cellKey(m,k)];if(d!==undefined)return {v:d,src:'draft'};const t=sheet[m]&&sheet[m][k]&&sheet[m][k].today;return t!=null?{v:t,src:'saved'}:{v:null};}
+function lvl(d,it){const a=Math.abs(d);return a<=it.tol[0]?'ok':a<=it.tol[1]?'warn':'bad';}
+const dtxt=d=>Math.abs(d)>40?'桁を確認':(d>0?'+':'')+d;
+const lbl=it=>it.k==='alignment'&&sec?`通り<span class="u">(${sec.alignment_side})</span>`:it.k==='surface'&&sec?`高低<span class="u">(${sec.surface_side})</span>`:it.n;
+
+function renderPat(){
+  const el=$('patChips');el.innerHTML='';
+  PRESETS[preset].groups.forEach((grp,i)=>{if(i)el.insertAdjacentHTML('beforeend','<span class="arrow">→</span>');
+    const s=document.createElement('span');s.className='chip';s.textContent=grp.map(k=>ITEMS.find(x=>x.k===k).n).join('・')+`×${patN}`;el.appendChild(s);});
+  $('patView').classList.toggle('hidden',mode!=='pat');if(mode!=='pat')$('builder').classList.remove('open');
+}
+function renderGrid(scroll){
+  if(!KMS.length){$('grid').innerHTML='<tbody><tr><td class="note" style="padding:12px">基準値がありません。</td></tr></tbody>';return;}
+  const [cr,cc]=curRC();const nx=seq[pos+1];const bStart=mode==='pat'?Math.floor(cr/patN)*patN:-1;
+  let h='<thead><tr><th style="text-align:left;padding-left:6px">キロ程</th>'+ITEMS.map(it=>`<th>${lbl(it)}<br><span class="u">基準/前回</span></th>`).join('')+'</tr></thead><tbody>';
+  KMS.forEach((m,r)=>{
+    const blk=mode==='pat'&&Math.floor(r/patN)%2?'blk-b':'blk-a';const inb=mode==='pat'&&r>=bStart&&r<bStart+patN?' inblock':'';
+    h+=`<tr class="${blk}${inb}" id="row${r}"><th><span class="kmk">${Math.floor(m/1000)}k</span>${String(m%1000).padStart(3,'0')}<span class="pt">測点${sheet[m].pt??''}</span></th>`;
+    ITEMS.forEach((it,c)=>{
+      const S=sheet[m][it.k]||{};const cv=cellVal(m,it.k);
+      const isCur=r===cr&&c===cc,isNext=nx&&nx[0]===r&&nx[1]===c;
+      let inner=cv.v==null?'<div class="v empty">·</div>':`<div class="v${cv.src==='saved'?' saved':''}">${cv.v}</div>`;
+      inner+=`<div class="meta">${S.base??'–'} / ${S.prev??'–'}</div>`;
+      if(cv.v!=null&&S.base!=null){const d=cv.v-S.base;inner+=`<span class="d ${lvl(d,it)}">${dtxt(d)}</span>`;}
+      h+=`<td class="cell${isCur?' cur':''}${isNext?' next':''}" tabindex="0" data-r="${r}" data-c="${c}" aria-label="${fmtKm(m)} ${it.n}">${inner}</td>`;
+    });h+='</tr>';
   });
+  $('grid').innerHTML=h+'</tbody>';
+  const m=KMS[cr],it=ITEMS[cc],S=sheet[m][it.k]||{};const cv=cellVal(m,it.k);
+  $('nowKm').textContent=fmtKm(m);$('nowItem').textContent=it.n+(it.k==='alignment'&&sec?`（${sec.alignment_side}）`:it.k==='surface'&&sec?`（${sec.surface_side}）`:'');
+  $('nowSub').textContent=`基準 ${S.base??'–'} / 前回 ${S.prev??'–'}${S.prevDate?`（${S.prevDate.slice(5).replace('-','/')}）`:''}`;
+  $('nowBuf').textContent=buf!==''?buf:(cv.v??'—');
+  const nd=Object.keys(draft).length;const done=KMS.reduce((a,m)=>a+ITEMS.filter(it=>cellVal(m,it.k).v!=null).length,0);
+  $('progress').textContent=`この区間 ${done}/${KMS.length*ITEMS.length}・未送信 ${nd}件`;
+  const hdr=document.querySelector('header.top');const hh=hdr.getBoundingClientRect().height;document.documentElement.style.setProperty('--hh',(hh-2)+'px');
+  if(scroll===false)return;
+  const row=$('row'+cr);if(row){const rr=row.getBoundingClientRect();const padTop=$('pad').getBoundingClientRect().top;const thh=36;
+    if(rr.top<hh+thh||rr.bottom>padTop-8){const target=window.scrollY+rr.top-(hh+thh)-(padTop-hh-thh-rr.height)/2;window.scrollTo({top:Math.max(0,target),behavior:matchMedia('(prefers-reduced-motion: reduce)').matches?'auto':'smooth'});}}
 }
-function toast(message){
-  var el = $("#toast"); el.textContent = message; el.classList.add("show");
-  clearTimeout(el._timer); el._timer = setTimeout(function(){el.classList.remove("show");},3000);
-}
-function selected(select){ return select.options[select.selectedIndex]; }
-function setBusy(button,on,label){
-  if(on){button.dataset.label=button.textContent;button.textContent=label||"処理中…";button.disabled=true;}
-  else{button.textContent=button.dataset.label||button.textContent;button.disabled=false;}
-}
-function showGlobal(message){
-  var el=$("#global-alert"); el.textContent=message; el.classList.remove("hidden");
-}
-function clearGlobal(){ $("#global-alert").classList.add("hidden"); }
-
-function showSaveStatus(message,kind){
-  var el=$("#save-status");
-  el.textContent=message;
-  el.className="alert "+(kind==="ok"?"alert-info":"alert-ng");
-  el.classList.remove("hidden");
-}
-
-$$("nav button").forEach(function(button){
-  button.addEventListener("click",function(){
-    $$("nav button").forEach(function(b){b.classList.remove("active");});
-    $$(".tab").forEach(function(t){t.classList.remove("active");});
-    button.classList.add("active");
-    $("#"+button.dataset.tab).classList.add("active");
-    if(button.dataset.tab==="tab-admin"&&adminUser) loadAdmin();
-    window.scrollTo(0,0);
-  });
-});
-
-async function loadMaster(){
-  var status=$("#system-status");
-  status.textContent="社員・車両マスタを同期しています…";
-  try{
-    master=await service.getMaster();
-    $("#department").innerHTML='<option value="">選択してください</option>'+master.departments.filter(function(d){return d.active;}).map(function(d){
-      return '<option value="'+esc(d.id)+'">'+esc(d.name)+'</option>';
-    }).join("");
-    renderEmployeeOptions();
-    var checkerOpts='<option value="">選択してください</option>'+master.employees.filter(function(e){return e.active;}).map(function(e){
-      return '<option value="'+esc(e.id)+'">'+esc(e.name+(e.department?"（"+e.department+"）":""))+'</option>';
-    }).join("");
-    $("#pre-checker").innerHTML=checkerOpts;
-    $("#post-checker").innerHTML=checkerOpts;
-    $("#vehicle").innerHTML='<option value="">選択してください</option>'+master.vehicles.filter(function(v){return v.active;}).map(function(v){
-      return '<option value="'+esc(v.id)+'">'+esc(v.no+(v.name?"（"+v.name+"）":""))+'</option>';
-    }).join("");
-    status.textContent="✅ マスタ同期済み：所属 "+master.departments.length+"件／社員 "+master.employees.length+"名／車両 "+master.vehicles.length+"台";
-    return true;
-  }catch(err){
-    status.textContent="⚠ マスタ同期失敗："+err.message;
-    showGlobal("マスタを取得できません。設定タブから再同期してください。");
-    return false;
-  }
+function commit(){const [r,c]=curRC();if(!KMS[r])return;if(buf!==''&&buf!=='-'){draft[cellKey(KMS[r],ITEMS[c].k)]=parseInt(buf,10);saveDraft();}buf='';}
+function press(k){
+  if(!KMS.length)return;const [r,c]=curRC();
+  if(/^\d$/.test(k)){if(buf.replace('-','').length<4)buf+=k;}
+  else if(k==='pm')buf=buf.startsWith('-')?buf.slice(1):'-'+buf;
+  else if(k==='del')buf=buf.slice(0,-1);
+  else if(k==='next'){commit();if(pos<seq.length-1)pos++;else{$('sendMsg').textContent='この区間の最後です。▶で次の区間へ。';$('sendMsg').className='msg';}}
+  else if(k==='back'){buf='';if(pos>0)pos--;}
+  else if(k==='skip'){delete draft[cellKey(KMS[r],ITEMS[c].k)];saveDraft();buf='';if(pos<seq.length-1)pos++;}
+  renderGrid();
 }
 
-function renderEmployeeOptions(){
-  var departmentId=$("#department").value;
-  var rows=master.employees.filter(function(e){
-    return e.active && (!departmentId || e.departmentId===departmentId);
-  });
-  $("#employee").innerHTML='<option value="">選択してください</option>'+rows.map(function(e){
-    return '<option value="'+esc(e.id)+'">'+esc(e.name)+'</option>';
-  }).join("");
+// ---- send
+async function send(){
+  commit();const entries=Object.entries(draft);
+  if(!entries.length){$('sendMsg').textContent='未送信の入力はありません。';$('sendMsg').className='msg';return;}
+  if(!online||sec.demo){$('sendMsg').textContent=`オフラインのため送信できません（${entries.length}件はこの端末に保存済み）。`;$('sendMsg').className='msg err';return;}
+  const rows=entries.map(([k,v])=>{const [km,item]=k.split('|');return {km:+km,item,value:v};});
+  $('btnSend').disabled=true;$('sendMsg').textContent='送信中…';$('sendMsg').className='msg';
+  try{const r=await api('/measurements',{method:'POST',body:JSON.stringify({section:sec.id,date,rows})});
+    draft={};ls.del(draftKey());await loadSheetKeepPage();
+    $('sendMsg').textContent=`${r.saved}件を ${date} の測定として保存しました。`;$('sendMsg').className='msg ok';}
+  catch(e){$('sendMsg').textContent='送信に失敗：'+e.message+'（入力は端末に残っています）';$('sendMsg').className='msg err';}
+  finally{$('btnSend').disabled=false;}
 }
-$("#department").addEventListener("change",renderEmployeeOptions);
+async function loadSheetKeepPage(){const p=page,ps=pos;await loadSheet();setPage(p);pos=Math.min(ps,seq.length-1);renderGrid(false);}
 
-function calcDistance(){
-  var s=Number($("#start-odo").value), e=Number($("#end-odo").value);
-  $("#distance").textContent=Number.isFinite(s)&&Number.isFinite(e)&&e>=s
-    ? (Math.round((e-s)*10)/10).toLocaleString():"--";
+// ---- output
+function sheetRowsForOut(){return KMS_ALL.map(m=>({m,pt:sheet[m].pt,cells:ITEMS.map(it=>{const S=sheet[m][it.k]||{};const dv=draft[cellKey(m,it.k)];const t=dv!==undefined?dv:S.today;const v=t!=null?t:S.prev;return {S,t,v,d:v!=null&&S.base!=null?v-S.base:null};})}));}
+function renderOut(){
+  const rows=sheetRowsForOut();
+  let h='<tr><th>キロ程</th><th>測点</th>'+ITEMS.map(it=>`<th>${it.n}</th>`).join('')+'</tr>';
+  rows.forEach(r=>{h+=`<tr><td class="num">${fmtKm(r.m)}</td><td class="num">${r.pt??''}</td>`+r.cells.map(c=>c.v==null?'<td class="none num">–</td>':`<td class="num${c.t!=null?' today':''}">${c.v} <span class="note">(${c.d>0?'+':''}${c.d})</span></td>`).join('')+'</tr>';});
+  $('outTbl').innerHTML=h;
 }
-$("#start-odo").addEventListener("input",calcDistance);
-$("#end-odo").addEventListener("input",calcDistance);
+function csv(){
+  const head=['会社','線名','上下','キロ程','測点','項目','基準値','前日までの測定値','前回測定日','修正値(当日)','検査用紙の値','狂量','測定日'];
+  const lines=[head.join(',')];
+  sheetRowsForOut().forEach(r=>r.cells.forEach((c,i)=>lines.push([sec.company,sec.line_name,sec.direction,fmtKm(r.m),r.pt??'',ITEMS[i].n,c.S.base??'',c.S.prev??'',c.S.prevDate??'',c.t??'',c.v??'',c.d??'',date].join(','))));
+  return '﻿'+lines.join('\r\n');
+}
+function saveCsv(){const b=new Blob([csv()],{type:'text/csv'});const a=document.createElement('a');a.href=URL.createObjectURL(b);a.download=`検測_${sec.line_name}${sec.direction}_${date}.csv`;document.body.appendChild(a);a.click();setTimeout(()=>{URL.revokeObjectURL(a.href);a.remove();},1000);}
 
-async function loadVehicleState(){
-  clearGlobal();
-  var vehicleId=$("#vehicle").value;
-  var box=$("#vehicle-state");
-  $("#start-odo").value="";
-  $("#end-odo").value="";
-  $("#distance").textContent="--";
-  $("#correction-box").classList.add("hidden");
-  $("#correction-reason").value="";
-  $("#start-odo").readOnly=true;
-  vehicleState=null;
-  if(!vehicleId){box.classList.add("hidden");return;}
-  var vehicle=master.vehicles.find(function(v){return v.id===vehicleId;});
-  box.classList.remove("hidden");
-  $("#vehicle-state-main").textContent="最新距離を確認しています…";
-  $("#vehicle-state-sub").textContent="";
-  try{
-    var state=await service.getVehicleState(vehicleId);
-    var latest=state.latestOdometer;
-    if(latest==null && vehicle && vehicle.initialOdometer!=null) latest=vehicle.initialOdometer;
-    vehicleState={vehicleId:vehicleId,latestOdometer:latest,revision:Number(state.revision||0),lastReportId:state.lastReportId||null};
-    if(latest==null){
-      $("#vehicle-state-main").textContent="初回使用の車両です";
-      $("#vehicle-state-sub").textContent="実際のメーターを開始距離へ入力してください。";
-      $("#start-odo").readOnly=false;
-      $("#correct-start").classList.add("hidden");
-    }else{
-      $("#vehicle-state-main").textContent="引継ぎ開始距離："+Number(latest).toLocaleString()+" km";
-      $("#vehicle-state-sub").textContent="中央データベースの最新距離です。更新番号："+state.revision;
-      $("#start-odo").value=latest;
-      $("#start-odo").readOnly=true;
-      $("#correct-start").classList.remove("hidden");
-    }
-    calcDistance();
-  }catch(err){
-    showGlobal("車両の最新距離を取得できません："+err.message);
-    box.classList.add("hidden");
-  }
-}
-$("#vehicle").addEventListener("change",loadVehicleState);
+// ---- wiring
+document.querySelectorAll('.key').forEach(b=>b.addEventListener('click',()=>press(b.dataset.k)));
+$('grid').addEventListener('click',e=>{const td=e.target.closest('td.cell');if(!td)return;commit();const r=+td.dataset.r,c=+td.dataset.c;const i=seq.findIndex(([a,b])=>a===r&&b===c);if(i>=0)pos=i;renderGrid(false);});
+document.addEventListener('keydown',e=>{if(['INPUT','SELECT'].includes(e.target.tagName))return;if(/^\d$/.test(e.key))press(e.key);else if(e.key==='Enter')press('next');else if(e.key==='Backspace')press('del');else if(e.key==='-')press('pm');});
+function setMode(m){commit();const [r,c]=curRC();mode=m;seq=order();pos=Math.max(0,seq.findIndex(([a,b])=>a===r&&b===c));
+  ['Row','Col','Pat'].forEach(x=>$('m'+x).setAttribute('aria-pressed',m===x.toLowerCase()));ls.set('kensoku:mode',JSON.stringify({mode,patN,preset}));renderPat();renderGrid();}
+$('mRow').onclick=()=>setMode('row');$('mCol').onclick=()=>setMode('col');$('mPat').onclick=()=>setMode('pat');
+$('btnEditPat').onclick=()=>$('builder').classList.toggle('open');
+PRESETS.forEach((p,i)=>{const o=document.createElement('option');o.value=i;o.textContent=p.name;$('selPreset').appendChild(o);});
+$('selPreset').onchange=e=>{preset=+e.target.value;setMode('pat');};
+[1,2,3,4,5,6].forEach(n=>{const b=document.createElement('button');b.textContent=n;b.setAttribute('aria-pressed',n===patN);b.onclick=()=>{patN=n;[...$('segN').children].forEach(x=>x.setAttribute('aria-pressed',x===b));setMode('pat');};$('segN').appendChild(b);});
+$('selRange').onchange=e=>{commit();setPage(+e.target.value);};
+$('pgPrev').onclick=()=>{commit();setPage(page-1);};$('pgNext').onclick=()=>{commit();setPage(page+1);};
+$('selPage').onchange=e=>{commit();pageSize=+e.target.value;ls.set('kensoku:page',String(pageSize));buildRanges();};
+$('selSec').onchange=async e=>{commit();sec=sections[+e.target.value];ls.set('kensoku:sec',String(sec.id));fillSections();await loadSheet();};
+$('inDate').onchange=async e=>{commit();date=e.target.value||today();await loadSheetKeepPage();};
+$('btnSend').onclick=send;
+$('btnCsv').onclick=saveCsv;
+$('btnReload').onclick=async()=>{await loadSheetKeepPage();renderOut();};
+$('btnKey').onclick=async()=>{key=$('inKey').value.trim();ls.set('kensoku:key',key);$('keyMsg').className='msg';$('keyMsg').textContent='接続中…';await start();if(online){$('keyMsg').textContent='接続しました。';$('keyMsg').className='msg ok';tab('Input');}};
+$('btnOffline').onclick=async()=>{key='';ls.del('kensoku:key');await start();tab('Input');};
+function tab(n){['Input','Out','Sys'].forEach(x=>{$('p'+x).classList.toggle('hidden',x!==n);$('tab'+x).setAttribute('aria-selected',x===n);});
+  $('pad').classList.toggle('hidden',n!=='Input');$('nowBar').classList.toggle('hidden',n!=='Input');document.body.style.paddingBottom=n==='Input'?'300px':'40px';if(n==='Out'){commit();renderOut();}}
+$('tabInput').onclick=()=>tab('Input');$('tabOut').onclick=()=>tab('Out');$('tabSys').onclick=()=>tab('Sys');
 
-$("#correct-start").addEventListener("click",function(){
-  var input=$("#start-odo");
-  input.readOnly=!input.readOnly;
-  $("#correction-box").classList.toggle("hidden",input.readOnly);
-  if(input.readOnly && vehicleState) input.value=vehicleState.latestOdometer;
-  calcDistance();
-});
-function updateAlcoholJudge(phase){var raw=$("#"+phase+"-value").value,hidden=$("#"+phase+"-judge"),view=$("#"+phase+"-judge-view");view.className="judge";if(raw===""){hidden.value="";view.textContent="測定値を入力してください";}else if(Number(raw)>0){hidden.value="NG";view.textContent="検知あり";view.classList.add("ng");}else{hidden.value="OK";view.textContent="異常なし";view.classList.add("ok");}$("#ng-warning").classList.toggle("hidden",!($("#pre-judge").value==="NG"||$("#post-judge").value==="NG"));}
-["pre","post"].forEach(function(p){$("#"+p+"-value").addEventListener("input",function(){updateAlcoholJudge(p);});});
-
-function requiredValue(id,label){
-  var value=$("#"+id).value;
-  if(value===""||value==null) throw new Error(label+"を入力してください");
-  return value;
+async function start(){
+  await connect();fillSections();await loadSheet();
 }
-function buildReport(){
-  requiredValue("department","所属");
-  var employeeId=requiredValue("employee","運転者");
-  var vehicleId=requiredValue("vehicle","車両");
-  var employee=master.employees.find(function(e){return e.id===employeeId;});
-  var vehicle=master.vehicles.find(function(v){return v.id===vehicleId;});
-  var start=Number(requiredValue("start-odo","開始距離"));
-  var end=Number(requiredValue("end-odo","終了距離"));
-  if(end<start) throw new Error("終了距離は開始距離以上にしてください");
-  var correctionReason=$("#correction-reason").value.trim();
-  if(!$("#correction-box").classList.contains("hidden")&&!correctionReason) throw new Error("開始距離の修正理由を入力してください");
-  var startTime=$("#start-time").value,endTime=$("#end-time").value;
-  if(startTime&&endTime&&startTime===endTime) throw new Error("使用開始と終了には異なる時刻を入力してください");
-  ["pre-time","pre-value","pre-checker","post-time","post-value","post-checker"].forEach(function(id){
-    requiredValue(id,document.querySelector('label[for="'+id+'"]').textContent.replace("必須",""));
-  });
-  requiredValue("pre-judge","運転前の測定値");requiredValue("post-judge","運転後の測定値");
-  return {
-    date:requiredValue("date","日付"),
-    employeeId:employeeId,employeeName:employee.name,
-    departmentId:employee.departmentId,departmentName:employee.department,
-    vehicleId:vehicleId,vehicleNo:vehicle.no,vehicleName:vehicle.name,
-    destination:$("#destination").value.trim(),
-    startTime:startTime,endTime:endTime,
-    startOdometer:start,endOdometer:end,
-    correctionReason:correctionReason,
-    alcoholPre:{time:$("#pre-time").value,value:Number($("#pre-value").value),checkerId:$("#pre-checker").value,checkerName:selected($("#pre-checker")).text,judge:$("#pre-judge").value},
-    alcoholPost:{time:$("#post-time").value,value:Number($("#post-value").value),checkerId:$("#post-checker").value,checkerName:selected($("#post-checker")).text,judge:$("#post-judge").value},
-    etc:$("#etc").value,highway:$("#highway").value,parking:$("#parking").value,
-    memo:$("#memo").value.trim(),
-    clientVersion:CFG.appVersion
-  };
-}
-function clearAfterSave(){
-  ["vehicle","destination","start-time","end-time","start-odo","end-odo","correction-reason","pre-time","pre-value","pre-checker","pre-judge","post-time","post-value","post-checker","post-judge","memo"].forEach(function(id){$("#"+id).value="";});
-  ["etc","highway","parking"].forEach(function(id){$("#"+id).value="なし";});
-  $("#vehicle-state").classList.add("hidden");$("#correction-box").classList.add("hidden");
-  $("#ng-warning").classList.add("hidden");$("#distance").textContent="--";vehicleState=null;
-  updateAlcoholJudge("pre");updateAlcoholJudge("post");
-}
-$("#save-report").addEventListener("click",async function(){
-  var button=this;clearGlobal();
-  $("#save-status").classList.add("hidden");
-  setBusy(button,true,"保存しています…");
-  try{
-    if(!vehicleState) throw new Error("車両の最新距離を取得してから保存してください");
-    var report=buildReport();
-    var saved=await service.saveReport(report,{expectedRevision:vehicleState.revision});
-    clearAfterSave();
-    showSaveStatus("✅ サーバー保存完了","ok");toast("✅ 日報を保存しました");if(adminUser){$("#admin-month").value=report.date.slice(0,7);loadAdmin();}
-  }catch(err){
-    if(err.code==="REVISION_CONFLICT"){
-      showGlobal("別の社員が先にこの車両の日報を保存しました。最新距離を再取得します。");
-      await loadVehicleState();
-    }else{
-      showGlobal(err.message||"保存できませんでした");
-    }
-    showSaveStatus("❌ 保存できませんでした："+(err.message||"入力内容を確認してください"),"ng");
-    toast("❌ 保存できませんでした");
-    $("#save-status").scrollIntoView({behavior:"smooth",block:"center"});
-  }finally{setBusy(button,false);}
-});
-
-function fmt(v){return v==null||v===""?"－":Number(v).toLocaleString();}function sh(v){var c=v==="検知あり"?"status-ng":(v==="未入力"?"status-warn":"");return'<span class="'+c+'">'+esc(v)+'</span>';}function setAdminView(on){$("#admin-login").classList.toggle("hidden",on);$("#admin-dashboard").classList.toggle("hidden",!on);}
-$("#admin-login-button").addEventListener("click",async function(){var b=this,e=$("#admin-login-error");e.classList.add("hidden");setBusy(b,true,"確認しています…");try{adminUser=await service.loginAdmin($("#admin-email").value,$("#admin-password").value);$("#admin-password").value="";setAdminView(true);await loadAdmin();toast("✅ 管理者としてログインしました");}catch(x){e.textContent=x.message||"ログインできませんでした";e.classList.remove("hidden");}finally{setBusy(b,false);}});
-$("#admin-password").addEventListener("keydown",function(e){if(e.key==="Enter")$("#admin-login-button").click();});$("#admin-logout").addEventListener("click",async function(){await service.logoutAdmin();adminUser=null;adminData=null;setAdminView(false);toast("ログアウトしました");});
-function utilizationText(value){return value==null?"未算出":value.toLocaleString()+"%";}
-async function loadAdmin(){
-  if(!adminUser)return false;
-  var month=$("#admin-month").value;
-  $("#admin-updated").textContent="サーバーから集計しています…";
-  try{
-    var results=await Promise.all([service.listReports({month:month}),service.getFleetAdministration(month)]);
-    var reports=results[0],fleet=results[1];
-    var settings=fleet.settings?{businessDays:fleet.settings.business_days}:{};
-    var analysisMaster={departments:master.departments,employees:master.employees,vehicles:fleet.vehicles};
-    adminData=FleetAdmin.build(month,reports,analysisMaster,settings);
-    var t=adminData.totals;
-    $("#fleet-business-days").value=adminData.businessDays;
-    $("#kpi-vehicles").textContent=t.activeVehicles;
-    $("#kpi-days").textContent=t.operatingDays;
-    $("#kpi-reports").textContent=t.reportCount;
-    $("#kpi-distance").textContent=t.totalDistance.toLocaleString();
-    $("#kpi-alcohol").textContent=t.alcoholIssues;
-    $("#kpi-missing").textContent=t.alcoholMissing;
-    $("#util-total-rate").textContent="全車両の稼働日率："+utilizationText(t.utilizationRate);
-    $("#util-total-detail").textContent="保有 "+t.registeredVehicles+"台 × 営業 "+adminData.businessDays+"日 ＝ 稼働可能 "+t.capacityDays+"車両日／実績 "+t.operatingDays+"車両日。確認できた使用時間 "+t.usageHours+"時間。";
-    $("#util-warning").textContent=[t.missingTimeReports?"使用時刻の未入力 "+t.missingTimeReports+"件。使用時間は確認できた分のみです。":"",t.unassignedVehicles?"保有部署が未割当の車両 "+t.unassignedVehicles+"台。":"",t.utilizationRate>100?"休日等の使用日も計上するため、稼働日率が100%を超えています。":""].filter(Boolean).join(" ");
-    var deptNames=new Map(master.departments.map(d=>[d.id,d.name]));
-    $("#vehicle-summary-body").innerHTML=adminData.vehicleRows.map(v=>'<tr><td>'+esc(v.vehicleNo)+'</td><td>'+esc(v.vehicleName)+'</td><td>'+esc(deptNames.get(v.ownerDepartmentId)||"未割当")+'</td><td>'+utilizationText(v.utilizationRate)+'</td><td>'+v.operatingDays+'</td><td>'+v.capacityDays+'</td><td>'+fmt(v.usageHours)+'</td><td>'+v.missingTimeReports+'</td><td>'+v.reportCount+'</td><td>'+v.driverCount+'</td><td>'+fmt(v.openingOdometer)+'</td><td>'+fmt(v.closingOdometer)+'</td><td>'+fmt(v.totalDistance)+'</td><td>'+fmt(v.averagePerDay)+'</td><td>'+esc(v.lastUsedDate||"－")+'</td><td>'+esc(v.lastDriverName||"－")+'</td><td>'+v.correctionCount+'</td><td>'+v.alcoholIssueCount+'</td><td>'+v.alcoholMissingCount+'</td></tr>').join("");
-    $("#department-summary-body").innerHTML=adminData.departmentRows.map(d=>'<tr><td>'+esc(d.departmentName)+'</td><td>'+d.vehicleCount+'</td><td>'+utilizationText(d.utilizationRate)+'</td><td>'+d.operatingDays+'</td><td>'+d.capacityDays+'</td><td>'+fmt(d.hours)+'</td><td>'+d.missing+'</td></tr>').join("");
-    $("#driver-summary-body").innerHTML=adminData.driverRows.map(v=>'<tr><td>'+esc(v.employeeName)+'</td><td>'+esc(v.departmentName)+'</td><td>'+v.operatingDays+'</td><td>'+v.reportCount+'</td><td>'+fmt(v.totalDistance)+'</td><td>'+v.vehicleCount+'</td><td>'+esc(v.vehicles||"－")+'</td><td>'+esc(v.lastDriveDate||"－")+'</td><td>'+v.alcoholIssueCount+'</td><td>'+v.alcoholMissingCount+'</td></tr>').join("");
-    $("#alcohol-body").innerHTML=adminData.alcoholRows.map(v=>'<tr><td>'+esc(v.date)+'</td><td>'+esc(v.employeeName)+'</td><td>'+esc(v.departmentName)+'</td><td>'+esc(v.vehicleNo)+'</td><td>'+esc(v.preTime||"－")+'</td><td>'+fmt(v.preValue)+'</td><td>'+esc(v.preChecker||"－")+'</td><td>'+esc(v.postTime||"－")+'</td><td>'+fmt(v.postValue)+'</td><td>'+esc(v.postChecker||"－")+'</td><td>'+sh(v.status)+'</td></tr>').join("");
-    $("#detail-body").innerHTML=adminData.reports.map(r=>'<tr><td>'+esc(r.date)+'</td><td>'+esc(r.vehicleNo)+'</td><td>'+esc(r.employeeName)+'</td><td>'+esc(r.departmentName)+'</td><td>'+fmt(r.startOdometer)+'</td><td>'+fmt(r.endOdometer)+'</td><td>'+fmt(r.distance)+'</td><td>'+esc(r.destination||"－")+'</td><td>'+esc(r.savedAt||"－")+'</td></tr>').join("");
-    $("#fleet-owner-list").innerHTML=fleet.vehicles.map(v=>'<div class="owner-row"><span>'+esc(v.no)+(v.active?'':'（使用停止）')+'</span><strong>'+esc(deptNames.get(v.ownerDepartmentId)||"未割当")+'</strong></div>').join("");
-    $("#admin-updated").textContent="サーバーから更新："+updatedTime()+"（日報 "+t.reportCount+"件／保有車両 "+t.registeredVehicles+"台）";
-    return true;
-  }catch(e){
-    adminData=null;
-    $("#admin-updated").textContent="更新失敗："+(e.message||"取得できません");
-    if(e.code==="ADMIN_LOGIN_REQUIRED"||e.code==="AUTH_ERROR"){adminUser=null;setAdminView(false);}
-    return false;
-  }
-}
-$("#save-fleet-settings").addEventListener("click",async function(){
-  var days=Number($("#fleet-business-days").value);
-  if(!Number.isInteger(days)||days<0||days>31)return toast("営業日数を確認してください");
-  setBusy(this,true,"保存中…");
-  try{await service.saveFleetMonthSettings($("#admin-month").value,days);await loadAdmin();toast("✅ 集計基準を保存しました");}
-  catch(e){toast("保存失敗："+e.message);}
-  finally{setBusy(this,false);}
-});
-$("#reload-admin").addEventListener("click",async function(){setBusy(this,true,"更新中…");await loadAdmin();setBusy(this,false);});$("#admin-month").addEventListener("change",loadAdmin);$$('[data-admin-panel]').forEach(b=>b.addEventListener("click",function(){$$('[data-admin-panel]').forEach(x=>x.classList.remove("active"));$$('.admin-panel').forEach(x=>x.classList.remove("active"));b.classList.add("active");$("#"+b.dataset.adminPanel).classList.add("active");}));
-$("#download-excel").addEventListener("click",function(){if(!adminData)return toast("先に集計を更新してください");FleetAdmin.exportExcel(adminData);});function preparePrint(){var m=$("#admin-month").value.split("-");var label=document.querySelector('[data-admin-panel].active');$("#print-title").textContent="運転日報 月次管理（"+(label?label.textContent:"集計")+"）";$("#print-meta").textContent="対象月："+(m.length===2?m[0]+"年"+Number(m[1])+"月":$("#admin-month").value)+"　出力日時："+new Date().toLocaleString("ja-JP");}$("#print-summary").addEventListener("click",function(){preparePrint();window.print();});window.addEventListener("beforeprint",preparePrint);
-$("#change-admin-password").addEventListener("click",async function(){var p=$("#new-admin-password").value;if(p.length<12)return toast("12文字以上で入力してください");if(!confirm("管理者パスワードを変更しますか？"))return;try{await service.changeAdminPassword(p);$("#new-admin-password").value="";toast("✅ パスワードを変更しました");}catch(e){toast("変更失敗："+e.message);}});
-async function refreshActiveView(){var focused=document.activeElement;if(focused&&focused.closest&&focused.closest('#fleet-business-days'))return;if(!document.hidden&&adminUser&&$("#tab-admin").classList.contains("active"))await loadAdmin();}setInterval(refreshActiveView,30000);document.addEventListener("visibilitychange",function(){if(!document.hidden)refreshActiveView();});window.addEventListener("focus",refreshActiveView);
-
-$("#sync-master").addEventListener("click",async function(){if(await loadMaster())toast("✅ マスタを同期しました");});
-async function init(){
-  $("#date").value=today();$("#admin-month").value=thisMonth();
-  $("#mode-badge").textContent=CFG.mode==="demo"?"端末内デモ":(CFG.mode==="supabase"?"中央試験DB":"本番DB");
-  if(CFG.mode==="demo") showGlobal("現在は試験DBモードです。データはこの端末内だけに保存されます。");
-  await loadMaster();
-  if(CFG.mode==="supabase"){
-    var invited=null;
-    try{invited=await service.consumeAuthRedirect();}catch(e){showGlobal("管理者招待を確認できませんでした："+(e.message||"認証エラー"));}
-    adminUser=invited||await service.restoreAdmin();setAdminView(!!adminUser);
-    if(adminUser)await loadAdmin();
-    if(invited){
-      $("#admin-invite-message").classList.remove("hidden");
-      var adminButton=document.querySelector('nav button[data-tab="tab-admin"]');if(adminButton)adminButton.click();
-      setTimeout(function(){$("#new-admin-password").scrollIntoView({behavior:"smooth",block:"center"});},300);
-    }
-  }
-}
-init();
+(async()=>{
+  try{const m=JSON.parse(ls.get('kensoku:mode')||'null');if(m){mode=m.mode;patN=m.patN;preset=m.preset;}}catch(e){}
+  ['Row','Col','Pat'].forEach(x=>$('m'+x).setAttribute('aria-pressed',mode===x.toLowerCase()));
+  [...$('segN').children].forEach(x=>x.setAttribute('aria-pressed',+x.textContent===patN));$('selPreset').value=String(preset);
+  pageSize=+(ls.get('kensoku:page')||20);$('selPage').value=String(pageSize);
+  $('inDate').value=date;
+  await start();
+  if(!key)tab('Sys');
+})();
+})();
 </script>
 </body>
 </html>
