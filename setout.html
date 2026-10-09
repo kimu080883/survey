@@ -33,7 +33,7 @@ input[type=number]{ -moz-appearance:textfield; }
   <header class="flex items-center justify-between mb-3">
     <div>
       <h1 class="text-lg font-bold text-slate-900">杭打ち計算(逆放射)</h1>
-      <p class="text-xs text-slate-500">CADの計画点 → 現場の角度・距離一覧</p>
+      <p class="text-xs text-slate-500">座標入力 → 角度・水平距離 → 点・点名をDXF出力</p>
     </div>
     <button id="btnHelp" class="text-xs px-3 py-2 rounded-lg bg-white border border-slate-200 text-slate-600 shadow-sm">使い方</button>
   </header>
@@ -41,15 +41,25 @@ input[type=number]{ -moz-appearance:textfield; }
   <div id="helpPanel" class="hidden mb-4 rounded-xl bg-white border border-slate-200 shadow-sm p-4 text-sm leading-relaxed text-slate-700">
     <div class="flex items-center justify-between mb-2"><h2 class="font-bold text-slate-900">使い方</h2><button id="helpClose" class="text-xs px-2 py-1 rounded bg-slate-100">閉じる</button></div>
     <ol class="list-decimal pl-5 space-y-1.5">
-      <li>AutoCADで計画点を「新点」レイヤに配置し、DXFで書き出す。</li>
-      <li><b>① DXF読込</b>でファイルを選び、レイヤ(例:新点)を指定 → 計画点を取り込む。</li>
+      <li>目標点の点名・X北・Y東を手入力。複数点は「点を追加」で入力できます。</li>
+      <li>既存のDXFを使う場合は「DXF読込」に切り替えて取り込みます。</li>
       <li><b>② 器械点・後視点</b>を指定(前に作った基準点を呼び出せます)。</li>
       <li><b>③ 計算</b>で各計画点の「夾角・方位角・距離」を一覧化。</li>
-      <li><b>Excel / PDF</b>で出力 → 現場で後視ゼロセット→夾角→距離で杭を打つ。</li>
+      <li><b>DXF出力</b>で基準点・バック・目標点を、POINTと編集可能な点名TEXTとして保存。CADで開き、元の座標で既存図面へ挿入できます。</li><li>角度はバック0°から右回り。距離は水平距離。座標はmで入力します。</li>
     </ol>
     <p class="mt-2 text-xs text-slate-500">※DXFの座標は「X=東・Y=北」として読み、測量座標(X北・Y東)に戻します(既定)。前アプリで書き出したDXFはこのままでOK。</p>
   </div>
 
+  <section class="rounded-xl bg-white border border-slate-200 shadow-sm p-4 mb-4">
+    <h2 class="text-sm font-bold mb-3">① 目標点を入力</h2>
+    <label class="text-sm">入力方法 <select id="inputMode" class="field rounded-lg border px-3 py-2"><option value="manual">座標を手入力</option><option value="dxf">DXF読込</option></select></label>
+    <div id="manualPanel" class="mt-3">
+      <p class="text-xs text-slate-500 mb-2">点名 ／ X（北・m）／ Y（東・m）</p>
+      <div id="manualRows" class="space-y-2"></div>
+      <button id="addManual" class="mt-3 border rounded-lg px-3 py-2 text-sm text-amber-700">＋ 点を追加</button>
+    </div>
+  </section>
+  <div id="dxfPanel" class="hidden">
   <!-- ① DXF読込 -->
   <section class="rounded-xl bg-white border border-slate-200 shadow-sm p-4 mb-4">
     <h2 class="text-sm font-bold text-slate-900 mb-3 flex items-center gap-2"><span class="inline-flex w-5 h-5 rounded-full bg-amber-700 text-white text-xs items-center justify-center">1</span>計画点を読み込む(DXF)</h2>
@@ -65,6 +75,7 @@ input[type=number]{ -moz-appearance:textfield; }
     </div>
   </section>
 
+  </div>
   <!-- ② 器械点・後視点 -->
   <section class="rounded-xl bg-white border border-slate-200 shadow-sm p-4 mb-4">
     <h2 class="text-sm font-bold text-slate-900 mb-3 flex items-center gap-2"><span class="inline-flex w-5 h-5 rounded-full bg-amber-700 text-white text-xs items-center justify-center">2</span>器械点・後視点</h2>
@@ -72,13 +83,13 @@ input[type=number]{ -moz-appearance:textfield; }
     <button id="btnLoadRef" class="mb-3 text-sm px-3 py-2 rounded-lg bg-white text-amber-700 border border-amber-200">前に作った基準点を呼び出す</button>
     <div class="grid grid-cols-1 gap-3">
       <div class="grid grid-cols-3 gap-2 items-end">
-        <label class="text-xs text-slate-500 col-span-3">器械点(据える点)</label>
+        <label class="text-xs text-slate-500 col-span-3">基準点・器械点（据える点）</label>
         <input id="instName" type="text" placeholder="点名" value="T1" class="field rounded-lg border border-slate-200 px-2 py-2 text-sm text-center">
         <input id="instX" type="number" inputmode="decimal" step="any" placeholder="X北" class="field rounded-lg border border-slate-200 px-2 py-2 text-sm mono">
         <input id="instY" type="number" inputmode="decimal" step="any" placeholder="Y東" class="field rounded-lg border border-slate-200 px-2 py-2 text-sm mono">
       </div>
       <div class="grid grid-cols-3 gap-2 items-end">
-        <label class="text-xs text-slate-500 col-span-3">後視点(ゼロセット)</label>
+        <label class="text-xs text-slate-500 col-span-3">バック・後視点（ゼロセット）</label>
         <input id="bsName" type="text" placeholder="点名" value="T2" class="field rounded-lg border border-slate-200 px-2 py-2 text-sm text-center">
         <input id="bsX" type="number" inputmode="decimal" step="any" placeholder="X北" class="field rounded-lg border border-slate-200 px-2 py-2 text-sm mono">
         <input id="bsY" type="number" inputmode="decimal" step="any" placeholder="Y東" class="field rounded-lg border border-slate-200 px-2 py-2 text-sm mono">
@@ -114,6 +125,14 @@ input[type=number]{ -moz-appearance:textfield; }
         <tbody id="resRows" class="mono text-xs"></tbody>
       </table>
     </div>
+    <div class="mt-4 p-3 rounded-lg bg-amber-50 space-y-3">
+      <h3 class="font-bold text-sm">点と点名をCADへ</h3>
+      <label class="block text-sm"><input id="dxfRefs" type="checkbox" checked> 基準点・バックも出力する</label>
+      <label class="block text-sm">図面の単位 <select id="dxfUnits" class="border rounded px-2 py-1"><option value="1">m（1単位＝1m）</option><option value="1000">mm（1単位＝1mm）</option></select></label>
+      <label class="block text-sm">点名の文字高さ（m） <input id="dxfHeight" type="number" step="any" min="0.001" value="0.25" class="field border rounded px-2 py-1 w-24"></label>
+      <p class="text-xs text-slate-600">CADは横＝Y東・縦＝X北。点は正確な座標、点名は右横に配置します。基準点はCONTROL、目標点はSURVEY_PT、点名はSURVEY_TXTレイヤ。既存図面へ挿入する場合は挿入点0,0・倍率1・回転0°、図面単位を合わせてください。</p>
+      <div class="grid grid-cols-2 gap-2"><button id="exDXF" class="py-3 rounded-lg bg-amber-700 text-white font-bold">DXFを保存</button><button id="shareDXF" class="py-3 rounded-lg border border-amber-700 text-amber-700 font-bold">DXFを共有</button></div>
+    </div>
     <div class="mt-4 grid grid-cols-3 gap-2">
       <button id="exXLSX" class="text-sm px-3 py-2.5 rounded-lg bg-white text-slate-700 border border-slate-200">Excel</button>
       <button id="exPDF" class="text-sm px-3 py-2.5 rounded-lg bg-white text-slate-700 border border-slate-200">PDF</button>
@@ -128,13 +147,29 @@ input[type=number]{ -moz-appearance:textfield; }
 const $=id=>document.getElementById(id);
 function normDeg(d){d%=360;return d<0?d+360:d;}
 function azimuth(x1,y1,x2,y2){return normDeg(Math.atan2(y2-y1,x2-x1)*180/Math.PI);}
-function deg2dms(deg){deg=normDeg(deg);let d=Math.floor(deg);let mf=(deg-d)*60;let m=Math.floor(mf);let s=(mf-m)*60;if(s>=59.95){s=0;m++;}if(m>=60){m=0;d++;}return `${d}°${String(m).padStart(2,'0')}'${s.toFixed(1).padStart(4,'0')}"`;}
+function deg2dms(deg){deg=normDeg(deg);let d=Math.floor(deg);let mf=(deg-d)*60;let m=Math.floor(mf);let s=(mf-m)*60;if(s>=59.95){s=0;m++;}if(m>=60){m=0;d++;}d%=360;return `${d}°${String(m).padStart(2,'0')}'${s.toFixed(1).padStart(4,'0')}"`;}
 function showError(m){$('err').textContent=m;$('err').classList.remove('hidden');}
 function clearError(){$('err').classList.add('hidden');}
 
 let planPts=[];   // {name,x,y} 測量座標(X北,Y東)に変換済み
 let rawEntities=[]; // DXF生データ {type,layer,dxfx,dxfy,txt}
 let result=null;
+function invalidateResult(){result=null;$('resultSec').classList.add('hidden');}
+function escapeHTML(v){return String(v).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));}
+function addManualRow(p={}){
+  const row=document.createElement('div');row.className='grid gap-2';row.style.gridTemplateColumns='1fr 1fr 1fr auto';
+  [['name','点名','text'],['x','X北','number'],['y','Y東','number']].forEach(([k,label,type])=>{
+    const input=document.createElement('input');input.type=type;input.placeholder=label;input.setAttribute('aria-label',label);input.dataset.key=k;
+    input.className='field rounded-lg border border-slate-200 px-2 py-2 min-w-0 w-full mono';
+    if(type==='number'){input.step='any';input.inputMode='decimal';}input.value=p[k]??'';row.appendChild(input);
+  });
+  const b=document.createElement('button');b.textContent='×';b.setAttribute('aria-label','この目標点を削除');b.className='px-2 text-slate-500';b.onclick=()=>{row.remove();invalidateResult();if(!$('manualRows').children.length)addManualRow();saveState();};row.appendChild(b);
+  row.oninput=()=>{invalidateResult();saveState();};$('manualRows').appendChild(row);
+}
+function manualValues(){return [...$('manualRows').children].map(row=>Object.fromEntries([...row.querySelectorAll('input')].map(i=>[i.dataset.key,i.value])));}
+$('addManual').onclick=()=>{addManualRow();saveState();};
+$('inputMode').onchange=()=>{ $('manualPanel').classList.toggle('hidden',$('inputMode').value!=='manual');$('dxfPanel').classList.toggle('hidden',$('inputMode').value!=='dxf');if($('inputMode').value==='dxf'){planPts=[];if(rawEntities.length)rebuildPlanPts();}invalidateResult();saveState();};
+
 
 /* ===== DXF読込 ===== */
 function parseDXF(text){
@@ -155,7 +190,7 @@ function parseDXF(text){
         else if(cc==='1'&&!txt)txt=vv.trim();
         i++;
       }
-      if(isFinite(x)&&isFinite(y))ents.push({type,layer,dxfx:x,dxfy:y,txt});
+      if(x!==null&&y!==null&&isFinite(x)&&isFinite(y))ents.push({type,layer,dxfx:x,dxfy:y,txt});
       continue;
     }
     i++;
@@ -164,6 +199,7 @@ function parseDXF(text){
 }
 function layersOf(ents){return [...new Set(ents.map(e=>e.layer))];}
 function rebuildPlanPts(){
+  invalidateResult();
   const layer=$('selLayer').value;
   const swap=$('axisSwap').checked;
   const sel=rawEntities.filter(e=>layer==='(すべて)'||e.layer===layer);
@@ -228,15 +264,15 @@ function applyRefPick(){
   const bp=refPts.find(c=>c.name===$('selBs').value);
   if(ip){$('instName').value=ip.name;$('instX').value=ip.x;$('instY').value=ip.y;}
   if(bp){$('bsName').value=bp.name;$('bsX').value=bp.x;$('bsY').value=bp.y;}
-  updateBsAz();
+  invalidateResult();updateBsAz();saveState();
 }
 $('btnLoadRef').onclick=loadRef;
 $('selInst').onchange=applyRefPick;
 $('selBs').onchange=applyRefPick;
-['instX','instY','bsX','bsY'].forEach(id=>$(id).oninput=updateBsAz);
+['instName','instX','instY','bsName','bsX','bsY'].forEach(id=>$(id).oninput=()=>{invalidateResult();updateBsAz();saveState();});
 function updateBsAz(){
   const ix=Number($('instX').value),iy=Number($('instY').value),bx=Number($('bsX').value),by=Number($('bsY').value);
-  if([ix,iy,bx,by].every(isFinite)&&!($('instX').value===''||$('bsX').value==='')){
+  if([ix,iy,bx,by].every(isFinite)&&['instX','instY','bsX','bsY'].every(id=>$(id).value!=='')){
     if(ix===bx&&iy===by){$('bsAzNote').textContent='器械点と後視点が同じ座標です。';$('bsAzNote').className='text-xs text-amber-600';return;}
     const az=azimuth(ix,iy,bx,by);
     $('bsAzNote').textContent=`後視方位角 ${$('instName').value||'器械'}→${$('bsName').value||'後視'} = ${deg2dms(az)}`;
@@ -246,13 +282,19 @@ function updateBsAz(){
 
 /* ===== 計算(逆放射) ===== */
 function calc(){
-  clearError();
-  if(!planPts.length){showError('先にDXFを読み込み、計画点を取り込んでください。');return;}
+  clearError();invalidateResult();
+  if($('inputMode').value==='manual'){
+    const entered=manualValues().filter(p=>p.name.trim()||p.x!==''||p.y!=='');
+    if(entered.some(p=>p.x===''||p.y===''||!Number.isFinite(Number(p.x))||!Number.isFinite(Number(p.y)))){showError('目標点のX・Yを両方入力してください。');return;}
+    planPts=entered.map((p,i)=>({name:p.name.trim()||`新${i+1}`,x:Number(p.x),y:Number(p.y)}));
+  }
+  if(!planPts.length){showError('目標点の座標を入力するか、DXFから計画点を取り込んでください。');return;}
   const inst={name:$('instName').value.trim()||'器械点',x:Number($('instX').value),y:Number($('instY').value)};
   const bs={name:$('bsName').value.trim()||'後視',x:Number($('bsX').value),y:Number($('bsY').value)};
   if(![inst.x,inst.y,bs.x,bs.y].every(isFinite)||$('instX').value===''||$('instY').value===''||$('bsX').value===''||$('bsY').value===''){
     showError('器械点・後視点の座標を入力してください。');return;}
   if(inst.x===bs.x&&inst.y===bs.y){showError('器械点と後視点が同じ座標です。');return;}
+  if(planPts.some(p=>p.x===inst.x&&p.y===inst.y)){showError('器械点と同じ座標の目標点は方向を計算できません。');return;}
   const bsAz=azimuth(inst.x,inst.y,bs.x,bs.y);
   const rows=planPts.map(p=>{
     const az=azimuth(inst.x,inst.y,p.x,p.y);
@@ -271,12 +313,34 @@ function render(){
   const tb=$('resRows');tb.innerHTML='';
   rows.forEach(r=>{
     const tr=document.createElement('tr');tr.className='border-b border-slate-50';
-    tr.innerHTML=`<td class="py-1.5 px-2 text-left">${r.name}</td><td class="py-1.5 px-2 text-right">${deg2dms(r.incl)}</td><td class="py-1.5 px-2 text-right text-slate-500">${deg2dms(r.az)}</td><td class="py-1.5 px-2 text-right">${r.dist.toFixed(3)}</td><td class="py-1.5 px-2 text-right text-slate-400">${r.x.toFixed(3)}</td><td class="py-1.5 px-2 text-right text-slate-400">${r.y.toFixed(3)}</td>`;
+    tr.innerHTML=`<td class="py-1.5 px-2 text-left">${escapeHTML(r.name)}</td><td class="py-1.5 px-2 text-right">${deg2dms(r.incl)}</td><td class="py-1.5 px-2 text-right text-slate-500">${deg2dms(r.az)}</td><td class="py-1.5 px-2 text-right">${r.dist.toFixed(3)}</td><td class="py-1.5 px-2 text-right text-slate-400">${r.x.toFixed(3)}</td><td class="py-1.5 px-2 text-right text-slate-400">${r.y.toFixed(3)}</td>`;
     tb.appendChild(tr);
   });
   $('resultSec').classList.remove('hidden');
   $('resultSec').scrollIntoView({behavior:'smooth',block:'start'});
 }
+
+/* ===== DXF: AutoCAD 2007 UTF-8, CAD X=East/Y=North ===== */
+function dxfLabel(name){return String(name).replace(/[\r\n\x00-\x1f]/g,' ').replace(/\\/g,'_');}
+function genDXF(){
+  const scale=Number($('dxfUnits').value),h=Number($('dxfHeight').value);
+  if(![1,1000].includes(scale)||!Number.isFinite(h)||h<=0)throw new Error('点名の文字高さは0より大きい数値で入力してください。');
+  const H=h*scale,offset=H*0.8;
+  const layers=[['CONTROL',1],['SURVEY_PT',3],['SURVEY_TXT',7]];
+  let out=`0\nSECTION\n2\nHEADER\n9\n$ACADVER\n1\nAC1021\n9\n$INSUNITS\n70\n${scale===1000?4:6}\n9\n$PDMODE\n70\n35\n9\n$PDSIZE\n40\n${H*0.4}\n0\nENDSEC\n0\nSECTION\n2\nTABLES\n0\nTABLE\n2\nLAYER\n70\n3\n`;
+  layers.forEach(([name,color])=>out+=`0\nLAYER\n100\nAcDbSymbolTableRecord\n100\nAcDbLayerTableRecord\n2\n${name}\n70\n0\n62\n${color}\n6\nCONTINUOUS\n`);
+  out+='0\nENDTAB\n0\nENDSEC\n0\nSECTION\n2\nENTITIES\n';
+  const refs=$('dxfRefs').checked?[{...result.inst,layer:'CONTROL'},{...result.bs,layer:'CONTROL'}]:[];
+  [...refs,...result.rows.map(p=>({...p,layer:'SURVEY_PT'}))].forEach(p=>{
+    const x=p.y*scale,y=p.x*scale;
+    out+=`0\nPOINT\n100\nAcDbEntity\n8\n${p.layer}\n100\nAcDbPoint\n10\n${x}\n20\n${y}\n30\n0\n`;
+    out+=`0\nTEXT\n100\nAcDbEntity\n8\nSURVEY_TXT\n100\nAcDbText\n10\n${x+offset}\n20\n${y-H/2}\n30\n0\n40\n${H}\n1\n${dxfLabel(p.name)}\n50\n0\n100\nAcDbText\n`;
+  });
+  return out+'0\nENDSEC\n0\nEOF\n';
+}
+function dxfFile(){return new File([genDXF()],'setout_points.dxf',{type:'image/vnd.dxf'});}
+$('exDXF').onclick=()=>{if(!needRes())return;try{downloadBlob(dxfFile(),'setout_points.dxf');}catch(e){showError(e.message);}};
+$('shareDXF').onclick=async()=>{if(!needRes())return;try{const f=dxfFile();if(navigator.canShare&&navigator.canShare({files:[f]})){await navigator.share({files:[f],title:'測量 点・点名DXF'});}else downloadBlob(f,f.name);}catch(e){if(e.name!=='AbortError')showError(e.message);}};
 
 /* ===== 出力 ===== */
 function aoaData(){
@@ -333,14 +397,16 @@ $('exShare').onclick=async()=>{
 };
 
 /* ===== 保存/復元(器械点・後視点だけ) ===== */
-function saveState(){try{localStorage.setItem('hosen_setout_v1',JSON.stringify({inst:{name:$('instName').value,x:$('instX').value,y:$('instY').value},bs:{name:$('bsName').value,x:$('bsX').value,y:$('bsY').value}}));}catch(e){}}
-function loadStateLight(){try{const v=localStorage.getItem('hosen_setout_v1');if(!v)return;const d=JSON.parse(v);if(d.inst){$('instName').value=d.inst.name;$('instX').value=d.inst.x;$('instY').value=d.inst.y;}if(d.bs){$('bsName').value=d.bs.name;$('bsX').value=d.bs.x;$('bsY').value=d.bs.y;}}catch(e){}}
+function saveState(){try{localStorage.setItem('hosen_setout_v1',JSON.stringify({inst:{name:$('instName').value,x:$('instX').value,y:$('instY').value},bs:{name:$('bsName').value,x:$('bsX').value,y:$('bsY').value},manual:manualValues(),mode:$('inputMode').value}));}catch(e){}}
+function loadStateLight(){try{const v=localStorage.getItem('hosen_setout_v1');if(!v)return;const d=JSON.parse(v);if(d.inst){$('instName').value=d.inst.name;$('instX').value=d.inst.x;$('instY').value=d.inst.y;}if(d.bs){$('bsName').value=d.bs.name;$('bsX').value=d.bs.x;$('bsY').value=d.bs.y;}if(Array.isArray(d.manual))d.manual.forEach(addManualRow);}catch(e){}}
 
 $('btnHelp').onclick=()=>$('helpPanel').classList.toggle('hidden');
 $('helpClose').onclick=()=>$('helpPanel').classList.add('hidden');
 $('btnCalc').onclick=calc;
 loadStateLight();
+if(!$('manualRows').children.length)addManualRow();
 updateBsAz();
 </script>
 </body>
 </html>
+
